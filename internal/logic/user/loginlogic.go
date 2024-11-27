@@ -43,12 +43,8 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 		return nil, tokenErr
 	}
 
-	return &types.LoginResponse{
-		Token: accessToken,
-	}, nil
-
 	resp = new(types.LoginResponse)
-	resp.Token = "go-zero"
+	resp.Token = accessToken
 	resp.UserId = 1
 	return resp, nil
 }

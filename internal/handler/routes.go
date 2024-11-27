@@ -24,8 +24,8 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			{
 				// 手机密码登录
 				Method:  http.MethodPost,
-				Path:    "/login-mobile",
-				Handler: user.LoginByMobileHandler(serverCtx),
+				Path:    "/login-mobile-pass",
+				Handler: user.LoginByMobilePassHandler(serverCtx),
 			},
 			{
 				// 用户注册

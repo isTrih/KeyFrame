@@ -66,8 +66,8 @@ service chaozjani {
     post /login (LoginRequest) returns (LoginResponse)
 
     @doc "手机密码登录"
-    @handler LoginByMobileHandler
-    post /login-mobile (LoginMobilePassRequest) returns (LoginResponse)
+    @handler LoginByMobilePassHandler
+    post /login-mobile-pass (LoginMobilePassRequest) returns (LoginResponse)
 }
 
 @server(
@@ -76,6 +76,7 @@ service chaozjani {
     jwt: Auth
     group: user
 )
+
 service chaozjani {
     @doc "获取用户信息 需要鉴权"
     @handler UserInfoHandler
