@@ -1,4 +1,4 @@
-package service
+package utils
 
 import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -10,7 +10,7 @@ import (
 // RedisCheck 验证码验证
 // 示例：
 //
-//	 rds, rds2 := service.RedisCheck(req.Mobile, req.VerifyCode)
+//	 rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
 //		if rds != nil { return nil, rds }
 //		if rds2 != nil { return nil, rds2 }
 func RedisCheck(mobile string, verifyCode string) (error, error) {
@@ -45,7 +45,7 @@ func RedisCheck(mobile string, verifyCode string) (error, error) {
 // RedisStorage 验证码存储
 // 示例：
 //
-//		rdsErr := service.RedisStorage(req.Mobile, 123456, 600)
+//		rdsErr := utils.RedisStorage(req.Mobile, 123456, 600)
 //	 if rdsErr != nil { return nil, rdsErr }
 func RedisStorage(key string, value int, expire int) (err error) {
 	conf := redis.RedisConf{

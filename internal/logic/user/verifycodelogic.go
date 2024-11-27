@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
-	"zerobackend/internal/service"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
+	"zerobackend/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -33,13 +33,13 @@ func (l *VerifyCodeLogic) VerifyCode(req *types.VerifyCodeRequest) (resp *types.
 	code := rand.Intn(900000) + 100000
 
 	// 存储到redis中
-	rdsErr := service.RedisStorage(req.Mobile, code, 600)
+	rdsErr := utils.RedisStorage(req.Mobile, code, 600)
 	if rdsErr != nil {
 		return nil, rdsErr
 	}
 
 	// 发送短信
-	smsErr := service.SendSms(req.Mobile, strconv.Itoa(code))
+	smsErr := utils.SendSms(req.Mobile, strconv.Itoa(code))
 	if smsErr != nil {
 		return nil, smsErr
 	}

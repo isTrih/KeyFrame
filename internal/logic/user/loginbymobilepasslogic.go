@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/zeromicro/x/errors"
 	"time"
-	"zerobackend/internal/service"
+	"zerobackend/internal/utils"
 	"zerobackend/mdl/user/model"
 
 	"zerobackend/internal/svc"
@@ -43,7 +43,7 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	payloads["UID"] = user.Id
 	payloads["UTYPE"] = user.Type
 
-	accessToken, tokenErr := service.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
+	accessToken, tokenErr := utils.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
 	if tokenErr != nil {
 		return nil, tokenErr
 	}

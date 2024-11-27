@@ -9,7 +9,7 @@ import (
 	"github.com/zeromicro/x/errors"
 	"strconv"
 	"time"
-	"zerobackend/internal/service"
+	"zerobackend/internal/utils"
 	"zerobackend/mdl/user/model"
 
 	"zerobackend/internal/svc"
@@ -59,7 +59,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	//	return nil, errors.New(1002, "验证码过期或未获取")
 	//}
 
-	rds, rds2 := service.RedisCheck(req.Mobile, req.VerifyCode)
+	rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
 	if rds != nil {
 		return nil, rds
 	}
@@ -91,7 +91,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	payloads["UID"], _ = user.LastInsertId()
 	payloads["UTYPE"] = 0
 
-	accessToken, tokenErr := service.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
+	accessToken, tokenErr := utils.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
 	if tokenErr != nil {
 		return nil, tokenErr
 	}
