@@ -1,0 +1,84 @@
+syntax = "v1"
+
+info(
+    title: "General Chaozj API"
+    desc: "the api for general chaozj service"
+    author: "Trih"
+    email: "hhh@chaozj.com"
+    version: "v1"
+)
+
+type (
+    RegisterRequest {
+        Username string `json:"username"`
+        Password string `json:"password"`
+        Mobile string `json:"mobile"`
+        VerifyCode string `json:"verifyCode"`
+    }
+    RegisterResponse {
+        UserId int64 `json:"userId"`
+        Token string `json:"token"`
+    }
+    VerifyCodeRequest {
+        Mobile string `json:"mobile"`
+    }
+    VerifyCodeResponse {
+        Status string `json:"status"`
+    }
+    LoginRequest {
+        UserId string `json:"userId"`
+        Password string `json:"password"`
+    }
+    LoginMobilePassRequest {
+        Mobile string `json:"mobile"`
+        Password string `json:"password"`
+    }
+    LoginResponse {
+        UserId int64 `json:"userId"`
+        Token string `json:"token"`
+    }
+    UserInfoResponse {
+        UserId int64 `json:"userId"`
+        Username string `json:"username"`
+        Avatar string `json:"avatar"`
+        Type string `json:"type"`
+    }
+    Auth {
+        Token string `json:"token"`
+    }
+)
+
+@server(
+    prefix: /v1
+    group: user
+)
+service chaozjani {
+    @doc "用户注册"
+    @handler RegisterHandler
+    post /register (RegisterRequest) returns (RegisterResponse)
+
+    @doc "获取验证码"
+    @handler VerifyCodeHandler
+    post /verify-code (VerifyCodeRequest) returns (VerifyCodeResponse)
+
+    @doc "uid账号登录"
+    @handler LoginHandler
+    post /login (LoginRequest) returns (LoginResponse)
+
+    @doc "手机密码登录"
+    @handler LoginByMobileHandler
+    post /login-mobile (LoginMobilePassRequest) returns (LoginResponse)
+}
+
+@server(
+    prefix:    /v1/user
+    signature: true
+    jwt: Auth
+    group: user
+)
+service chaozjani {
+    @doc "获取用户信息 需要鉴权"
+    @handler UserInfoHandler
+    get /info returns (UserInfoResponse)
+}
+
