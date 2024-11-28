@@ -2,12 +2,13 @@ package user
 
 import (
 	"context"
-	"github.com/golang-jwt/jwt/v4"
+	"fmt"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/x/errors"
 	"time"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
+	"zerobackend/internal/utils"
 	"zerobackend/mdl/user/model"
 )
 
@@ -27,38 +28,34 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 }
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
-	// todo: add your logic here and delete this line
+	// 获取用户信息
+	user, err := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.UserId)
+	if err != nil && err != model.ErrNotFound {
+		fmt.Println(err)
+		return nil, errors.New(4001, "查询数据失败")
+	}
+	if user == nil {
+		return nil, errors.New(6021, "用户不存在")
 
-	// 模拟登录逻辑
-	if req.UserId != "go-zero" || req.Password != "123456" {
-		return nil, errors.New(1001, "用户名或密码错误")
 	}
 
-	var userData model.User
-	payloads := make(map[string]any)
-	payloads["userIdentity"] = userData.Id
+	// 校验密码
+	if user.Password != EncryptPassword(req.Password) {
+		return nil, errors.New(6032, "密码错误")
+	}
 
-	accessToken, tokenErr := l.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
+	// 生成token
+	payloads := make(map[string]any)
+	payloads["UID"] = user.Id
+	payloads["UTYPE"] = user.Type
+	accessToken, tokenErr := utils.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
 	if tokenErr != nil {
 		return nil, tokenErr
 	}
 
+	// 返回token
 	resp = new(types.LoginResponse)
 	resp.Token = accessToken
 	resp.UserId = 1
 	return resp, nil
-}
-
-func (l *LoginLogic) GetToken(iat int64, secretKey string, payloads map[string]any, seconds int64) (string, error) {
-	claims := make(jwt.MapClaims)
-	claims["expTime"] = iat + seconds
-	claims["iat"] = iat
-	for k, v := range payloads {
-		claims[k] = v
-	}
-
-	token := jwt.New(jwt.SigningMethodHS256)
-	token.Claims = claims
-
-	return token.SignedString([]byte(secretKey))
 }

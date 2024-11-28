@@ -30,6 +30,7 @@ func NewLoginByMobilePassLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassRequest) (resp *types.LoginResponse, err error) {
+	//获取用户信息
 	user, err := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
@@ -39,6 +40,13 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 		return nil, errors.New(6021, "用户不存在")
 
 	}
+
+	//校验密码
+	if user.Password != EncryptPassword(req.Password) {
+		return nil, errors.New(6032, "密码错误")
+	}
+
+	//生成token
 	payloads := make(map[string]any)
 	payloads["UID"] = user.Id
 	payloads["UTYPE"] = user.Type
@@ -46,10 +54,6 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	accessToken, tokenErr := utils.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
 	if tokenErr != nil {
 		return nil, tokenErr
-	}
-
-	if user.Password != EncryptPassword(req.Password) {
-		return nil, errors.New(6032, "密码错误")
 	}
 
 	//返回正确的token
