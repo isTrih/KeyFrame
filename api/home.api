@@ -1,0 +1,26 @@
+syntax = "v1"
+
+
+
+type (
+    GetIndexFeedsRequest {
+        LastTime int64 `json:"lastTime"`
+    }
+
+    GetIndexFeedsResponse {
+        Status string `json:"status"`
+        Feeds []Article `json:"feeds"`
+    }
+)
+
+
+@server(
+    prefix: /v1/home
+    group: home
+)
+
+service chaozjani {
+    @doc "获取首页信息流"
+    @handler GetIndexFeeds
+    post /get-feeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
+}

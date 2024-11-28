@@ -6,6 +6,9 @@ package handler
 import (
 	"net/http"
 
+	article "zerobackend/internal/handler/article"
+	follow "zerobackend/internal/handler/follow"
+	home "zerobackend/internal/handler/home"
 	user "zerobackend/internal/handler/user"
 	"zerobackend/internal/svc"
 
@@ -15,6 +18,76 @@ import (
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
+			{
+				// 删除帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/delete",
+				Handler: article.DeleteArticleHandler(serverCtx),
+			},
+			{
+				// 创建帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/new",
+				Handler: article.NewArticleHandler(serverCtx),
+			},
+			{
+				// 搜索帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/search",
+				Handler: article.SearchArticleHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/article"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 获取用户的粉丝列表
+				Method:  http.MethodGet,
+				Path:    "/fansList",
+				Handler: follow.GetFansListHandler(serverCtx),
+			},
+			{
+				// 关注/取消关注用户
+				Method:  http.MethodPost,
+				Path:    "/follow",
+				Handler: follow.FollowHandler(serverCtx),
+			},
+			{
+				// 获取用户的关注列表
+				Method:  http.MethodGet,
+				Path:    "/followList",
+				Handler: follow.GetFollowListHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/follow"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 获取首页信息流
+				Method:  http.MethodPost,
+				Path:    "/get-feeds",
+				Handler: home.GetIndexFeedsHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/home"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 更改手机号码
+				Method:  http.MethodPost,
+				Path:    "/change-mobile",
+				Handler: user.ChangeMobileHandler(serverCtx),
+			},
 			{
 				// uid账号登录
 				Method:  http.MethodPost,
@@ -40,13 +113,25 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: user.VerifyCodeHandler(serverCtx),
 			},
 		},
-		rest.WithPrefix("/v1"),
+		rest.WithPrefix("/v1/user"),
 	)
 
 	server.AddRoutes(
 		[]rest.Route{
 			{
-				// 获取用户信息 需要鉴权
+				// 更改用户信息 需要token
+				Method:  http.MethodPost,
+				Path:    "/change-info",
+				Handler: user.ChangeUserInfoHandler(serverCtx),
+			},
+			{
+				// 更改密码 需要token
+				Method:  http.MethodPost,
+				Path:    "/change-password",
+				Handler: user.ChangePasswordHandler(serverCtx),
+			},
+			{
+				// 获取用户信息 需要token
 				Method:  http.MethodGet,
 				Path:    "/info",
 				Handler: user.UserInfoHandler(serverCtx),

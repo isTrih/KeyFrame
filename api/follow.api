@@ -1,0 +1,38 @@
+syntax = "v1"
+
+type (
+    FollowRequest {
+        UserId string `json:"userId"`
+    }
+    FollowResponse {
+        Message string `json:"message"`
+    }
+
+    FollowListResponse {
+        Message string `json:"message"`
+        FollowList []User `json:"followList"`
+    }
+)
+
+@server(
+    prefix:    /v1/follow
+    signature: true
+    jwt: Auth
+    group: follow
+)
+
+
+service chaozjani {
+    @doc "关注/取消关注用户"
+    @handler FollowHandler
+    post /follow (FollowRequest) returns (FollowResponse)
+
+
+    @doc "获取用户的关注列表"
+    @handler GetFollowListHandler
+    get /followList (FollowRequest) returns (FollowListResponse)
+
+    @doc "获取用户的粉丝列表"
+    @handler GetFansListHandler
+    get /fansList (FollowRequest) returns (FollowListResponse)
+}

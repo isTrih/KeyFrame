@@ -43,13 +43,40 @@ type (
         Avatar string `json:"avatar"`
         Type string `json:"type"`
     }
+    ChangeMobileRequest {
+        OldMobile string `json:"oldMobile"`
+        NewMobile string `json:"newMobile"`
+        VerifyCode string `json:"verifyCode"`
+    }
+    ChangeMobileResponse {
+        Status string `json:"status"`
+    }
+)
+
+type (
     Auth {
         Token string `json:"token"`
+    }
+
+    ChangePasswordRequest {
+        OldPassword string `json:"oldPassword"`
+        NewPassword string `json:"newPassword"`
+    }
+    ChangePasswordResponse {
+        Status string `json:"status"`
+    }
+
+    ChangeUserInfoRequest {
+        UserInfo map[string]string `json:"userInfo"`
+    }
+
+    ChangeUserInfoResponse {
+        Status string `json:"status"`
     }
 )
 
 @server(
-    prefix: /v1
+    prefix: /v1/user
     group: user
 )
 service chaozjani {
@@ -68,18 +95,30 @@ service chaozjani {
     @doc "手机密码登录"
     @handler LoginByMobilePassHandler
     post /login-mobile-pass (LoginMobilePassRequest) returns (LoginResponse)
+
+    @doc "更改手机号码"
+    @handler ChangeMobileHandler
+    post /change-mobile (ChangeMobileRequest) returns (ChangeMobileResponse)
 }
 
 @server(
     prefix:    /v1/user
     signature: true
     jwt: Auth
+//    middleware: TokenUpdateMiddleware
     group: user
 )
 
 service chaozjani {
-    @doc "获取用户信息 需要鉴权"
+    @doc "获取用户信息 需要token"
     @handler UserInfoHandler
     get /info returns (UserInfoResponse)
-}
 
+    @doc "更改密码 需要token"
+    @handler ChangePasswordHandler
+    post /change-password (ChangePasswordRequest) returns (ChangePasswordResponse)
+
+    @doc "更改用户信息 需要token"
+    @handler ChangeUserInfoHandler
+    post /change-info (ChangeUserInfoRequest) returns (ChangeUserInfoResponse)
+}

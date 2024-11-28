@@ -3,8 +3,78 @@
 
 package types
 
+type Article struct {
+	Id          uint64 `db:"id"`          // 主键ID
+	Title       string `db:"title"`       // 标题
+	Content     string `db:"content"`     // 内容
+	Cover       string `db:"cover"`       // 封面
+	Description string `db:"description"` // 描述
+	AuthorId    uint64 `db:"author_id"`   // 作者ID
+	Status      int64  `db:"status"`      // 状态 0:待审核 1:审核不通过 2:可见 3:用户删除
+	Type        int64  `db:"type"`        // 状态 0:默认动态 1:纯图片动态 2:文字动态
+	CommentNum  int64  `db:"comment_num"` // 评论数
+	LikeNum     int64  `db:"like_num"`    // 点赞数
+	CollectNum  int64  `db:"collect_num"` // 收藏数
+	ViewNum     int64  `db:"view_num"`    // 浏览数
+	ShareNum    int64  `db:"share_num"`   // 分享数
+	TagIds      string `db:"tag_ids"`     // 标签ID
+}
+
 type Auth struct {
 	Token string `json:"token"`
+}
+
+type ChangeMobileRequest struct {
+	OldMobile  string `json:"oldMobile"`
+	NewMobile  string `json:"newMobile"`
+	VerifyCode string `json:"verifyCode"`
+}
+
+type ChangeMobileResponse struct {
+	Status string `json:"status"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}
+
+type ChangePasswordResponse struct {
+	Status string `json:"status"`
+}
+
+type ChangeUserInfoRequest struct {
+	UserInfo map[string]string `json:"userInfo"`
+}
+
+type ChangeUserInfoResponse struct {
+	Status string `json:"status"`
+}
+
+type DeleteArticleRequest struct {
+	Id uint64 `json:"id"`
+}
+
+type FollowListResponse struct {
+	Message    string `json:"message"`
+	FollowList []User `json:"followList"`
+}
+
+type FollowRequest struct {
+	UserId string `json:"userId"`
+}
+
+type FollowResponse struct {
+	Message string `json:"message"`
+}
+
+type GetIndexFeedsRequest struct {
+	LastTime int64 `json:"lastTime"`
+}
+
+type GetIndexFeedsResponse struct {
+	Status string    `json:"status"`
+	Feeds  []Article `json:"feeds"`
 }
 
 type LoginMobilePassRequest struct {
@@ -22,6 +92,13 @@ type LoginResponse struct {
 	Token  string `json:"token"`
 }
 
+type NewArticleRequest struct {
+	Title       string   `json:"title"`       // 标题
+	Content     string   `json:"content"`     // 内容
+	Cover       []string `json:"cover"`       // 封面
+	Description string   `json:"description"` // 描述
+}
+
 type RegisterRequest struct {
 	Username   string `json:"username"`
 	Password   string `json:"password"`
@@ -32,6 +109,27 @@ type RegisterRequest struct {
 type RegisterResponse struct {
 	UserId int64  `json:"userId"`
 	Token  string `json:"token"`
+}
+
+type SearchArticleRequest struct {
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	Tag    string `json:"tag"`
+}
+
+type SearchArticleResponse struct {
+	Articles []Article `json:"articles"`
+}
+
+type StatusResponse struct {
+	Status string `json:"status"`
+}
+
+type User struct {
+	Nickname  string `db:"nickname"`  // 昵称
+	Signature string `db:"signature"` // 简介
+	Avatar    string `db:"avatar"`    // 头像
+	Type      int64  `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 }
 
 type UserInfoResponse struct {
