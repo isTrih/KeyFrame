@@ -37,27 +37,6 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 
 	mobileInt, _ := strconv.ParseUint(req.Mobile, 10, 64)
 	var user sql.Result
-	//conf := redis.RedisConf{
-	//	Host:        "106.54.6.216:6379",
-	//	Type:        "node",
-	//	Pass:        "chaozj123123.",
-	//	Tls:         false,
-	//	NonBlock:    false,
-	//	PingTimeout: time.Second,
-	//}
-	//rds := redis.MustNewRedis(conf)
-	//code, rdserr := rds.Get(req.Mobile)
-	//if rdserr != nil {
-	//	logc.Error(l.ctx, err)
-	//}
-	//if code != req.VerifyCode && code != "" {
-	//	fmt.Println(code)
-	//	return nil, errors.New(1001, "验证码错误")
-	//}
-	//if code == "" {
-	//	fmt.Println(code)
-	//	return nil, errors.New(1002, "验证码过期或未获取")
-	//}
 
 	rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
 	if rds != nil {

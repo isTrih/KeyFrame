@@ -44,7 +44,9 @@ type ChangePasswordResponse struct {
 }
 
 type ChangeUserInfoRequest struct {
-	UserInfo map[string]string `json:"userInfo"`
+	Nickname  string `db:"nickname"`  // 昵称
+	Signature string `db:"signature"` // 简介
+	Avatar    string `db:"avatar"`    // 头像
 }
 
 type ChangeUserInfoResponse struct {

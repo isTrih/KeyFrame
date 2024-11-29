@@ -16,7 +16,7 @@ type (
         VerifyCode string `json:"verifyCode"`
     }
     RegisterResponse {
-        UserId int64 `json:"userId"`
+        UserId uint64 `json:"userId"`
         Token string `json:"token"`
     }
     VerifyCodeRequest {
@@ -26,7 +26,7 @@ type (
         Status string `json:"status"`
     }
     LoginRequest {
-        UserId string `json:"userId"`
+        UserId uint64 `json:"userId"`
         Password string `json:"password"`
     }
     LoginMobilePassRequest {
@@ -34,14 +34,14 @@ type (
         Password string `json:"password"`
     }
     LoginResponse {
-        UserId int64 `json:"userId"`
+        UserId uint64 `json:"userId"`
         Token string `json:"token"`
     }
     UserInfoResponse {
-        UserId int64 `json:"userId"`
+        UserId uint64 `json:"userId"`
         Username string `json:"username"`
         Avatar string `json:"avatar"`
-        Type string `json:"type"`
+        Type uint8 `json:"type"`
     }
     ChangeMobileRequest {
         OldMobile string `json:"oldMobile"`
@@ -67,7 +67,9 @@ type (
     }
 
     ChangeUserInfoRequest {
-        UserInfo map[string]string `json:"userInfo"`
+        Nickname string `db:"nickname"`   // 昵称
+        Signature string `db:"signature"` // 简介
+        Avatar string `db:"avatar"`       // 头像
     }
 
     ChangeUserInfoResponse {
@@ -102,10 +104,10 @@ service chaozjani {
 }
 
 @server(
-    prefix:    /v1/user
+    prefix: /v1/user
     signature: true
     jwt: Auth
-//    middleware: TokenUpdateMiddleware
+    //    middleware: TokenUpdateMiddleware
     group: user
 )
 

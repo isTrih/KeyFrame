@@ -46,7 +46,7 @@ func (l *UserInfoLogic) UserInfo() (resp *types.UserInfoResponse, err error) {
 	resp = new(types.UserInfoResponse)
 	resp.UserId = int64(user.Id)
 	resp.Username = user.Nickname
-	resp.Avatar = user.Mobile
+	resp.Avatar = user.Avatar
 	resp.Type = strconv.FormatInt(utype, 10)
 	return
 }

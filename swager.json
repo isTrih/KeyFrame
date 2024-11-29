@@ -17,7 +17,335 @@
     "application/json"
   ],
   "paths": {
-    "/v1/login": {
+    "/v1/article/delete": {
+      "post": {
+        "summary": "删除帧（文章）",
+        "operationId": "DeleteArticle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/StatusResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteArticleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "article"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/article/new": {
+      "post": {
+        "summary": "创建帧（文章）",
+        "operationId": "NewArticle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/StatusResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NewArticleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "article"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/article/search": {
+      "post": {
+        "summary": "搜索帧（文章）",
+        "operationId": "SearchArticle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/SearchArticleResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SearchArticleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "article"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/follow/fansList": {
+      "get": {
+        "summary": "获取用户的粉丝列表",
+        "operationId": "GetFansListHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/FollowListResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "follow"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/follow/follow": {
+      "post": {
+        "summary": "关注/取消关注用户",
+        "operationId": "FollowHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/FollowResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FollowRequest"
+            }
+          }
+        ],
+        "tags": [
+          "follow"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/follow/followList": {
+      "get": {
+        "summary": "获取用户的关注列表",
+        "operationId": "GetFollowListHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/FollowListResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "follow"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/home/get-feeds": {
+      "post": {
+        "summary": "获取首页信息流",
+        "operationId": "GetIndexFeeds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetIndexFeedsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetIndexFeedsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "home"
+        ]
+      }
+    },
+    "/v1/user/change-info": {
+      "post": {
+        "summary": "更改用户信息 需要token",
+        "operationId": "ChangeUserInfoHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ChangeUserInfoResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserInfoRequest"
+            }
+          }
+        ],
+        "tags": [
+          "user"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/user/change-mobile": {
+      "post": {
+        "summary": "更改手机号码",
+        "operationId": "ChangeMobileHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ChangeMobileResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeMobileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "user"
+        ]
+      }
+    },
+    "/v1/user/change-password": {
+      "post": {
+        "summary": "更改密码 需要token",
+        "operationId": "ChangePasswordHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ChangePasswordResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangePasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "user"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/user/info": {
+      "get": {
+        "summary": "获取用户信息 需要token",
+        "operationId": "UserInfoHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/UserInfoResponse"
+            }
+          }
+        },
+        "tags": [
+          "user"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/user/login": {
       "post": {
         "summary": "uid账号登录",
         "operationId": "LoginHandler",
@@ -44,7 +372,7 @@
         ]
       }
     },
-    "/v1/login-mobile-pass": {
+    "/v1/user/login-mobile-pass": {
       "post": {
         "summary": "手机密码登录",
         "operationId": "LoginByMobilePassHandler",
@@ -71,7 +399,7 @@
         ]
       }
     },
-    "/v1/register": {
+    "/v1/user/register": {
       "post": {
         "summary": "用户注册",
         "operationId": "RegisterHandler",
@@ -98,29 +426,7 @@
         ]
       }
     },
-    "/v1/user/info": {
-      "get": {
-        "summary": "获取用户信息 需要鉴权",
-        "operationId": "UserInfoHandler",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/UserInfoResponse"
-            }
-          }
-        },
-        "tags": [
-          "user"
-        ],
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      }
-    },
-    "/v1/verify-code": {
+    "/v1/user/verify-code": {
       "post": {
         "summary": "获取验证码",
         "operationId": "VerifyCodeHandler",
@@ -149,6 +455,93 @@
     }
   },
   "definitions": {
+    "Article": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 主键ID"
+        },
+        "Title": {
+          "type": "string",
+          "description": " 标题"
+        },
+        "Content": {
+          "type": "string",
+          "description": " 内容"
+        },
+        "Cover": {
+          "type": "string",
+          "description": " 封面"
+        },
+        "Description": {
+          "type": "string",
+          "description": " 描述"
+        },
+        "AuthorId": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 作者ID"
+        },
+        "Status": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 状态 0:待审核 1:审核不通过 2:可见 3:用户删除"
+        },
+        "Type": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 状态 0:默认动态 1:纯图片动态 2:文字动态"
+        },
+        "CommentNum": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 评论数"
+        },
+        "LikeNum": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 点赞数"
+        },
+        "CollectNum": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 收藏数"
+        },
+        "ViewNum": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 浏览数"
+        },
+        "ShareNum": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 分享数"
+        },
+        "TagIds": {
+          "type": "string",
+          "description": " 标签ID"
+        }
+      },
+      "title": "Article",
+      "required": [
+        "id",
+        "title",
+        "content",
+        "cover",
+        "description",
+        "author_id",
+        "status",
+        "type",
+        "comment_num",
+        "like_num",
+        "collect_num",
+        "view_num",
+        "share_num",
+        "tag_ids"
+      ]
+    },
     "Auth": {
       "type": "object",
       "properties": {
@@ -159,6 +552,189 @@
       "title": "Auth",
       "required": [
         "token"
+      ]
+    },
+    "ChangeMobileRequest": {
+      "type": "object",
+      "properties": {
+        "oldMobile": {
+          "type": "string"
+        },
+        "newMobile": {
+          "type": "string"
+        },
+        "verifyCode": {
+          "type": "string"
+        }
+      },
+      "title": "ChangeMobileRequest",
+      "required": [
+        "oldMobile",
+        "newMobile",
+        "verifyCode"
+      ]
+    },
+    "ChangeMobileResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "ChangeMobileResponse",
+      "required": [
+        "status"
+      ]
+    },
+    "ChangePasswordRequest": {
+      "type": "object",
+      "properties": {
+        "oldPassword": {
+          "type": "string"
+        },
+        "newPassword": {
+          "type": "string"
+        }
+      },
+      "title": "ChangePasswordRequest",
+      "required": [
+        "oldPassword",
+        "newPassword"
+      ]
+    },
+    "ChangePasswordResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "ChangePasswordResponse",
+      "required": [
+        "status"
+      ]
+    },
+    "ChangeUserInfoRequest": {
+      "type": "object",
+      "properties": {
+        "Nickname": {
+          "type": "string",
+          "description": " 昵称"
+        },
+        "Signature": {
+          "type": "string",
+          "description": " 简介"
+        },
+        "Avatar": {
+          "type": "string",
+          "description": " 头像"
+        }
+      },
+      "title": "ChangeUserInfoRequest",
+      "required": [
+        "nickname",
+        "signature",
+        "avatar"
+      ]
+    },
+    "ChangeUserInfoResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "ChangeUserInfoResponse",
+      "required": [
+        "status"
+      ]
+    },
+    "DeleteArticleRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "DeleteArticleRequest",
+      "required": [
+        "id"
+      ]
+    },
+    "FollowListResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "followList": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/User"
+          }
+        }
+      },
+      "title": "FollowListResponse",
+      "required": [
+        "message",
+        "followList"
+      ]
+    },
+    "FollowRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        }
+      },
+      "title": "FollowRequest",
+      "required": [
+        "userId"
+      ]
+    },
+    "FollowResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "FollowResponse",
+      "required": [
+        "message"
+      ]
+    },
+    "GetIndexFeedsRequest": {
+      "type": "object",
+      "properties": {
+        "lastTime": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "GetIndexFeedsRequest",
+      "required": [
+        "lastTime"
+      ]
+    },
+    "GetIndexFeedsResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "feeds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Article"
+          }
+        }
+      },
+      "title": "GetIndexFeedsResponse",
+      "required": [
+        "status",
+        "feeds"
       ]
     },
     "LoginMobilePassRequest": {
@@ -210,6 +786,37 @@
         "token"
       ]
     },
+    "NewArticleRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": " 标题"
+        },
+        "content": {
+          "type": "string",
+          "description": " 内容"
+        },
+        "cover": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": " 封面"
+        },
+        "description": {
+          "type": "string",
+          "description": " 描述"
+        }
+      },
+      "title": "NewArticleRequest",
+      "required": [
+        "title",
+        "content",
+        "cover",
+        "description"
+      ]
+    },
     "RegisterRequest": {
       "type": "object",
       "properties": {
@@ -249,6 +856,82 @@
       "required": [
         "userId",
         "token"
+      ]
+    },
+    "SearchArticleRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
+      "title": "SearchArticleRequest",
+      "required": [
+        "title",
+        "author",
+        "tag"
+      ]
+    },
+    "SearchArticleResponse": {
+      "type": "object",
+      "properties": {
+        "articles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Article"
+          }
+        }
+      },
+      "title": "SearchArticleResponse",
+      "required": [
+        "articles"
+      ]
+    },
+    "StatusResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "StatusResponse",
+      "required": [
+        "status"
+      ]
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "Nickname": {
+          "type": "string",
+          "description": " 昵称"
+        },
+        "Signature": {
+          "type": "string",
+          "description": " 简介"
+        },
+        "Avatar": {
+          "type": "string",
+          "description": " 头像"
+        },
+        "Type": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户"
+        }
+      },
+      "title": "User",
+      "required": [
+        "nickname",
+        "signature",
+        "avatar",
+        "type"
       ]
     },
     "UserInfoResponse": {
