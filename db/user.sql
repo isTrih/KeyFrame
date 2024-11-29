@@ -7,6 +7,7 @@ CREATE TABLE `user`
     `avatar`      varchar(256)        NOT NULL DEFAULT '' COMMENT '头像',
     `type`        tinyint(4)          NOT NULL DEFAULT '0' COMMENT '状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户',
     `mobile`      varchar(128)        NOT NULL DEFAULT '' COMMENT '手机号',
+    `status`      tinyint(4)          NOT NULL DEFAULT '0' COMMENT '状态 0:正常 1:禁用 2:删除',
     `create_time` timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_time` timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后修改时间',
     PRIMARY KEY (`id`),

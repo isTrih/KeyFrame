@@ -13,3 +13,6 @@ Auth:
   AccessSecret: chaozjtmhhhh
   AccessExpire: 604800
 
+Redis:
+  host: 106.54.6.216:6379
+  pass: chaozj123123.

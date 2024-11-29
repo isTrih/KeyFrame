@@ -16,5 +16,10 @@ type Config struct {
 	DB struct {
 		DataSource string // 数据源
 	}
+
+	RDS struct {
+		Host string
+		Port string
+	}
 	Cache cache.CacheConf // 配置文件中添加一个 Cache 字段，用来配置Redis缓存相关的配置
 }

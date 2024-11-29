@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/x/errors"
+	"strconv"
 	"time"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -29,7 +30,8 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	// 获取用户信息
-	user, err := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.UserId)
+	unintUid, _ := strconv.ParseUint(req.UserId, 10, 64)
+	user, err := l.svcCtx.UserModel.FindOne(l.ctx, unintUid)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
 		return nil, errors.New(4001, "查询数据失败")

@@ -13,20 +13,20 @@ type (
 		Cover       string `db:"cover"` // 封面
 		Description string `db:"description"` // 描述
 		AuthorId    uint64 `db:"author_id"` // 作者ID
-		Status      int64  `db:"status"` // 状态 0:待审核 1:审核不通过 2:可见 3:用户删除
-		Type        int64  `db:"type"` // 状态 0:默认动态 1:纯图片动态 2:文字动态
-		CommentNum  int64  `db:"comment_num"` // 评论数
-		LikeNum     int64  `db:"like_num"` // 点赞数
-		CollectNum  int64  `db:"collect_num"` // 收藏数
-		ViewNum     int64  `db:"view_num"` // 浏览数
-		ShareNum    int64  `db:"share_num"` // 分享数
+		Status      uint8  `db:"status"` // 状态 0:待审核 1:审核不通过 2:可见 3:用户删除
+		Type        uint64  `db:"type"` // 状态 0:默认动态 1:纯图片动态 2:文字动态
+		CommentNum  uint64  `db:"comment_num"` // 评论数
+		LikeNum     uint64  `db:"like_num"` // 点赞数
+		CollectNum  uint64  `db:"collect_num"` // 收藏数
+		ViewNum     uint64  `db:"view_num"` // 浏览数
+		ShareNum    uint64  `db:"share_num"` // 分享数
 		TagIds      string `db:"tag_ids"` // 标签ID
 	}
 	User {
 		Nickname  string `db:"nickname"` // 昵称
 		Signature string `db:"signature"` // 简介
 		Avatar    string `db:"avatar"` // 头像
-		Type      int64  `db:"type"` // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+		Type      uint8  `db:"type"` // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 	}
 )
 
