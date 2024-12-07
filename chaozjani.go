@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"zerobackend/internal/config"
 	"zerobackend/internal/handler"
@@ -20,7 +21,18 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	server := rest.MustNewServer(c.RestConf)
+	// 设置允许跨域的域名
+	//# 需要通过的域名，这里可以写多个域名 或者可以写 * 全部通过
+	//"http://127.0.0.1", "https://go-zero.dev", "http://localhost", "*.chaozj.com", "https://ani.chaozj.com"}
+	domains := []string{"*"}
+	server := rest.MustNewServer(
+		c.RestConf,
+		rest.WithCors(domains...),
+		rest.WithCustomCors(func(header http.Header) {
+			header.Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token,Authorization,Token,X-Token,X-User-Id,OS,Platform, Version")
+			header.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
+			header.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
+		}, nil, "*"))
 	defer server.Stop()
 
 	ctx := svc.NewServiceContext(c)

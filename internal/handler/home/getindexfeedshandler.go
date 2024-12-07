@@ -10,7 +10,7 @@ import (
 	"zerobackend/internal/types"
 )
 
-// 获取首页信息流
+// GetIndexFeedsHandler 获取首页信息流
 func GetIndexFeedsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GetIndexFeedsRequest

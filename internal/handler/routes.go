@@ -6,6 +6,8 @@ package handler
 import (
 	"net/http"
 
+	adminfeed "zerobackend/internal/handler/adminfeed"
+	adminuser "zerobackend/internal/handler/adminuser"
 	article "zerobackend/internal/handler/article"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
@@ -16,6 +18,52 @@ import (
 )
 
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 封禁动态
+				Method:  http.MethodPost,
+				Path:    "/feed/ban",
+				Handler: adminfeed.BanFeedHandler(serverCtx),
+			},
+			{
+				// 解禁动态
+				Method:  http.MethodPost,
+				Path:    "/feed/unban",
+				Handler: adminfeed.UnBanFeedHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/admin"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 封禁用户
+				Method:  http.MethodPost,
+				Path:    "/user/ban",
+				Handler: adminuser.BanUserHandler(serverCtx),
+			},
+			{
+				// 改变用户权限
+				Method:  http.MethodPost,
+				Path:    "/user/changetype",
+				Handler: adminuser.ChangeFeedStatusHandler(serverCtx),
+			},
+			{
+				// 解禁用户
+				Method:  http.MethodPost,
+				Path:    "/user/unban",
+				Handler: adminuser.UnBanUserHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/admin"),
+	)
+
 	server.AddRoutes(
 		[]rest.Route{
 			{

@@ -3,21 +3,27 @@
 
 package types
 
+type AdminRes struct {
+	Status   string `json:"status"`
+	Operator string `json:"operator"`
+}
+
 type Article struct {
 	Id          uint64 `db:"id"`          // 主键ID
 	Title       string `db:"title"`       // 标题
 	Content     string `db:"content"`     // 内容
-	Cover       string `db:"cover"`       // 封面
+	Media       string `db:"media"`       // 媒体资源
 	Description string `db:"description"` // 描述
 	AuthorId    uint64 `db:"author_id"`   // 作者ID
 	Status      int64  `db:"status"`      // 状态 0:待审核 1:审核不通过 2:可见 3:用户删除
-	Type        int64  `db:"type"`        // 状态 0:默认动态 1:纯图片动态 2:文字动态
+	Type        int64  `db:"type"`        // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
 	CommentNum  int64  `db:"comment_num"` // 评论数
 	LikeNum     int64  `db:"like_num"`    // 点赞数
 	CollectNum  int64  `db:"collect_num"` // 收藏数
 	ViewNum     int64  `db:"view_num"`    // 浏览数
 	ShareNum    int64  `db:"share_num"`   // 分享数
 	TagIds      string `db:"tag_ids"`     // 标签ID
+	User        string `db:"user"`
 }
 
 type Auth struct {
@@ -53,8 +59,30 @@ type ChangeUserInfoResponse struct {
 	Status string `json:"status"`
 }
 
+type ChangeUserTypeRequest struct {
+	UserId string `json:"user_id"`
+	Type   uint8  `json:"type"`
+}
+
 type DeleteArticleRequest struct {
 	Id uint64 `json:"id"`
+}
+
+type Feed struct {
+	Title     string    `json:"title"`
+	Id        uint64    `json:"id"`
+	MediaUrl  string    `json:"media_url"`
+	MediaInfo MediaInfo `json:"media"`
+	ViewNum   uint32    `json:"view_num"`
+	LikeNum   uint32    `json:"like_num"`
+	Loaded    bool      `json:"loaded"`
+	User      FeedUser  `json:"user"`
+}
+
+type FeedUser struct {
+	Id       uint64 `json:"id"`
+	UserName string `json:"user_name"`
+	Avatar   string `json:"avatar"`
 }
 
 type FollowListResponse struct {
@@ -71,12 +99,13 @@ type FollowResponse struct {
 }
 
 type GetIndexFeedsRequest struct {
-	LastTime int64 `json:"lastTime"`
+	Offset uint64 `json:"offset"`
+	Query  string `json:"query"`
 }
 
 type GetIndexFeedsResponse struct {
-	Status string    `json:"status"`
-	Feeds  []Article `json:"feeds"`
+	Status string `json:"status"`
+	Feeds  []Feed `json:"feeds"`
 }
 
 type LoginMobilePassRequest struct {
@@ -85,19 +114,24 @@ type LoginMobilePassRequest struct {
 }
 
 type LoginRequest struct {
-	UserId   string `json:"userId"`
+	UserId   uint64 `json:"userId"`
 	Password string `json:"password"`
 }
 
 type LoginResponse struct {
-	UserId int64  `json:"userId"`
+	UserId uint64 `json:"userId"`
 	Token  string `json:"token"`
+}
+
+type MediaInfo struct {
+	Width  uint32 `json:"width"`
+	Height uint32 `json:"height"`
 }
 
 type NewArticleRequest struct {
 	Title       string   `json:"title"`       // 标题
 	Content     string   `json:"content"`     // 内容
-	Cover       []string `json:"cover"`       // 封面
+	Media       []string `json:"媒体资源"`        // 封面
 	Description string   `json:"description"` // 描述
 }
 
@@ -109,7 +143,7 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	UserId int64  `json:"userId"`
+	UserId uint64 `json:"userId"`
 	Token  string `json:"token"`
 }
 
@@ -131,14 +165,15 @@ type User struct {
 	Nickname  string `db:"nickname"`  // 昵称
 	Signature string `db:"signature"` // 简介
 	Avatar    string `db:"avatar"`    // 头像
-	Type      int64  `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+	Type      uint8  `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 }
 
 type UserInfoResponse struct {
-	UserId   int64  `json:"userId"`
+	UserId   uint64 `json:"userId"`
 	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
-	Type     string `json:"type"`
+	Type     uint8  `json:"type"`
+	Status   uint8  `json:"status"`
 }
 
 type VerifyCodeRequest struct {

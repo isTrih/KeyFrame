@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/x/errors"
-	"strconv"
 	"time"
 	"zerobackend/internal/utils"
-	"zerobackend/mdl/user/model"
+	model "zerobackend/mdl/user"
 
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -35,7 +34,6 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 
 func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
 
-	mobileInt, _ := strconv.ParseUint(req.Mobile, 10, 64)
 	var user sql.Result
 
 	rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
@@ -46,7 +44,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		return nil, rds2
 	}
 
-	check, checkerr := l.svcCtx.UserModel.FindOneBymobile(l.ctx, mobileInt)
+	check, checkerr := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
 	if checkerr != nil && checkerr != model.ErrNotFound {
 		fmt.Println(checkerr)
 		return nil, errors.New(4001, "查询数据失败")
@@ -67,15 +65,18 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 		return nil, errors.New(6012, "用户已存在")
 	}
 	payloads := make(map[string]any)
+	uid, _ := user.LastInsertId()
+	uintUid := uint64(uid)
 	payloads["UID"], _ = user.LastInsertId()
 	payloads["UTYPE"] = 0
+	payloads["USTATUS"] = 0
 
 	accessToken, tokenErr := utils.GetToken(time.Now().Unix(), l.svcCtx.Config.Auth.AccessSecret, payloads, l.svcCtx.Config.Auth.AccessExpire)
 	if tokenErr != nil {
 		return nil, tokenErr
 	}
 	resp = new(types.RegisterResponse)
-	resp.UserId, _ = user.LastInsertId()
+	resp.UserId = uintUid
 	resp.Token = accessToken
 	return resp, nil
 }

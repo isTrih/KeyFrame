@@ -4,7 +4,7 @@ type (
     NewArticleRequest {
         Title string `json:"title"`                // 标题
         Content string `json:"content"`            // 内容
-        Cover []string `json:"cover"`              // 封面
+        Media []string `json:"媒体资源"`              // 封面
         Description string `json:"description"`    // 描述
     }
 

@@ -1,0 +1,56 @@
+syntax = "v1"
+
+type (
+    AdminRes {
+        //状态
+        Status string `json:"status"`
+        //操作人
+        Operator string `json:"operator"`
+    }
+)
+
+type (
+    ChangeUserTypeRequest {
+        //用户id
+        UserId string `json:"user_id"`
+        //权限类型
+        Type uint8 `json:"type"`
+    }
+)
+@server(
+    prefix: /v1/admin
+    group: adminuser
+    signature: true
+    jwt: Auth
+)
+
+service chaozjani {
+    @doc "改变用户权限"
+    @handler ChangeFeedStatus
+    post /user/changetype (ChangeUserTypeRequest) returns (AdminRes)
+
+    @doc "封禁用户"
+    @handler BanUser
+    post /user/ban (ChangeUserTypeRequest) returns (AdminRes)
+
+    @doc "解禁用户"
+    @handler UnBanUser
+    post /user/unban (ChangeUserTypeRequest) returns (AdminRes)
+}
+
+@server(
+    prefix: /v1/admin
+    group: adminfeed
+    signature: true
+    jwt: Auth
+)
+
+service chaozjani {
+    @doc "封禁动态"
+    @handler BanFeed
+    post /feed/ban (ChangeUserTypeRequest) returns (AdminRes)
+
+    @doc "解禁动态"
+    @handler UnBanFeed
+    post /feed/unban (ChangeUserTypeRequest) returns (AdminRes)
+}

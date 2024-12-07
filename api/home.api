@@ -1,15 +1,44 @@
 syntax = "v1"
+type (
+    MediaInfo {
+        Width uint32 `json:"width"`
+        Height uint32 `json:"height"`
+    }
 
 
+        // 文章作者
+    FeedUser {
+        Id uint64 `json:"id"`
+        UserName string `json:"user_name"`
+        Avatar string `json:"avatar"`
+    }
+
+        // 文章
+    Feed {
+        Title string `json:"title"`
+        Id uint64 `json:"id"`
+        MediaUrl string `json:"media_url"`
+        MediaInfo MediaInfo `json:"media"`
+        ViewNum uint32 `json:"view_num"`
+        LikeNum uint32 `json:"like_num"`
+        Loaded bool `json:"loaded"`
+        User FeedUser `json:"user"`
+    }
+)
+
+type (
+
+)
 
 type (
     GetIndexFeedsRequest {
-        LastTime int64 `json:"lastTime"`
+        offset uint64 `json:"offset"`
+        query string `json:"query"`
     }
 
     GetIndexFeedsResponse {
         Status string `json:"status"`
-        Feeds []Article `json:"feeds"`
+        Feeds []Feed `json:"feeds"`
     }
 )
 

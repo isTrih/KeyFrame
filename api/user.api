@@ -42,6 +42,7 @@ type (
         Username string `json:"username"`
         Avatar string `json:"avatar"`
         Type uint8 `json:"type"`
+        Status uint8 `json:"status"`
     }
     ChangeMobileRequest {
         OldMobile string `json:"oldMobile"`
