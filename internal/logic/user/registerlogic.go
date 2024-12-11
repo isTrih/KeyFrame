@@ -55,6 +55,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 			Nickname:  req.Username,
 			Password:  EncryptPassword(req.Password),
 			Signature: "CHAOZJ",
+			Avatar:    "https://coss.chaozj.com/default/avatar.jpg",
 		})
 		if err != nil {
 			fmt.Println(err)
@@ -77,7 +78,11 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	}
 	resp = new(types.RegisterResponse)
 	resp.UserId = uintUid
+	resp.UserName = req.Username
+	resp.Avatar = "https://coss.chaozj.com/default/avatar.jpg"
+	resp.Signature = "CHAOZJ"
 	resp.Token = accessToken
+	resp.UserType = 0
 	return resp, nil
 }
 

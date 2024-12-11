@@ -18,6 +18,10 @@ type (
     RegisterResponse {
         UserId uint64 `json:"userId"`
         Token string `json:"token"`
+        UserName string `json:"username"`
+        Avatar string `json:"avatar"`
+        Signature string `json:"signature"`
+        UserType uint8 `json:"type"`
     }
     VerifyCodeRequest {
         Mobile string `json:"mobile"`
@@ -35,6 +39,10 @@ type (
     }
     LoginResponse {
         UserId uint64 `json:"userId"`
+        UserName string `json:"username"`
+        Avatar string `json:"avatar"`
+        Signature string `json:"signature"`
+        UserType uint8 `json:"type"`
         Token string `json:"token"`
     }
     UserInfoResponse {

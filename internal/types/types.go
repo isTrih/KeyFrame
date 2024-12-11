@@ -119,8 +119,12 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	UserId uint64 `json:"userId"`
-	Token  string `json:"token"`
+	UserId    uint64 `json:"userId"`
+	UserName  string `json:"username"`
+	Avatar    string `json:"avatar"`
+	Signature string `json:"signature"`
+	UserType  uint8  `json:"type"`
+	Token     string `json:"token"`
 }
 
 type MediaInfo struct {
@@ -143,8 +147,12 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	UserId uint64 `json:"userId"`
-	Token  string `json:"token"`
+	UserId    uint64 `json:"userId"`
+	Token     string `json:"token"`
+	UserName  string `json:"username"`
+	Avatar    string `json:"avatar"`
+	Signature string `json:"signature"`
+	UserType  uint8  `json:"type"`
 }
 
 type SearchArticleRequest struct {

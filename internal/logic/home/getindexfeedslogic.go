@@ -37,8 +37,10 @@ func (l *GetIndexFeedsLogic) GetIndexFeeds(req *types.GetIndexFeedsRequest) (res
 		if slices.Contains(tmp, v.Id) == false {
 			tmp = append(tmp, v.Id)
 			feeds = append(feeds, types.Feed{
-				Id:    v.Id,
-				Title: v.Title,
+				Id:      v.Id,
+				Title:   v.Title,
+				ViewNum: v.Views,
+				LikeNum: v.Likes,
 				User: types.FeedUser{
 					Id:       v.AuthorId,
 					UserName: v.UserName,

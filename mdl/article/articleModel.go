@@ -50,7 +50,7 @@ func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query
 	var list []*Feeds
 	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
 	sql := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.status = 2 order by a.update_time desc limit 10 offset %d", row, m.table, offset)
-	if len(query) == 0 {
+	if len(query) != 0 {
 		sql = fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.status = 2 and %s order by a.update_time desc limit 10 offset %d", row, m.table, query, offset)
 	}
 
