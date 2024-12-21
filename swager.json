@@ -17,6 +17,166 @@
     "application/json"
   ],
   "paths": {
+    "/v1/admin/feed/ban": {
+      "post": {
+        "summary": "封禁动态",
+        "operationId": "BanFeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AdminRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "adminfeed"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/admin/feed/unban": {
+      "post": {
+        "summary": "解禁动态",
+        "operationId": "UnBanFeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AdminRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "adminfeed"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/admin/user/ban": {
+      "post": {
+        "summary": "封禁用户",
+        "operationId": "BanUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AdminRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "adminuser"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/admin/user/changetype": {
+      "post": {
+        "summary": "改变用户权限",
+        "operationId": "ChangeFeedStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AdminRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "adminuser"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/admin/user/unban": {
+      "post": {
+        "summary": "解禁用户",
+        "operationId": "UnBanUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/AdminRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserTypeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "adminuser"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
     "/v1/article/delete": {
       "post": {
         "summary": "删除帧（文章）",
@@ -36,6 +196,38 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/DeleteArticleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "article"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/article/detail": {
+      "post": {
+        "summary": "帧（文章）详情",
+        "operationId": "GetArticle",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetArticleResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetArticleRequest"
             }
           }
         ],
@@ -127,7 +319,7 @@
         },
         "parameters": [
           {
-            "name": "userId",
+            "name": "user_id",
             "in": "query",
             "required": true,
             "type": "string"
@@ -189,7 +381,7 @@
         },
         "parameters": [
           {
-            "name": "userId",
+            "name": "user_id",
             "in": "query",
             "required": true,
             "type": "string"
@@ -225,6 +417,46 @@
             "schema": {
               "$ref": "#/definitions/GetIndexFeedsRequest"
             }
+          }
+        ],
+        "tags": [
+          "home"
+        ]
+      }
+    },
+    "/v1/home/userfeeds": {
+      "get": {
+        "summary": "获取用户信息 需要token",
+        "operationId": "UserFeeds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetIndexFeedsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "feed_type",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "uint8"
           }
         ],
         "tags": [
@@ -324,8 +556,8 @@
       }
     },
     "/v1/user/info": {
-      "get": {
-        "summary": "获取用户信息 需要token",
+      "post": {
+        "summary": "获取用户信息 不需要token",
         "operationId": "UserInfoHandler",
         "responses": {
           "200": {
@@ -335,13 +567,18 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserInfoRequest"
+            }
+          }
+        ],
         "tags": [
           "user"
-        ],
-        "security": [
-          {
-            "apiKey": []
-          }
         ]
       }
     },
@@ -426,6 +663,28 @@
         ]
       }
     },
+    "/v1/user/relation": {
+      "get": {
+        "summary": "获取用户关注、收藏、点赞列表",
+        "operationId": "UserRelationHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/UserRelationResponse"
+            }
+          }
+        },
+        "tags": [
+          "user"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
     "/v1/user/verify-code": {
       "post": {
         "summary": "获取验证码",
@@ -455,6 +714,22 @@
     }
   },
   "definitions": {
+    "AdminRes": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "title": "AdminRes",
+      "required": [
+        "status",
+        "operator"
+      ]
+    },
     "Article": {
       "type": "object",
       "properties": {
@@ -561,10 +836,10 @@
     "ChangeMobileRequest": {
       "type": "object",
       "properties": {
-        "oldMobile": {
+        "old_mobile": {
           "type": "string"
         },
-        "newMobile": {
+        "new_mobile": {
           "type": "string"
         },
         "verifyCode": {
@@ -573,8 +848,8 @@
       },
       "title": "ChangeMobileRequest",
       "required": [
-        "oldMobile",
-        "newMobile",
+        "old_mobile",
+        "new_mobile",
         "verifyCode"
       ]
     },
@@ -593,17 +868,17 @@
     "ChangePasswordRequest": {
       "type": "object",
       "properties": {
-        "oldPassword": {
+        "old_password": {
           "type": "string"
         },
-        "newPassword": {
+        "new_password": {
           "type": "string"
         }
       },
       "title": "ChangePasswordRequest",
       "required": [
-        "oldPassword",
-        "newPassword"
+        "old_password",
+        "new_password"
       ]
     },
     "ChangePasswordResponse": {
@@ -636,7 +911,7 @@
       },
       "title": "ChangeUserInfoRequest",
       "required": [
-        "nickname",
+        "nick_name",
         "signature",
         "avatar"
       ]
@@ -651,6 +926,23 @@
       "title": "ChangeUserInfoResponse",
       "required": [
         "status"
+      ]
+    },
+    "ChangeUserTypeRequest": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "integer",
+          "format": "uint8"
+        }
+      },
+      "title": "ChangeUserTypeRequest",
+      "required": [
+        "user_id",
+        "type"
       ]
     },
     "DeleteArticleRequest": {
@@ -682,6 +974,14 @@
         "media": {
           "$ref": "#/definitions/MediaInfo"
         },
+        "view_num": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "like_num": {
+          "type": "integer",
+          "format": "int32"
+        },
         "loaded": {
           "type": "boolean",
           "format": "boolean"
@@ -696,6 +996,8 @@
         "id",
         "media_url",
         "media",
+        "view_num",
+        "like_num",
         "loaded",
         "user"
       ]
@@ -727,7 +1029,7 @@
         "message": {
           "type": "string"
         },
-        "followList": {
+        "follow_list": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/User"
@@ -737,19 +1039,19 @@
       "title": "FollowListResponse",
       "required": [
         "message",
-        "followList"
+        "follow_list"
       ]
     },
     "FollowRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "user_id": {
           "type": "string"
         }
       },
       "title": "FollowRequest",
       "required": [
-        "userId"
+        "user_id"
       ]
     },
     "FollowResponse": {
@@ -762,6 +1064,31 @@
       "title": "FollowResponse",
       "required": [
         "message"
+      ]
+    },
+    "GetArticleRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "GetArticleRequest",
+      "required": [
+        "id"
+      ]
+    },
+    "GetArticleResponse": {
+      "type": "object",
+      "properties": {
+        "article": {
+          "$ref": "#/definitions/Article"
+        }
+      },
+      "title": "GetArticleResponse",
+      "required": [
+        "article"
       ]
     },
     "GetIndexFeedsRequest": {
@@ -819,7 +1146,7 @@
     "LoginRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "user_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -829,16 +1156,29 @@
       },
       "title": "LoginRequest",
       "required": [
-        "userId",
+        "user_id",
         "password"
       ]
     },
     "LoginResponse": {
       "type": "object",
       "properties": {
-        "userId": {
+        "user_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "user_name": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "type": {
+          "type": "integer",
+          "format": "uint8"
         },
         "token": {
           "type": "string"
@@ -846,7 +1186,11 @@
       },
       "title": "LoginResponse",
       "required": [
-        "userId",
+        "user_id",
+        "user_name",
+        "avatar",
+        "signature",
+        "type",
         "token"
       ]
     },
@@ -879,7 +1223,7 @@
           "type": "string",
           "description": " 内容"
         },
-        "媒体资源": {
+        "media": {
           "type": "array",
           "items": {
             "type": "string"
@@ -895,14 +1239,14 @@
       "required": [
         "title",
         "content",
-        "媒体资源",
+        "media",
         "description"
       ]
     },
     "RegisterRequest": {
       "type": "object",
       "properties": {
-        "username": {
+        "user_name": {
           "type": "string"
         },
         "password": {
@@ -917,7 +1261,7 @@
       },
       "title": "RegisterRequest",
       "required": [
-        "username",
+        "user_name",
         "password",
         "mobile",
         "verifyCode"
@@ -926,18 +1270,35 @@
     "RegisterResponse": {
       "type": "object",
       "properties": {
-        "userId": {
+        "user_id": {
           "type": "integer",
           "format": "int64"
         },
         "token": {
           "type": "string"
+        },
+        "user_name": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "type": {
+          "type": "integer",
+          "format": "uint8"
         }
       },
       "title": "RegisterResponse",
       "required": [
-        "userId",
-        "token"
+        "user_id",
+        "token",
+        "user_name",
+        "avatar",
+        "signature",
+        "type"
       ]
     },
     "SearchArticleRequest": {
@@ -1010,20 +1371,56 @@
       },
       "title": "User",
       "required": [
-        "nickname",
+        "nick_name",
         "signature",
         "avatar",
         "type"
       ]
     },
-    "UserInfoResponse": {
+    "UserFeedsRequest": {
       "type": "object",
       "properties": {
-        "userId": {
+        "offset": {
           "type": "integer",
           "format": "int64"
         },
-        "username": {
+        "user_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "feed_type": {
+          "type": "integer",
+          "format": "uint8"
+        }
+      },
+      "title": "UserFeedsRequest",
+      "required": [
+        "offset",
+        "user_id",
+        "feed_type"
+      ]
+    },
+    "UserInfoRequest": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "UserInfoRequest",
+      "required": [
+        "user_id"
+      ]
+    },
+    "UserInfoResponse": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "user_name": {
           "type": "string"
         },
         "avatar": {
@@ -1032,14 +1429,74 @@
         "type": {
           "type": "integer",
           "format": "uint8"
+        },
+        "status": {
+          "type": "integer",
+          "format": "uint8"
+        },
+        "v_note": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        },
+        "feed_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fans_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "follow_count": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "title": "UserInfoResponse",
       "required": [
-        "userId",
-        "username",
+        "user_id",
+        "user_name",
         "avatar",
-        "type"
+        "type",
+        "status",
+        "v_note",
+        "signature",
+        "feed_count",
+        "fans_count",
+        "follow_count"
+      ]
+    },
+    "UserRelationResponse": {
+      "type": "object",
+      "properties": {
+        "follow": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "collect": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "like": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "title": "UserRelationResponse",
+      "required": [
+        "follow",
+        "collect",
+        "like"
       ]
     },
     "VerifyCodeRequest": {

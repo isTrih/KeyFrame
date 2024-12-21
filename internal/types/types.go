@@ -31,8 +31,8 @@ type Auth struct {
 }
 
 type ChangeMobileRequest struct {
-	OldMobile  string `json:"oldMobile"`
-	NewMobile  string `json:"newMobile"`
+	OldMobile  string `json:"old_mobile"`
+	NewMobile  string `json:"new_mobile"`
 	VerifyCode string `json:"verifyCode"`
 }
 
@@ -41,8 +41,8 @@ type ChangeMobileResponse struct {
 }
 
 type ChangePasswordRequest struct {
-	OldPassword string `json:"oldPassword"`
-	NewPassword string `json:"newPassword"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }
 
 type ChangePasswordResponse struct {
@@ -50,7 +50,7 @@ type ChangePasswordResponse struct {
 }
 
 type ChangeUserInfoRequest struct {
-	Nickname  string `db:"nickname"`  // 昵称
+	Nickname  string `db:"nick_name"` // 昵称
 	Signature string `db:"signature"` // 简介
 	Avatar    string `db:"avatar"`    // 头像
 }
@@ -87,15 +87,23 @@ type FeedUser struct {
 
 type FollowListResponse struct {
 	Message    string `json:"message"`
-	FollowList []User `json:"followList"`
+	FollowList []User `json:"follow_list"`
 }
 
 type FollowRequest struct {
-	UserId string `json:"userId"`
+	UserId string `json:"user_id"`
 }
 
 type FollowResponse struct {
 	Message string `json:"message"`
+}
+
+type GetArticleRequest struct {
+	Id uint64 `json:"id"`
+}
+
+type GetArticleResponse struct {
+	Article Article `json:"article"`
 }
 
 type GetIndexFeedsRequest struct {
@@ -114,13 +122,13 @@ type LoginMobilePassRequest struct {
 }
 
 type LoginRequest struct {
-	UserId   uint64 `json:"userId"`
+	UserId   uint64 `json:"user_id"`
 	Password string `json:"password"`
 }
 
 type LoginResponse struct {
-	UserId    uint64 `json:"userId"`
-	UserName  string `json:"username"`
+	UserId    uint64 `json:"user_id"`
+	UserName  string `json:"user_name"`
 	Avatar    string `json:"avatar"`
 	Signature string `json:"signature"`
 	UserType  uint8  `json:"type"`
@@ -135,21 +143,21 @@ type MediaInfo struct {
 type NewArticleRequest struct {
 	Title       string   `json:"title"`       // 标题
 	Content     string   `json:"content"`     // 内容
-	Media       []string `json:"媒体资源"`        // 封面
+	Media       []string `json:"media"`       // 封面
 	Description string   `json:"description"` // 描述
 }
 
 type RegisterRequest struct {
-	Username   string `json:"username"`
+	Username   string `json:"user_name"`
 	Password   string `json:"password"`
 	Mobile     string `json:"mobile"`
 	VerifyCode string `json:"verifyCode"`
 }
 
 type RegisterResponse struct {
-	UserId    uint64 `json:"userId"`
+	UserId    uint64 `json:"user_id"`
 	Token     string `json:"token"`
-	UserName  string `json:"username"`
+	UserName  string `json:"user_name"`
 	Avatar    string `json:"avatar"`
 	Signature string `json:"signature"`
 	UserType  uint8  `json:"type"`
@@ -170,18 +178,39 @@ type StatusResponse struct {
 }
 
 type User struct {
-	Nickname  string `db:"nickname"`  // 昵称
+	Nickname  string `db:"nick_name"` // 昵称
 	Signature string `db:"signature"` // 简介
 	Avatar    string `db:"avatar"`    // 头像
 	Type      uint8  `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 }
 
+type UserFeedsRequest struct {
+	Offset   uint64 `json:"offset"`
+	UserId   uint64 `json:"user_id"`
+	FeedType uint8  `json:"feed_type"`
+}
+
+type UserInfoRequest struct {
+	UserId uint64 `json:"user_id"`
+}
+
 type UserInfoResponse struct {
-	UserId   uint64 `json:"userId"`
-	Username string `json:"username"`
-	Avatar   string `json:"avatar"`
-	Type     uint8  `json:"type"`
-	Status   uint8  `json:"status"`
+	UserId      uint64 `json:"user_id"`
+	Username    string `json:"user_name"`
+	Avatar      string `json:"avatar"`
+	Type        uint8  `json:"type"`
+	Status      uint8  `json:"status"`
+	VNote       string `json:"v_note"`
+	Signature   string `json:"signature"`
+	FeedCount   uint64 `json:"feed_count"`
+	FansCount   uint64 `json:"fans_count"`
+	FollowCount uint64 `json:"follow_count"`
+}
+
+type UserRelationResponse struct {
+	Follow  []uint64 `json:"follow"`
+	Collect []uint64 `json:"collect"`
+	Like    []uint64 `json:"like"`
 }
 
 type VerifyCodeRequest struct {

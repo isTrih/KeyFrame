@@ -2,7 +2,7 @@ syntax = "v1"
 
 type (
     FollowRequest {
-        UserId string `json:"userId"`
+        UserId string `json:"user_id"`
     }
     FollowResponse {
         Message string `json:"message"`
@@ -10,7 +10,7 @@ type (
 
     FollowListResponse {
         Message string `json:"message"`
-        FollowList []User `json:"followList"`
+        FollowList []User `json:"follow_list"`
     }
 )
 

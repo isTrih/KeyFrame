@@ -19,6 +19,7 @@ type (
 		GetFeeds(ctx context.Context, offset uint64, query string) ([]*Feeds, error)
 		GetUncheckFeeds(ctx context.Context, offset uint64) ([]*Feeds, error)
 		GetUserFeeds(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error)
+		GetFeedsNum(ctx context.Context, uid uint64) (int, error)
 	}
 
 	customArticleModel struct {
@@ -54,13 +55,6 @@ func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query
 		sql = fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.status = 2 and %s order by a.update_time desc limit 10 offset %d", row, m.table, query, offset)
 	}
 
-	//sqlBuilder := squirrel.Select("a.id", "a.title", "a.author_id", "b.nickname", "b.avatar")
-	//sqlBuilder.From(m.table).Offset(offset).Limit(10).OrderBy("update_time DESC")
-	//sqlStr, args, err := sqlBuilder.ToSql()
-	//if err != nil {
-	//	logx.Error("generate sqlStr failed", err)
-	//	return nil, err
-	//}
 	err := m.QueryRowsNoCacheCtx(ctx, &list, sql)
 	if err != nil {
 		logx.Error("query failed", err)
@@ -84,13 +78,30 @@ func (m *defaultArticleModel) GetUncheckFeeds(ctx context.Context, offset uint64
 	return list, nil
 }
 
+// GetFeedsNum 获取用户文章数
+func (m *defaultArticleModel) GetFeedsNum(ctx context.Context, uid uint64) (int, error) {
+
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE `author_id` = %d", m.table, uid)
+
+	// 定义变量来存储查询结果
+	var articleCount int
+
+	// 执行查询
+	err := m.QueryRowNoCacheCtx(ctx, &articleCount, query)
+	if err != nil {
+		logx.Error("query failed", err)
+		return 0, err
+	}
+	return articleCount, nil
+
+}
+
 // GetUserFeeds 获取用户主页文章
 func (m *defaultArticleModel) GetUserFeeds(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error) {
 
 	var list []*Feeds
 	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
 	sql := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where b.id = %d order by a.update_time desc limit 10 offset %d", row, m.table, uid, offset)
-
 	err := m.QueryRowsNoCacheCtx(ctx, &list, sql)
 	if err != nil {
 		return nil, err

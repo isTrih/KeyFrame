@@ -41,5 +41,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		UserModel: user.NewUserModel(sqlConn, c.Cache),
 		//文章数据库
 		ArticleModel: article.NewArticleModel(sqlConn, c.Cache),
+		//关注数量
+		FollowCountModel: follow_count.NewFollowCountModel(sqlConn, c.Cache),
 	}
 }

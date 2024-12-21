@@ -2,10 +2,10 @@ syntax = "v1"
 
 type (
     NewArticleRequest {
-        Title string `json:"title"`                // 标题
-        Content string `json:"content"`            // 内容
-        Media []string `json:"媒体资源"`              // 封面
-        Description string `json:"description"`    // 描述
+        Title string `json:"title"`                   // 标题
+        Content string `json:"content"`               // 内容
+        Media []string `json:"media"`              // 封面
+        Description string `json:"description"`       // 描述
     }
 
     StatusResponse {
@@ -25,6 +25,14 @@ type (
     SearchArticleResponse {
         Articles []Article `json:"articles"`
     }
+
+    GetArticleRequest {
+        Id uint64 `json:"id"`
+    }
+
+    GetArticleResponse {
+        Article Article `json:"article"`
+    }
 )
 
 @server(
@@ -36,6 +44,10 @@ type (
 
 
 service chaozjani {
+    @doc "帧（文章）详情"
+    @handler GetArticle
+    post /detail (GetArticleRequest) returns (GetArticleResponse)
+
     @doc "创建帧（文章）"
     @handler NewArticle
     post /new (NewArticleRequest) returns (StatusResponse)

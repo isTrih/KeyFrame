@@ -73,6 +73,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: article.DeleteArticleHandler(serverCtx),
 			},
 			{
+				// 帧（文章）详情
+				Method:  http.MethodPost,
+				Path:    "/detail",
+				Handler: article.GetArticleHandler(serverCtx),
+			},
+			{
 				// 创建帧（文章）
 				Method:  http.MethodPost,
 				Path:    "/new",
@@ -124,6 +130,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/get-feeds",
 				Handler: home.GetIndexFeedsHandler(serverCtx),
 			},
+			{
+				// 获取用户信息 需要token
+				Method:  http.MethodGet,
+				Path:    "/userfeeds",
+				Handler: home.UserFeedsHandler(serverCtx),
+			},
 		},
 		rest.WithPrefix("/v1/home"),
 	)
@@ -135,6 +147,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/change-mobile",
 				Handler: user.ChangeMobileHandler(serverCtx),
+			},
+			{
+				// 获取用户信息 不需要token
+				Method:  http.MethodPost,
+				Path:    "/info",
+				Handler: user.UserInfoHandler(serverCtx),
 			},
 			{
 				// uid账号登录
@@ -179,10 +197,10 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: user.ChangePasswordHandler(serverCtx),
 			},
 			{
-				// 获取用户信息 需要token
+				// 获取用户关注、收藏、点赞列表
 				Method:  http.MethodGet,
-				Path:    "/info",
-				Handler: user.UserInfoHandler(serverCtx),
+				Path:    "/relation",
+				Handler: user.UserRelationHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),

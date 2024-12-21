@@ -32,13 +32,19 @@ type (
 
 type (
     GetIndexFeedsRequest {
-        offset uint64 `json:"offset"`
-        query string `json:"query"`
+        Offset uint64 `json:"offset"`
+        Query string `json:"query"`
     }
 
     GetIndexFeedsResponse {
         Status string `json:"status"`
         Feeds []Feed `json:"feeds"`
+    }
+
+    UserFeedsRequest {
+        Offset uint64 `json:"offset"`
+        UserId uint64 `json:"user_id"`
+        FeedType uint8 `json:"feed_type"`
     }
 )
 
@@ -52,4 +58,9 @@ service chaozjani {
     @doc "获取首页信息流"
     @handler GetIndexFeeds
     post /get-feeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
+
+    @doc "获取用户信息 需要token"
+    @handler UserFeeds
+    get /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
 }
+

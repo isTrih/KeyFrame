@@ -10,15 +10,15 @@ info(
 
 type (
     RegisterRequest {
-        Username string `json:"username"`
+        Username string `json:"user_name"`
         Password string `json:"password"`
         Mobile string `json:"mobile"`
         VerifyCode string `json:"verifyCode"`
     }
     RegisterResponse {
-        UserId uint64 `json:"userId"`
+        UserId uint64 `json:"user_id"`
         Token string `json:"token"`
-        UserName string `json:"username"`
+        UserName string `json:"user_name"`
         Avatar string `json:"avatar"`
         Signature string `json:"signature"`
         UserType uint8 `json:"type"`
@@ -30,7 +30,7 @@ type (
         Status string `json:"status"`
     }
     LoginRequest {
-        UserId uint64 `json:"userId"`
+        UserId uint64 `json:"user_id"`
         Password string `json:"password"`
     }
     LoginMobilePassRequest {
@@ -38,23 +38,31 @@ type (
         Password string `json:"password"`
     }
     LoginResponse {
-        UserId uint64 `json:"userId"`
-        UserName string `json:"username"`
+        UserId uint64 `json:"user_id"`
+        UserName string `json:"user_name"`
         Avatar string `json:"avatar"`
         Signature string `json:"signature"`
         UserType uint8 `json:"type"`
         Token string `json:"token"`
     }
+    UserInfoRequest {
+        UserId uint64 `json:"user_id"`
+    }
     UserInfoResponse {
-        UserId uint64 `json:"userId"`
-        Username string `json:"username"`
+        UserId uint64 `json:"user_id"`
+        Username string `json:"user_name"`
         Avatar string `json:"avatar"`
         Type uint8 `json:"type"`
         Status uint8 `json:"status"`
+        VNote string `json:"v_note"`
+        Signature string `json:"signature"`
+        FeedCount uint64 `json:"feed_count"`
+        FansCount uint64 `json:"fans_count"`
+        FollowCount uint64 `json:"follow_count"`
     }
     ChangeMobileRequest {
-        OldMobile string `json:"oldMobile"`
-        NewMobile string `json:"newMobile"`
+        OldMobile string `json:"old_mobile"`
+        NewMobile string `json:"new_mobile"`
         VerifyCode string `json:"verifyCode"`
     }
     ChangeMobileResponse {
@@ -68,21 +76,26 @@ type (
     }
 
     ChangePasswordRequest {
-        OldPassword string `json:"oldPassword"`
-        NewPassword string `json:"newPassword"`
+        OldPassword string `json:"old_password"`
+        NewPassword string `json:"new_password"`
     }
     ChangePasswordResponse {
         Status string `json:"status"`
     }
 
     ChangeUserInfoRequest {
-        Nickname string `db:"nickname"`   // 昵称
-        Signature string `db:"signature"` // 简介
-        Avatar string `db:"avatar"`       // 头像
+        Nickname string `db:"nick_name"`   // 昵称
+        Signature string `db:"signature"`  // 简介
+        Avatar string `db:"avatar"`        // 头像
     }
 
     ChangeUserInfoResponse {
         Status string `json:"status"`
+    }
+    UserRelationResponse {
+        Follow []uint64 `json:"follow"`
+        Collect []uint64 `json:"collect"`
+        Like []uint64 `json:"like"`
     }
 )
 
@@ -94,6 +107,10 @@ service chaozjani {
     @doc "用户注册"
     @handler RegisterHandler
     post /register (RegisterRequest) returns (RegisterResponse)
+
+    @doc "获取用户信息 不需要token"
+    @handler UserInfoHandler
+    post /info (UserInfoRequest) returns (UserInfoResponse)
 
     @doc "获取验证码"
     @handler VerifyCodeHandler
@@ -121,9 +138,9 @@ service chaozjani {
 )
 
 service chaozjani {
-    @doc "获取用户信息 需要token"
-    @handler UserInfoHandler
-    get /info returns (UserInfoResponse)
+    @doc "获取用户关注、收藏、点赞列表"
+    @handler UserRelationHandler
+    get /relation returns (UserRelationResponse)
 
     @doc "更改密码 需要token"
     @handler ChangePasswordHandler
