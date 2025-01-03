@@ -3,12 +3,13 @@ package utils
 import (
 	"fmt"
 	unisms "github.com/apistd/uni-go-sdk/sms"
+	"zerobackend/internal/config"
 )
 
 // SendSms 发送短信
-func SendSms(mobile string, value string) (err error) {
+func SendSms(c config.Config, mobile string, value string) (err error) {
 	// 初始化
-	client := unisms.NewClient("n6Z4ZVVUToSXF8ktQbXeNfGvQRp6mcdoH43pjNhy3uKPXMCW8") // 若使用简易验签模式仅传入第一个参数即可
+	client := unisms.NewClient(c.Unisms.SK) // 若使用简易验签模式仅传入第一个参数即可
 
 	// 构建信息
 	message := unisms.BuildMessage()
@@ -27,8 +28,8 @@ func SendSms(mobile string, value string) (err error) {
 }
 
 // SendAllSms 发送短信（需要模版）
-func SendAllSms(mobile string, value map[string]string, templateId string) (err error) {
-	client := unisms.NewClient("n6Z4ZVVUToSXF8ktQbXeNfGvQRp6mcdoH43pjNhy3uKPXMCW8") // 若使用简易验签模式仅传入第一个参数即可
+func SendAllSms(c config.Config, mobile string, value map[string]string, templateId string) (err error) {
+	client := unisms.NewClient(c.Unisms.SK) // 若使用简易验签模式仅传入第一个参数即可
 
 	// 构建信息
 	message := unisms.BuildMessage()

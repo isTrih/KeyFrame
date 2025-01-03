@@ -5,6 +5,7 @@ import (
 	"github.com/zeromicro/x/errors"
 	"strconv"
 	"time"
+	"zerobackend/internal/config"
 )
 
 // RedisCheck 验证码验证
@@ -13,11 +14,11 @@ import (
 //	 rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
 //		if rds != nil { return nil, rds }
 //		if rds2 != nil { return nil, rds2 }
-func RedisCheck(mobile string, verifyCode string) (error, error) {
+func RedisCheck(c config.Config, mobile string, verifyCode string) (error, error) {
 	conf := redis.RedisConf{
-		Host:        "106.54.6.216:6379",
+		Host:        c.BizRedis.Host,
 		Type:        "node",
-		Pass:        "chaozj123123.",
+		Pass:        c.BizRedis.Pass,
 		Tls:         false,
 		NonBlock:    false,
 		PingTimeout: time.Second,
@@ -47,11 +48,11 @@ func RedisCheck(mobile string, verifyCode string) (error, error) {
 //
 //		rdsErr := utils.RedisStorage(req.Mobile, 123456, 600)
 //	 if rdsErr != nil { return nil, rdsErr }
-func RedisStorage(key string, value int, expire int) (err error) {
+func RedisStorage(c config.Config, key string, value int, expire int) (err error) {
 	conf := redis.RedisConf{
-		Host:        "106.54.6.216:6379",
+		Host:        c.BizRedis.Host,
 		Type:        "node",
-		Pass:        "chaozj123123.",
+		Pass:        c.BizRedis.Pass,
 		Tls:         false,
 		NonBlock:    false,
 		PingTimeout: time.Second,

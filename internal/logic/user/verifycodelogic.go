@@ -39,7 +39,7 @@ func (l *VerifyCodeLogic) VerifyCode(req *types.VerifyCodeRequest) (resp *types.
 	}
 
 	// 发送短信
-	smsErr := utils.SendSms(req.Mobile, strconv.Itoa(code))
+	smsErr := utils.SendSms(l.svcCtx.Config, req.Mobile, strconv.Itoa(code))
 	if smsErr != nil {
 		return nil, smsErr
 	}
