@@ -11,6 +11,7 @@ import (
 	article "zerobackend/internal/handler/article"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
+	upload "zerobackend/internal/handler/upload"
 	user "zerobackend/internal/handler/user"
 	"zerobackend/internal/svc"
 
@@ -131,13 +132,33 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: home.GetIndexFeedsHandler(serverCtx),
 			},
 			{
-				// 获取用户信息 需要token
-				Method:  http.MethodGet,
+				// 获取用户主页帖子
+				Method:  http.MethodPost,
 				Path:    "/userfeeds",
 				Handler: home.UserFeedsHandler(serverCtx),
 			},
 		},
 		rest.WithPrefix("/v1/home"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 获取到上传修改型token
+				Method:  http.MethodGet,
+				Path:    "/change",
+				Handler: upload.GetUpTokenChangeHandler(serverCtx),
+			},
+			{
+				// 获取到上传token
+				Method:  http.MethodGet,
+				Path:    "/normal",
+				Handler: upload.GetUpTokenHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/upload"),
 	)
 
 	server.AddRoutes(

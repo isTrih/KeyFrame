@@ -5,6 +5,7 @@ import "home.api"
 import "article.api"
 import "follow.api"
 import "admin.api"
+import "upload.api"
 
 type (
 	Article {

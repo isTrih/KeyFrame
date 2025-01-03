@@ -3,6 +3,8 @@ package article
 import (
 	"context"
 	"fmt"
+	"github.com/zeromicro/go-zero/core/stores/sqlc"
+
 	//"github.com/Masterminds/squirrel"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -20,6 +22,7 @@ type (
 		GetUncheckFeeds(ctx context.Context, offset uint64) ([]*Feeds, error)
 		GetUserFeeds(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error)
 		GetFeedsNum(ctx context.Context, uid uint64) (int, error)
+		FindOneMix(ctx context.Context, id uint64) (*Feeds, error)
 	}
 
 	customArticleModel struct {
@@ -107,4 +110,23 @@ func (m *defaultArticleModel) GetUserFeeds(ctx context.Context, offset uint64, u
 		return nil, err
 	}
 	return list, nil
+}
+
+func (m *defaultArticleModel) FindOneMix(ctx context.Context, id uint64) (*Feeds, error) {
+	chaozjArticleIdKey := fmt.Sprintf("%s%v", "cache:chaozj:article:detail:id:", id)
+	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
+
+	var resp Feeds
+	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+		query := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.id = ? and a.status = 2 limit 1", row, m.table)
+		return conn.QueryRowCtx(ctx, v, query, id)
+	})
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
 }

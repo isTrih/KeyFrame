@@ -425,8 +425,8 @@
       }
     },
     "/v1/home/userfeeds": {
-      "get": {
-        "summary": "获取用户信息 需要token",
+      "post": {
+        "summary": "获取用户主页帖子",
         "operationId": "UserFeeds",
         "responses": {
           "200": {
@@ -438,29 +438,68 @@
         },
         "parameters": [
           {
-            "name": "offset",
-            "in": "query",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "feed_type",
-            "in": "query",
-            "required": true,
-            "type": "integer",
-            "format": "uint8"
+            "schema": {
+              "$ref": "#/definitions/UserFeedsRequest"
+            }
           }
         ],
         "tags": [
           "home"
+        ]
+      }
+    },
+    "/v1/upload/change": {
+      "get": {
+        "summary": "获取到上传修改型token",
+        "operationId": "GetUpTokenChange",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/UpResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "upload"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/upload/normal": {
+      "get": {
+        "summary": "获取到上传token",
+        "operationId": "GetUpToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/UpResponse"
+            }
+          }
+        },
+        "tags": [
+          "upload"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
         ]
       }
     },
@@ -891,6 +930,18 @@
       "title": "ChangePasswordResponse",
       "required": [
         "status"
+      ]
+    },
+    "ChangeResquest": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      },
+      "title": "ChangeResquest",
+      "required": [
+        "key"
       ]
     },
     "ChangeUserInfoRequest": {
@@ -1348,6 +1399,18 @@
         "status"
       ]
     },
+    "UpResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      },
+      "title": "UpResponse",
+      "required": [
+        "token"
+      ]
+    },
     "User": {
       "type": "object",
       "properties": {
@@ -1389,8 +1452,7 @@
           "format": "int64"
         },
         "feed_type": {
-          "type": "integer",
-          "format": "uint8"
+          "type": "string"
         }
       },
       "title": "UserFeedsRequest",

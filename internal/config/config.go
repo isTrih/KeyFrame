@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/rest"
 )
 
@@ -16,6 +17,11 @@ type Config struct {
 	DB struct {
 		DataSource string // 数据源
 	}
+	Qiniu struct {
+		AK string //
+		SK string //
+	}
 
-	Cache cache.CacheConf // 配置文件中添加一个 Cache 字段，用来配置Redis缓存相关的配置
+	Cache    cache.CacheConf // 配置文件中添加一个 Cache 字段，用来配置Redis缓存相关的配置
+	BizRedis redis.RedisConf
 }

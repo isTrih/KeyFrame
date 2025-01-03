@@ -1,0 +1,27 @@
+syntax = "v1"
+
+type (
+    UpResponse {
+        token string `json:"token"`
+    }
+
+    ChangeResquest  {
+        key string `json:"key"`
+    }
+)
+
+@server(
+    prefix: /v1/upload
+    signature: true
+    jwt: Auth
+    group: upload
+)
+service chaozjani {
+    @doc "获取到上传token"
+    @handler GetUpToken
+    get /normal returns (UpResponse)
+
+    @doc "获取到上传修改型token"
+    @handler GetUpTokenChange
+    get /change (ChangeResquest) returns (UpResponse)
+}

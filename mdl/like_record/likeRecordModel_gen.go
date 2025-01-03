@@ -47,6 +47,7 @@ type (
 		BizId      string    `db:"biz_id"`      // 业务ID
 		ObjId      uint64    `db:"obj_id"`      // 点赞对象id
 		UserId     uint64    `db:"user_id"`     // 用户ID
+		ObjType    int64     `db:"obj_type"`    // 类型 0:帧 1:评论
 		LikeType   int64     `db:"like_type"`   // 类型 0:点赞 1:点踩
 		CreateTime time.Time `db:"create_time"` // 创建时间
 		UpdateTime time.Time `db:"update_time"` // 最后修改时间
@@ -116,8 +117,8 @@ func (m *defaultLikeRecordModel) Insert(ctx context.Context, data *LikeRecord) (
 	chaozjLikeRecordBizIdObjIdUserIdKey := fmt.Sprintf("%s%v:%v:%v", cacheChaozjLikeRecordBizIdObjIdUserIdPrefix, data.BizId, data.ObjId, data.UserId)
 	chaozjLikeRecordIdKey := fmt.Sprintf("%s%v", cacheChaozjLikeRecordIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, likeRecordRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.BizId, data.ObjId, data.UserId, data.LikeType)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, likeRecordRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.BizId, data.ObjId, data.UserId, data.ObjType, data.LikeType)
 	}, chaozjLikeRecordBizIdObjIdUserIdKey, chaozjLikeRecordIdKey)
 	return ret, err
 }
@@ -132,7 +133,7 @@ func (m *defaultLikeRecordModel) Update(ctx context.Context, newData *LikeRecord
 	chaozjLikeRecordIdKey := fmt.Sprintf("%s%v", cacheChaozjLikeRecordIdPrefix, data.Id)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, likeRecordRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.BizId, newData.ObjId, newData.UserId, newData.LikeType, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.BizId, newData.ObjId, newData.UserId, newData.ObjType, newData.LikeType, newData.Id)
 	}, chaozjLikeRecordBizIdObjIdUserIdKey, chaozjLikeRecordIdKey)
 	return err
 }

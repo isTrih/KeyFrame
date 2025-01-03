@@ -46,6 +46,7 @@ type (
 		Id         uint64    `db:"id"`          // 主键ID
 		BizId      string    `db:"biz_id"`      // 业务ID
 		ObjId      uint64    `db:"obj_id"`      // 点赞对象id
+		ObjType    int64     `db:"obj_type"`    // 类型 0:帧 1:评论
 		LikeNum    int64     `db:"like_num"`    // 点赞数
 		DislikeNum int64     `db:"dislike_num"` // 点踩数
 		CreateTime time.Time `db:"create_time"` // 创建时间
@@ -116,8 +117,8 @@ func (m *defaultLikeCountModel) Insert(ctx context.Context, data *LikeCount) (sq
 	chaozjLikeCountBizIdObjIdKey := fmt.Sprintf("%s%v:%v", cacheChaozjLikeCountBizIdObjIdPrefix, data.BizId, data.ObjId)
 	chaozjLikeCountIdKey := fmt.Sprintf("%s%v", cacheChaozjLikeCountIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, likeCountRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.BizId, data.ObjId, data.LikeNum, data.DislikeNum)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, likeCountRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.BizId, data.ObjId, data.ObjType, data.LikeNum, data.DislikeNum)
 	}, chaozjLikeCountBizIdObjIdKey, chaozjLikeCountIdKey)
 	return ret, err
 }
@@ -132,7 +133,7 @@ func (m *defaultLikeCountModel) Update(ctx context.Context, newData *LikeCount) 
 	chaozjLikeCountIdKey := fmt.Sprintf("%s%v", cacheChaozjLikeCountIdPrefix, data.Id)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, likeCountRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.BizId, newData.ObjId, newData.LikeNum, newData.DislikeNum, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.BizId, newData.ObjId, newData.ObjType, newData.LikeNum, newData.DislikeNum, newData.Id)
 	}, chaozjLikeCountBizIdObjIdKey, chaozjLikeCountIdKey)
 	return err
 }

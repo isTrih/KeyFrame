@@ -49,6 +49,10 @@ type ChangePasswordResponse struct {
 	Status string `json:"status"`
 }
 
+type ChangeResquest struct {
+	Key string `json:"key"`
+}
+
 type ChangeUserInfoRequest struct {
 	Nickname  string `db:"nick_name"` // 昵称
 	Signature string `db:"signature"` // 简介
@@ -177,6 +181,10 @@ type StatusResponse struct {
 	Status string `json:"status"`
 }
 
+type UpResponse struct {
+	Token string `json:"token"`
+}
+
 type User struct {
 	Nickname  string `db:"nick_name"` // 昵称
 	Signature string `db:"signature"` // 简介
@@ -187,7 +195,7 @@ type User struct {
 type UserFeedsRequest struct {
 	Offset   uint64 `json:"offset"`
 	UserId   uint64 `json:"user_id"`
-	FeedType uint8  `json:"feed_type"`
+	FeedType string `json:"feed_type"`
 }
 
 type UserInfoRequest struct {

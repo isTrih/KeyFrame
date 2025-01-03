@@ -44,7 +44,7 @@ type (
     UserFeedsRequest {
         Offset uint64 `json:"offset"`
         UserId uint64 `json:"user_id"`
-        FeedType uint8 `json:"feed_type"`
+        FeedType string `json:"feed_type"`
     }
 )
 
@@ -59,8 +59,8 @@ service chaozjani {
     @handler GetIndexFeeds
     post /get-feeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
 
-    @doc "获取用户信息 需要token"
+    @doc "获取用户主页帖子"
     @handler UserFeeds
-    get /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
+    post /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
 }
 
