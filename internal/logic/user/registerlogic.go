@@ -36,7 +36,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 
 	var user sql.Result
 
-	rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
+	rds, rds2 := utils.RedisCheck(l.svcCtx.Config, req.Mobile, req.VerifyCode)
 	if rds != nil {
 		return nil, rds
 	}
