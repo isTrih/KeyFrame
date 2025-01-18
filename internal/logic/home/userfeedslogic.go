@@ -35,15 +35,17 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 	ftype := req.FeedType
 
 	if offset != 0 && offset < 10 {
-		return nil, nil
+		resp = new(types.GetIndexFeedsResponse)
+		resp.Status = "没有更多帖子"
+		resp.Feeds = []types.Feed{}
+		return resp, nil
 	}
 
 	if ftype == "喜欢" {
 		feedIds, _ := l.GetLikeIds(l.ctx, req.UserId, offset)
 		if len(feedIds) > 0 {
 			var tmp []uint64
-
-			var feeds []types.Feed
+			var feeds = []types.Feed{}
 			list, err := l.GetLikeListByIds(l.ctx, feedIds)
 			if err != nil {
 				return nil, err
@@ -76,7 +78,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 			resp.Feeds = feeds
 			return resp, nil
 		} else {
-			var feeds []types.Feed
+			var feeds = []types.Feed{}
 			var tmp []uint64
 			list, err := l.svcCtx.LikeRecordModel.GetUserLikeList(l.ctx, offset, req.UserId)
 			if err != nil {
@@ -121,7 +123,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 		if len(feedIds) > 0 {
 			var tmp []uint64
 
-			var feeds []types.Feed
+			var feeds = []types.Feed{}
 			list, err := l.GetCollectListByIds(l.ctx, feedIds)
 			if err != nil {
 				return nil, err
@@ -154,7 +156,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 			resp.Feeds = feeds
 			return resp, nil
 		} else {
-			var feeds []types.Feed
+			var feeds = []types.Feed{}
 			var tmp []uint64
 			list, err := l.svcCtx.CollectModel.GetUserCollectList(l.ctx, offset, req.UserId)
 			if err != nil {
@@ -202,7 +204,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 			return nil, err
 		}
 		fmt.Println(list)
-		var feeds []types.Feed
+		var feeds = []types.Feed{}
 		var tmp []uint64
 		for _, v := range list {
 			if slices.Contains(tmp, v.Id) == false {
