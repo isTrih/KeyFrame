@@ -62,7 +62,8 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	resp.Token = accessToken
 	resp.UserType = uint8(user.Type)
 	resp.Avatar = user.Avatar
-	resp.Signature = user.Signature
+	//resp.Signature = user.Signature
+	resp.Signature = req.XFF
 	resp.UserName = user.Nickname
 	resp.UserId = user.Id
 	return resp, nil

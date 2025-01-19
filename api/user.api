@@ -36,6 +36,7 @@ type (
     LoginMobilePassRequest {
         Mobile string `json:"mobile"`
         Password string `json:"password"`
+        XFF string `header:"X-Forwarded-For"`
     }
     LoginResponse {
         UserId uint64 `json:"user_id"`
@@ -59,6 +60,7 @@ type (
         FeedCount uint64 `json:"feed_count"`
         FansCount uint64 `json:"fans_count"`
         FollowCount uint64 `json:"follow_count"`
+        IpLocation string  `json:"ip_location"`
     }
     ChangeMobileRequest {
         OldMobile string `json:"old_mobile"`

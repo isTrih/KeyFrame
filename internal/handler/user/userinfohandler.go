@@ -10,7 +10,7 @@ import (
 	"zerobackend/internal/types"
 )
 
-// 获取用户信息 不需要token
+// UserInfoHandler 获取用户信息 不需要token
 func UserInfoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.UserInfoRequest

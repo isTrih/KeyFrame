@@ -123,6 +123,7 @@ type GetIndexFeedsResponse struct {
 type LoginMobilePassRequest struct {
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
+	XFF      string `header:"X-Forwarded-For"`
 }
 
 type LoginRequest struct {
@@ -213,6 +214,7 @@ type UserInfoResponse struct {
 	FeedCount   uint64 `json:"feed_count"`
 	FansCount   uint64 `json:"fans_count"`
 	FollowCount uint64 `json:"follow_count"`
+	IpLocation  string `json:"ip_location"`
 }
 
 type UserRelationResponse struct {

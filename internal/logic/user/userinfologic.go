@@ -48,6 +48,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	resp.Status = uint8(user.Status)
 	resp.VNote = user.Vnote
 	resp.Signature = user.Signature
+	resp.IpLocation = user.IpLocation
 
 	//查询用户的文章数
 	feedCount, err := l.svcCtx.ArticleModel.GetFeedsNum(l.ctx, req.UserId)

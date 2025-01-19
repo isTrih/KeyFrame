@@ -43,19 +43,21 @@ type (
 	}
 
 	User struct {
-		Id         uint64       `db:"id"`          // 主键ID
-		Password   string       `db:"password"`    // 密码
-		Nickname   string       `db:"nickname"`    // 昵称
-		Signature  string       `db:"signature"`   // 简介
-		Avatar     string       `db:"avatar"`      // 头像
-		Type       int64        `db:"type"`        // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
-		Vnote      string       `db:"vnote"`       // V认证信息
-		Mobile     string       `db:"mobile"`      // 手机号
-		Status     int64        `db:"status"`      // 状态 0:正常 1:禁用 2:删除
-		BannedTime sql.NullTime `db:"banned_time"` // 封禁时间
-		BanTime    int64        `db:"ban_time"`    // 封禁时长
-		CreateTime time.Time    `db:"create_time"` // 创建时间
-		UpdateTime time.Time    `db:"update_time"` // 最后修改时间
+		Id         uint64         `db:"id"`          // 主键ID
+		Password   string         `db:"password"`    // 密码
+		Nickname   string         `db:"nickname"`    // 昵称
+		Signature  string         `db:"signature"`   // 简介
+		Avatar     string         `db:"avatar"`      // 头像
+		Type       int64          `db:"type"`        // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+		Vnote      string         `db:"vnote"`       // V认证信息
+		Mobile     string         `db:"mobile"`      // 手机号
+		Status     int64          `db:"status"`      // 状态 0:正常 1:禁用 2:删除
+		BannedTime sql.NullTime   `db:"banned_time"` // 封禁时间
+		BanTime    int64          `db:"ban_time"`    // 封禁时长
+		CreateTime time.Time      `db:"create_time"` // 创建时间
+		UpdateTime time.Time      `db:"update_time"` // 最后修改时间
+		IpAddress  sql.NullString `db:"ip_address"`  // IP地址
+		IpLocation string         `db:"ip_location"` // IP归属地
 	}
 )
 
@@ -122,8 +124,8 @@ func (m *defaultUserModel) Insert(ctx context.Context, data *User) (sql.Result, 
 	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, data.Id)
 	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Password, data.Nickname, data.Signature, data.Avatar, data.Type, data.Vnote, data.Mobile, data.Status, data.BannedTime, data.BanTime)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Password, data.Nickname, data.Signature, data.Avatar, data.Type, data.Vnote, data.Mobile, data.Status, data.BannedTime, data.BanTime, data.IpAddress, data.IpLocation)
 	}, chaozjUserIdKey, chaozjUserMobileKey)
 	return ret, err
 }
@@ -138,7 +140,7 @@ func (m *defaultUserModel) Update(ctx context.Context, newData *User) error {
 	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Password, newData.Nickname, newData.Signature, newData.Avatar, newData.Type, newData.Vnote, newData.Mobile, newData.Status, newData.BannedTime, newData.BanTime, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.Password, newData.Nickname, newData.Signature, newData.Avatar, newData.Type, newData.Vnote, newData.Mobile, newData.Status, newData.BannedTime, newData.BanTime, newData.IpAddress, newData.IpLocation, newData.Id)
 	}, chaozjUserIdKey, chaozjUserMobileKey)
 	return err
 }
