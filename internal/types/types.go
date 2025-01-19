@@ -123,7 +123,7 @@ type GetIndexFeedsResponse struct {
 type LoginMobilePassRequest struct {
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
-	XFF      string `header:"X-Forwarded-For"`
+	XRI      string `header:"X-Real-IP"`
 }
 
 type LoginRequest struct {

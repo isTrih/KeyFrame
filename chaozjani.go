@@ -3,40 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/rest"
 	"net/http"
-
 	"zerobackend/internal/config"
 	"zerobackend/internal/handler"
 	"zerobackend/internal/svc"
-
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/rest"
 )
 
-//	              _ooOoo_
-//	             o8888888o
-//	             88" . "88
-//	             (| -_- |)
-//	             O\  =  /O
-//	          ____/`---'\____
-//	        .'  \\|     |//  `.
-//	       /  \\|||  :  |||//  \
-//	      /  _||||| -:- |||||-  \
-//	      |   | \\\  -  /// |   |
-//	      | \_|  ''\---/''  |   |
-//	      \  .-\__  `-`  ___/-. /
-//	    ___`. .'  /--.--\  `. . __
-//	 ."" '<  `.___\_<|>_/___.'  >'"".
-//	| | :  `- \`.;`\ _ /`;.`/ - ` : | |
-//	\  \ `-.   \_ __\ /__ _/   .-` /  /
-//
-// ======`-.____`-.___\_____/___.-`____.-'======
-//
-//	`=---='
-//
-// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-//	佛祖保佑        永无BUG
 var configFile = flag.String("f", "etc/chaozjani.yaml", "the config file")
 
 func main() {

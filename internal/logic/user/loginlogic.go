@@ -32,7 +32,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if user == nil {
 		return nil, errors.New(6021, "用户不存在")

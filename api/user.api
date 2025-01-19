@@ -36,7 +36,7 @@ type (
     LoginMobilePassRequest {
         Mobile string `json:"mobile"`
         Password string `json:"password"`
-        XFF string `header:"X-Forwarded-For"`
+        XRI string `header:"X-Real-IP"`
     }
     LoginResponse {
         UserId uint64 `json:"user_id"`

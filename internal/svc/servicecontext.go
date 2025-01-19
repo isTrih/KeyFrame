@@ -1,6 +1,8 @@
 package svc
 
 import (
+	"fmt"
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"zerobackend/internal/config"
@@ -22,6 +24,7 @@ import (
 type ServiceContext struct {
 	BizRedis         *redis.Redis
 	Config           config.Config
+	IPCheck          []byte
 	UserModel        user.UserModel
 	ArticleModel     article.ArticleModel
 	ReplyModel       reply.ReplyModel
@@ -38,6 +41,14 @@ type ServiceContext struct {
 
 // NewServiceContext 初始化服务上下文
 func NewServiceContext(c config.Config) *ServiceContext {
+
+	// 1、从 dbPath 加载整个 xdb 到内存
+	var dbPath = "etc/ip2region.xdb"
+	cBuff, err := xdb.LoadContentFromFile(dbPath)
+	if err != nil {
+		fmt.Printf("failed to load content from `%s`: %s\n", dbPath, err)
+	}
+
 	sqlConn := sqlx.NewMysql(c.DB.DataSource)
 	rds, err := redis.NewRedis(redis.RedisConf{
 		Host: c.BizRedis.Host,
@@ -46,8 +57,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	if err != nil {
 		panic(err)
 	}
+
 	return &ServiceContext{
-		Config: c,
+		IPCheck: cBuff,
+		Config:  c,
 		//用户数据库
 		UserModel: user.NewUserModel(sqlConn, c.Cache),
 		//文章数据库

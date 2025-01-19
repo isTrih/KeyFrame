@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/zeromicro/x/errors"
 	"time"
 	"zerobackend/internal/utils"
@@ -30,23 +31,44 @@ func NewLoginByMobilePassLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 }
 
 func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassRequest) (resp *types.LoginResponse, err error) {
-	//获取用户信息
+	// 获取用户信息
 	user, err := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if user == nil {
 		return nil, errors.New(6021, "用户不存在")
 
 	}
 
-	//校验密码
+	// 校验密码
 	if user.Password != EncryptPassword(req.Password) {
 		return nil, errors.New(6032, "密码错误")
 	}
 
-	//生成token
+	// 更新用户IP信息
+	searcher, err := xdb.NewWithBuffer(l.svcCtx.IPCheck)
+	if err != nil {
+		fmt.Printf("failed to create searcher with content: %s\n", err)
+		return
+	}
+	defer searcher.Close()
+	// 查询ip
+	var ip = req.XRI
+	region, err := searcher.SearchByStr(ip)
+	if err != nil {
+		fmt.Printf("failed to SearchIP(%s): %s\n", ip, err)
+		return
+	}
+	// 更新IP信息以及归属地
+	upErr := l.svcCtx.UserModel.UpdateIp(l.ctx, user.Id, region, ip)
+	if upErr != nil {
+		fmt.Println(upErr)
+		return nil, errors.New(4004, "更新数据失败")
+	}
+
+	// 生成token
 	payloads := make(map[string]any)
 	payloads["UID"] = user.Id
 	payloads["UTYPE"] = user.Type
@@ -62,8 +84,8 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	resp.Token = accessToken
 	resp.UserType = uint8(user.Type)
 	resp.Avatar = user.Avatar
-	//resp.Signature = user.Signature
-	resp.Signature = req.XFF
+	resp.Signature = user.Signature
+	//resp.Signature = req.XRI
 	resp.UserName = user.Nickname
 	resp.UserId = user.Id
 

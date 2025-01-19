@@ -35,7 +35,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if user == nil {
 		return nil, errors.New(6021, "用户不存在")
@@ -54,7 +54,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	feedCount, err := l.svcCtx.ArticleModel.GetFeedsNum(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 
 	resp.FeedCount = uint64(feedCount)
@@ -63,7 +63,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	followCount, err := l.svcCtx.FollowCountModel.FindOneByUserId(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if followCount == nil {
 		resp.FansCount = 0

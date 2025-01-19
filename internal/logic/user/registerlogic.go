@@ -47,7 +47,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	check, checkerr := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
 	if checkerr != nil && checkerr != model.ErrNotFound {
 		fmt.Println(checkerr)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if check == nil {
 		user, err = l.svcCtx.UserModel.Insert(l.ctx, &model.User{
