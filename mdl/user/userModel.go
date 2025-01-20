@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
-	"net"
 )
 
 var _ UserModel = (*customUserModel)(nil)
@@ -50,14 +49,13 @@ func (m *defaultUserModel) UpdateIp(ctx context.Context, id uint64, il string, i
 	if err != nil {
 		return err
 	}
-	ipAddressBinary := net.ParseIP(ia)
 	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, data.Id)
 	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
 
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 
 		query := fmt.Sprintf("update %s set `ip_location` = ?, `ip_address` = ? where `id` = ?", m.table)
-		return conn.ExecCtx(ctx, query, il, ipAddressBinary, id)
+		return conn.ExecCtx(ctx, query, il, ia, id)
 	}, chaozjUserIdKey, chaozjUserMobileKey)
 	return err
 }

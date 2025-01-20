@@ -2,9 +2,9 @@ package svc
 
 import (
 	"fmt"
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/zhengjianyang/goCzdb"
 	"zerobackend/internal/config"
 	"zerobackend/mdl/article"
 	"zerobackend/mdl/collect"
@@ -24,7 +24,8 @@ import (
 type ServiceContext struct {
 	BizRedis         *redis.Redis
 	Config           config.Config
-	IPCheck          []byte
+	IP4Searcher      *goCzdb.DbSearcher
+	IP6Searcher      *goCzdb.DbSearcher
 	UserModel        user.UserModel
 	ArticleModel     article.ArticleModel
 	ReplyModel       reply.ReplyModel
@@ -42,11 +43,14 @@ type ServiceContext struct {
 // NewServiceContext 初始化服务上下文
 func NewServiceContext(c config.Config) *ServiceContext {
 
-	// 1、从 dbPath 加载整个 xdb 到内存
-	var dbPath = "etc/ip2region.xdb"
-	cBuff, err := xdb.LoadContentFromFile(dbPath)
-	if err != nil {
-		fmt.Printf("failed to load content from `%s`: %s\n", dbPath, err)
+	searcher4, err4 := goCzdb.NewDbSearcher(c.IPCheck.Path4, "MEMORY", c.IPCheck.KEY)
+	searcher6, err6 := goCzdb.NewDbSearcher(c.IPCheck.Path6, "MEMORY", c.IPCheck.KEY)
+
+	if err4 != nil {
+		fmt.Printf("Ipv4查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path4, err4)
+	}
+	if err6 != nil {
+		fmt.Printf("IPv6查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path6, err6)
 	}
 
 	sqlConn := sqlx.NewMysql(c.DB.DataSource)
@@ -59,8 +63,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	return &ServiceContext{
-		IPCheck: cBuff,
-		Config:  c,
+		IP4Searcher: searcher4,
+		IP6Searcher: searcher6,
+		Config:      c,
 		//用户数据库
 		UserModel: user.NewUserModel(sqlConn, c.Cache),
 		//文章数据库

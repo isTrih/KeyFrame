@@ -61,6 +61,7 @@ type (
         FansCount uint64 `json:"fans_count"`
         FollowCount uint64 `json:"follow_count"`
         IpLocation string  `json:"ip_location"`
+        ActiveTime uint64 `json:"active_time"`
     }
     ChangeMobileRequest {
         OldMobile string `json:"old_mobile"`

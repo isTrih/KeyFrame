@@ -54,7 +54,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 			Mobile:    req.Mobile,
 			Nickname:  req.Username,
 			Password:  EncryptPassword(req.Password),
-			Signature: "CHAOZJ",
+			Signature: "",
 			Avatar:    "https://coss.chaozj.com/default/avatar.jpg",
 		})
 		if err != nil {

@@ -3,8 +3,8 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/zeromicro/x/errors"
+	"net"
 	"time"
 	"zerobackend/internal/utils"
 	model "zerobackend/mdl/user"
@@ -47,21 +47,15 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 		return nil, errors.New(6032, "密码错误")
 	}
 
-	// 更新用户IP信息
-	searcher, err := xdb.NewWithBuffer(l.svcCtx.IPCheck)
-	if err != nil {
-		fmt.Printf("failed to create searcher with content: %s\n", err)
-		return
-	}
-	defer searcher.Close()
 	// 查询ip
 	var ip = req.XRI
-	region, err := searcher.SearchByStr(ip)
+	region, err := l.svcCtx.IP4Searcher.Search(ip)
 	if err != nil {
 		fmt.Printf("failed to SearchIP(%s): %s\n", ip, err)
 		return
 	}
-	// 更新IP信息以及归属地
+	fmt.Println(region, net.ParseIP(ip))
+	//更新IP信息以及归属地
 	upErr := l.svcCtx.UserModel.UpdateIp(l.ctx, user.Id, region, ip)
 	if upErr != nil {
 		fmt.Println(upErr)

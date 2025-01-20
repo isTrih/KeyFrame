@@ -215,6 +215,7 @@ type UserInfoResponse struct {
 	FansCount   uint64 `json:"fans_count"`
 	FollowCount uint64 `json:"follow_count"`
 	IpLocation  string `json:"ip_location"`
+	ActiveTime  uint64 `json:"active_time"`
 }
 
 type UserRelationResponse struct {
