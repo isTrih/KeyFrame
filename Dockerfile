@@ -1,5 +1,5 @@
 # 使用 scratch 作为基础镜像
-FROM alpine:latest
+FROM swr.cn-east-3.myhuaweicloud.com/keyframe/alpine:latest
 LABEL authors="trih"
 
 # 设置时区为 Asia/Shanghai
