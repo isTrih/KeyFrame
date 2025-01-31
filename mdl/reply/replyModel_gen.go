@@ -24,7 +24,7 @@ var (
 	replyRowsExpectAutoSet   = strings.Join(stringx.Remove(replyFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	replyRowsWithPlaceHolder = strings.Join(stringx.Remove(replyFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjReplyIdPrefix = "cache:chaozj:reply:id:"
+	cacheChaozjReplyIdPrefix = "cache:keyframe:reply:id:"
 )
 
 type (

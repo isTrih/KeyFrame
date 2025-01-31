@@ -24,8 +24,8 @@ var (
 	likeCountRowsExpectAutoSet   = strings.Join(stringx.Remove(likeCountFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	likeCountRowsWithPlaceHolder = strings.Join(stringx.Remove(likeCountFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjLikeCountIdPrefix         = "cache:chaozj:likeCount:id:"
-	cacheChaozjLikeCountBizIdObjIdPrefix = "cache:chaozj:likeCount:bizId:objId:"
+	cacheChaozjLikeCountIdPrefix         = "cache:keyframe:likeCount:id:"
+	cacheChaozjLikeCountBizIdObjIdPrefix = "cache:keyframe:likeCount:bizId:objId:"
 )
 
 type (

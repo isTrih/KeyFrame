@@ -81,6 +81,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 			var feeds = []types.Feed{}
 			var tmp []uint64
 			list, err := l.svcCtx.LikeRecordModel.GetUserLikeList(l.ctx, offset, req.UserId)
+			println("list", list)
 			if err != nil {
 				return nil, err
 			}
@@ -114,7 +115,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 				}
 			})
 			resp = new(types.GetIndexFeedsResponse)
-			resp.Status = "success+noRedis"
+			resp.Status = "Success&NORedis"
 			resp.Feeds = feeds
 			return resp, nil
 		}
@@ -152,7 +153,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 				}
 			}
 			resp = new(types.GetIndexFeedsResponse)
-			resp.Status = "success"
+			resp.Status = "Success&Redis"
 			resp.Feeds = feeds
 			return resp, nil
 		} else {
@@ -192,7 +193,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 				}
 			})
 			resp = new(types.GetIndexFeedsResponse)
-			resp.Status = "success"
+			resp.Status = "Success&Redis"
 			resp.Feeds = feeds
 			return resp, nil
 		}
@@ -370,4 +371,67 @@ func (l *UserFeedsLogic) addCacheLike(ctx context.Context, feedIds []*article.Fe
 		}
 	}
 	return l.svcCtx.BizRedis.ExpireCtx(ctx, key, 3600)
+}
+
+func (l *UserFeedsLogic) GetUploadIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
+	key := fmt.Sprintf("user:upload:id:%d", uid)
+
+	pairs, err := l.svcCtx.BizRedis.ZrangebyscoreWithScoresAndLimitCtx(ctx, key, int64(offset), int64(offset+10), 0, 10)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []uint64
+	for _, pair := range pairs {
+		id, err := strconv.ParseUint(pair.Key, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+func (l *UserFeedsLogic) GetUploadListByIds(ctx context.Context, feedIds []uint64) ([]*article.Feeds, error) {
+	feeds, err := mr.MapReduce[uint64, *article.Feeds, []*article.Feeds](func(source chan<- uint64) {
+		for _, fid := range feedIds {
+			source <- fid
+		}
+	}, func(id uint64, writer mr.Writer[*article.Feeds], cancel func(error)) {
+		p, err := l.svcCtx.ArticleModel.FindOneMix(ctx, id)
+		if err != nil {
+			cancel(err)
+			return
+		}
+		writer.Write(p)
+	}, func(pipe <-chan *article.Feeds, writer mr.Writer[[]*article.Feeds], cancel func(error)) {
+		var feeds []*article.Feeds
+		for feed := range pipe {
+			feeds = append(feeds, feed)
+		}
+		writer.Write(feeds)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return feeds, nil
+
+}
+func (l *UserFeedsLogic) addCacheUpload(ctx context.Context, feedIds []*article.Feeds, userId uint64) error {
+
+	if len(feedIds) == 0 {
+		return nil
+	}
+	key := fmt.Sprintf("user:upload:id:%d", userId)
+	for _, feedId := range feedIds {
+		var score int64
+		score = int64(feedId.Id)
+
+		_, err := l.svcCtx.BizRedis.ZaddCtx(ctx, key, score, strconv.FormatUint(feedId.Id, 10))
+		if err != nil {
+			return err
+		}
+	}
+	return l.svcCtx.BizRedis.ExpireCtx(ctx, key, 3600)
+
 }

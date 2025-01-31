@@ -49,8 +49,8 @@ func (m *defaultUserModel) UpdateIp(ctx context.Context, id uint64, il string, i
 	if err != nil {
 		return err
 	}
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, data.Id)
-	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
+	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, data.Id)
+	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
 
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 

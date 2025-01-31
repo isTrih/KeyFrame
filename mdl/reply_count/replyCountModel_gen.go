@@ -24,7 +24,7 @@ var (
 	replyCountRowsExpectAutoSet   = strings.Join(stringx.Remove(replyCountFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	replyCountRowsWithPlaceHolder = strings.Join(stringx.Remove(replyCountFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjReplyCountIdPrefix = "cache:chaozj:replyCount:id:"
+	cacheChaozjReplyCountIdPrefix = "cache:keyframe:replyCount:id:"
 )
 
 type (

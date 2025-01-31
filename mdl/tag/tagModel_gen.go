@@ -24,7 +24,7 @@ var (
 	tagRowsExpectAutoSet   = strings.Join(stringx.Remove(tagFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	tagRowsWithPlaceHolder = strings.Join(stringx.Remove(tagFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjTagIdPrefix = "cache:chaozj:tag:id:"
+	cacheChaozjTagIdPrefix = "cache:keyframe:tag:id:"
 )
 
 type (

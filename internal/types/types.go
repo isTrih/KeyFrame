@@ -8,24 +8,6 @@ type AdminRes struct {
 	Operator string `json:"operator"`
 }
 
-type Article struct {
-	Id          uint64 `db:"id"`          // 主键ID
-	Title       string `db:"title"`       // 标题
-	Content     string `db:"content"`     // 内容
-	Media       string `db:"media"`       // 媒体资源
-	Description string `db:"description"` // 描述
-	AuthorId    uint64 `db:"author_id"`   // 作者ID
-	Status      int64  `db:"status"`      // 状态 0:待审核 1:审核不通过 2:可见 3:用户删除
-	Type        int64  `db:"type"`        // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
-	CommentNum  int64  `db:"comment_num"` // 评论数
-	LikeNum     int64  `db:"like_num"`    // 点赞数
-	CollectNum  int64  `db:"collect_num"` // 收藏数
-	ViewNum     int64  `db:"view_num"`    // 浏览数
-	ShareNum    int64  `db:"share_num"`   // 分享数
-	TagIds      string `db:"tag_ids"`     // 标签ID
-	User        string `db:"user"`
-}
-
 type Auth struct {
 	Token string `json:"token"`
 }
@@ -54,9 +36,9 @@ type ChangeResquest struct {
 }
 
 type ChangeUserInfoRequest struct {
-	Nickname  string `db:"nick_name"` // 昵称
-	Signature string `db:"signature"` // 简介
-	Avatar    string `db:"avatar"`    // 头像
+	Nickname  string `json:"nick_name"` // 昵称
+	Signature string `json:"signature"` // 简介
+	Avatar    string `json:"avatar"`    // 头像
 }
 
 type ChangeUserInfoResponse struct {
@@ -68,7 +50,7 @@ type ChangeUserTypeRequest struct {
 	Type   uint8  `json:"type"`
 }
 
-type DeleteArticleRequest struct {
+type DeleteFeedRequest struct {
 	Id uint64 `json:"id"`
 }
 
@@ -83,8 +65,31 @@ type Feed struct {
 	User      FeedUser  `json:"user"`
 }
 
+type FeedDetail struct {
+	Title       string    `json:"title"`        // 标题
+	Id          uint64    `json:"id"`           // ID
+	MediaUrl    string    `json:"media_url"`    // 封面
+	Content     string    `json:"content"`      // 内容
+	Type        uint8     `json:"type"`         // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
+	CommentNum  uint64    `json:"comment_num"`  // 评论数
+	LikeNum     uint64    `json:"like_num"`     // 点赞数
+	CollectNum  uint64    `json:"collect_num"`  // 收藏数
+	ViewNum     uint64    `json:"view_num"`     // 浏览数
+	ShareNum    uint64    `json:"share_num"`    // 分享数
+	MediaInfo   MediaInfo `json:"media"`        // 多媒体信息
+	MediaList   []string  `json:"media_list"`   // 多媒体列表
+	Author      FeedUser  `json:"user"`         // 作者
+	AuthorId    uint64    `json:"author_id"`    // 作者ID
+	PublishTime uint64    `json:"publish_time"` // 发布时间
+	CreateTime  uint64    `json:"create_time"`  // 创建时间
+	UpdateTime  uint64    `json:"update_time"`  // 最后修改时间
+	AiInsp      uint64    `json:"ai_insp"`      // AI检验，默认0没有问题，1出现问题。
+	AiInspCode  uint64    `json:"ai_insp_code"` // AI检验的状态码
+	Insp        uint64    `json:"insp"`         // 人工校验为0时可用，默认为1待检验
+}
+
 type FeedUser struct {
-	Id       uint64 `json:"id"`
+	Id       uint64 `json:"user_id"`
 	UserName string `json:"user_name"`
 	Avatar   string `json:"avatar"`
 }
@@ -102,17 +107,17 @@ type FollowResponse struct {
 	Message string `json:"message"`
 }
 
-type GetArticleRequest struct {
-	Id uint64 `json:"id"`
+type GetFeedDetailRequest struct {
+	Id uint64 `path:"id"`
 }
 
-type GetArticleResponse struct {
-	Article Article `json:"article"`
+type GetFeedDetailResponse struct {
+	Feed FeedDetail `json:"Feed"`
 }
 
 type GetIndexFeedsRequest struct {
 	Offset uint64 `json:"offset"`
-	Query  string `json:"query"`
+	Query  string `json:"query, optional"`
 }
 
 type GetIndexFeedsResponse struct {
@@ -123,7 +128,7 @@ type GetIndexFeedsResponse struct {
 type LoginMobilePassRequest struct {
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
-	XRI      string `header:"X-Real-IP"`
+	KIP      string `header:"kip,optional"`
 }
 
 type LoginRequest struct {
@@ -145,7 +150,7 @@ type MediaInfo struct {
 	Height uint32 `json:"height"`
 }
 
-type NewArticleRequest struct {
+type NewFeedRequest struct {
 	Title       string   `json:"title"`       // 标题
 	Content     string   `json:"content"`     // 内容
 	Media       []string `json:"media"`       // 封面
@@ -168,14 +173,12 @@ type RegisterResponse struct {
 	UserType  uint8  `json:"type"`
 }
 
-type SearchArticleRequest struct {
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Tag    string `json:"tag"`
-}
-
-type SearchArticleResponse struct {
-	Articles []Article `json:"articles"`
+type SearchFeedRequest struct {
+	Offset uint64 `json:"offset, default=0"`
+	Query  string `json:"query, optional"`
+	Title  string `json:"title, optional"`
+	Author string `json:"author, optional"`
+	Tag    string `json:"tag, optional"`
 }
 
 type StatusResponse struct {
@@ -200,7 +203,7 @@ type UserFeedsRequest struct {
 }
 
 type UserInfoRequest struct {
-	UserId uint64 `json:"user_id"`
+	UserId uint64 `path:"uid"`
 }
 
 type UserInfoResponse struct {

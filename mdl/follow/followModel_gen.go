@@ -24,8 +24,8 @@ var (
 	followRowsExpectAutoSet   = strings.Join(stringx.Remove(followFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	followRowsWithPlaceHolder = strings.Join(stringx.Remove(followFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjFollowIdPrefix                   = "cache:chaozj:follow:id:"
-	cacheChaozjFollowUserIdFollowedUserIdPrefix = "cache:chaozj:follow:userId:followedUserId:"
+	cacheChaozjFollowIdPrefix                   = "cache:keyframe:follow:id:"
+	cacheChaozjFollowUserIdFollowedUserIdPrefix = "cache:keyframe:follow:userId:followedUserId:"
 )
 
 type (

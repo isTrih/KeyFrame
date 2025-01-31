@@ -8,7 +8,7 @@ type (
 
         // 文章作者
     FeedUser {
-        Id uint64 `json:"id"`
+        Id uint64 `json:"user_id"`
         UserName string `json:"user_name"`
         Avatar string `json:"avatar"`
     }
@@ -33,7 +33,7 @@ type (
 type (
     GetIndexFeedsRequest {
         Offset uint64 `json:"offset"`
-        Query string `json:"query"`
+        Query string `json:"query, optional"`
     }
 
     GetIndexFeedsResponse {
@@ -46,6 +46,14 @@ type (
         UserId uint64 `json:"user_id"`
         FeedType string `json:"feed_type"`
     }
+
+    SearchFeedRequest {
+        Offset uint64 `json:"offset, default=0"`
+        Query string `json:"query, optional"`
+        Title string `json:"title, optional"`
+        Author string `json:"author, optional"`
+        Tag string `json:"tag, optional"`
+    }
 )
 
 
@@ -57,10 +65,14 @@ type (
 service chaozjani {
     @doc "获取首页信息流"
     @handler GetIndexFeeds
-    post /get-feeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
+    post /getfeeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
 
     @doc "获取用户主页帖子"
     @handler UserFeeds
     post /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
+
+    @doc "搜索帧（文章）"
+    @handler SearchFeed
+    post /search (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
 }
 

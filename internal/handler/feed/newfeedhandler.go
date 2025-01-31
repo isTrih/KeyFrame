@@ -1,4 +1,4 @@
-package home
+package feed
 
 import (
 	"net/http"
@@ -6,22 +6,22 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 
 	xhttp "github.com/zeromicro/x/http"
-	"zerobackend/internal/logic/home"
+	"zerobackend/internal/logic/feed"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 )
 
-// UserFeedsHandler 获取用户主页帖子
-func UserFeedsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+// 创建帧（文章）
+func NewFeedHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.UserFeedsRequest
+		var req types.NewFeedRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			xhttp.JsonBaseResponseCtx(r.Context(), w, err)
 			return
 		}
 
-		l := home.NewUserFeedsLogic(r.Context(), svcCtx)
-		resp, err := l.UserFeeds(&req)
+		l := feed.NewNewFeedLogic(r.Context(), svcCtx)
+		resp, err := l.NewFeed(&req)
 		if err != nil {
 			// code-data 响应格式
 			xhttp.JsonBaseResponseCtx(r.Context(), w, err)

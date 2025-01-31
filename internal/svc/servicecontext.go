@@ -25,7 +25,6 @@ type ServiceContext struct {
 	BizRedis         *redis.Redis
 	Config           config.Config
 	IP4Searcher      *goCzdb.DbSearcher
-	IP6Searcher      *goCzdb.DbSearcher
 	UserModel        user.UserModel
 	ArticleModel     article.ArticleModel
 	ReplyModel       reply.ReplyModel
@@ -44,16 +43,11 @@ type ServiceContext struct {
 func NewServiceContext(c config.Config) *ServiceContext {
 
 	searcher4, err4 := goCzdb.NewDbSearcher(c.IPCheck.Path4, "MEMORY", c.IPCheck.KEY)
-	searcher6, err6 := goCzdb.NewDbSearcher(c.IPCheck.Path6, "MEMORY", c.IPCheck.KEY)
-
 	if err4 != nil {
 		fmt.Printf("Ipv4查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path4, err4)
 	}
-	if err6 != nil {
-		fmt.Printf("IPv6查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path6, err6)
-	}
 
-	sqlConn := sqlx.NewMysql(c.DB.DataSource)
+	keyframeGo := sqlx.NewMysql(c.DB.DataSource)
 	rds, err := redis.NewRedis(redis.RedisConf{
 		Host: c.BizRedis.Host,
 		Pass: c.BizRedis.Pass,
@@ -64,19 +58,18 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	return &ServiceContext{
 		IP4Searcher: searcher4,
-		IP6Searcher: searcher6,
 		Config:      c,
 		//用户数据库
-		UserModel: user.NewUserModel(sqlConn, c.Cache),
+		UserModel: user.NewUserModel(keyframeGo, c.Cache),
 		//文章数据库
-		ArticleModel: article.NewArticleModel(sqlConn, c.Cache),
+		ArticleModel: article.NewArticleModel(keyframeGo, c.Cache),
 		//关注数量
-		FollowCountModel: follow_count.NewFollowCountModel(sqlConn, c.Cache),
+		FollowCountModel: follow_count.NewFollowCountModel(keyframeGo, c.Cache),
 		//收藏
-		CollectModel: collect.NewCollectModel(sqlConn, c.Cache),
+		CollectModel: collect.NewCollectModel(keyframeGo, c.Cache),
 		//点赞
-		LikeRecordModel: like_record.NewLikeRecordModel(sqlConn, c.Cache),
-		LikeCountModel:  like_count.NewLikeCountModel(sqlConn, c.Cache),
+		LikeRecordModel: like_record.NewLikeRecordModel(keyframeGo, c.Cache),
+		LikeCountModel:  like_count.NewLikeCountModel(keyframeGo, c.Cache),
 		BizRedis:        rds,
 	}
 }

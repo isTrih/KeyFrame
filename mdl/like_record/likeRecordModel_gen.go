@@ -24,8 +24,8 @@ var (
 	likeRecordRowsExpectAutoSet   = strings.Join(stringx.Remove(likeRecordFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	likeRecordRowsWithPlaceHolder = strings.Join(stringx.Remove(likeRecordFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjLikeRecordIdPrefix               = "cache:chaozj:likeRecord:id:"
-	cacheChaozjLikeRecordBizIdObjIdUserIdPrefix = "cache:chaozj:likeRecord:bizId:objId:userId:"
+	cacheChaozjLikeRecordIdPrefix               = "cache:keyframe:likeRecord:id:"
+	cacheChaozjLikeRecordBizIdObjIdUserIdPrefix = "cache:keyframe:likeRecord:bizId:objId:userId:"
 )
 
 type (

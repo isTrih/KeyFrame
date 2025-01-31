@@ -24,7 +24,7 @@ var (
 	tagResourceRowsExpectAutoSet   = strings.Join(stringx.Remove(tagResourceFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	tagResourceRowsWithPlaceHolder = strings.Join(stringx.Remove(tagResourceFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjTagResourceIdPrefix = "cache:chaozj:tagResource:id:"
+	cacheChaozjTagResourceIdPrefix = "cache:keyframe:tagResource:id:"
 )
 
 type (

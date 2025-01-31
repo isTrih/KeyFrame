@@ -8,7 +8,7 @@ import (
 
 	adminfeed "zerobackend/internal/handler/adminfeed"
 	adminuser "zerobackend/internal/handler/adminuser"
-	article "zerobackend/internal/handler/article"
+	feed "zerobackend/internal/handler/feed"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
 	upload "zerobackend/internal/handler/upload"
@@ -68,33 +68,34 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				// 帧（文章）详情
+				Method:  http.MethodGet,
+				Path:    "/:id",
+				Handler: feed.GetFeedDetailHandler(serverCtx),
+			},
+		},
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/feed"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
 				// 删除帧（文章）
 				Method:  http.MethodPost,
 				Path:    "/delete",
-				Handler: article.DeleteArticleHandler(serverCtx),
-			},
-			{
-				// 帧（文章）详情
-				Method:  http.MethodPost,
-				Path:    "/detail",
-				Handler: article.GetArticleHandler(serverCtx),
+				Handler: feed.DeleteFeedHandler(serverCtx),
 			},
 			{
 				// 创建帧（文章）
 				Method:  http.MethodPost,
 				Path:    "/new",
-				Handler: article.NewArticleHandler(serverCtx),
-			},
-			{
-				// 搜索帧（文章）
-				Method:  http.MethodPost,
-				Path:    "/search",
-				Handler: article.SearchArticleHandler(serverCtx),
+				Handler: feed.NewFeedHandler(serverCtx),
 			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithSignature(serverCtx.Config.Signature),
-		rest.WithPrefix("/v1/article"),
+		rest.WithPrefix("/v1/feed"),
 	)
 
 	server.AddRoutes(
@@ -128,8 +129,14 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			{
 				// 获取首页信息流
 				Method:  http.MethodPost,
-				Path:    "/get-feeds",
+				Path:    "/getfeeds",
 				Handler: home.GetIndexFeedsHandler(serverCtx),
+			},
+			{
+				// 搜索帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/search",
+				Handler: home.SearchFeedHandler(serverCtx),
 			},
 			{
 				// 获取用户主页帖子
@@ -164,16 +171,16 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				// 获取用户信息 不需要token
+				Method:  http.MethodGet,
+				Path:    "/:uid",
+				Handler: user.UserInfoHandler(serverCtx),
+			},
+			{
 				// 更改手机号码
 				Method:  http.MethodPost,
 				Path:    "/change-mobile",
 				Handler: user.ChangeMobileHandler(serverCtx),
-			},
-			{
-				// 获取用户信息 不需要token
-				Method:  http.MethodPost,
-				Path:    "/info",
-				Handler: user.UserInfoHandler(serverCtx),
 			},
 			{
 				// uid账号登录

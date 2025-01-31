@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
+
 	xhttp "github.com/zeromicro/x/http"
 	"zerobackend/internal/logic/user"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 )
 
-// UserInfoHandler 获取用户信息 不需要token
+// 获取用户信息 不需要token
 func UserInfoHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.UserInfoRequest

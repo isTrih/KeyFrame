@@ -48,7 +48,7 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	}
 
 	// 查询ip
-	var ip = req.XRI
+	var ip = req.KIP
 	region, err := l.svcCtx.IP4Searcher.Search(ip)
 	if err != nil {
 		fmt.Printf("failed to SearchIP(%s): %s\n", ip, err)
@@ -59,7 +59,7 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	upErr := l.svcCtx.UserModel.UpdateIp(l.ctx, user.Id, region, ip)
 	if upErr != nil {
 		fmt.Println(upErr)
-		return nil, errors.New(4004, "更新数据失败")
+		return nil, errors.New(4004, "更新数据失败，请联系管理员")
 	}
 
 	// 生成token

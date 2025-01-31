@@ -24,8 +24,8 @@ var (
 	collectRowsExpectAutoSet   = strings.Join(stringx.Remove(collectFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	collectRowsWithPlaceHolder = strings.Join(stringx.Remove(collectFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjCollectIdPrefix                    = "cache:chaozj:collect:id:"
-	cacheChaozjCollectUserIdCollectedFeedIdPrefix = "cache:chaozj:collect:userId:collectedFeedId:"
+	cacheChaozjCollectIdPrefix                    = "cache:keyframe:collect:id:"
+	cacheChaozjCollectUserIdCollectedFeedIdPrefix = "cache:keyframe:collect:userId:collectedFeedId:"
 )
 
 type (

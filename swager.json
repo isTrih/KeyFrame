@@ -177,10 +177,10 @@
         ]
       }
     },
-    "/v1/article/delete": {
+    "/v1/feed/delete": {
       "post": {
         "summary": "删除帧（文章）",
-        "operationId": "DeleteArticle",
+        "operationId": "DeleteFeed",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -195,12 +195,12 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/DeleteArticleRequest"
+              "$ref": "#/definitions/DeleteFeedRequest"
             }
           }
         ],
         "tags": [
-          "article"
+          "feed"
         ],
         "security": [
           {
@@ -209,42 +209,10 @@
         ]
       }
     },
-    "/v1/article/detail": {
-      "post": {
-        "summary": "帧（文章）详情",
-        "operationId": "GetArticle",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/GetArticleResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/GetArticleRequest"
-            }
-          }
-        ],
-        "tags": [
-          "article"
-        ],
-        "security": [
-          {
-            "apiKey": []
-          }
-        ]
-      }
-    },
-    "/v1/article/new": {
+    "/v1/feed/new": {
       "post": {
         "summary": "创建帧（文章）",
-        "operationId": "NewArticle",
+        "operationId": "NewFeed",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -259,12 +227,12 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/NewArticleRequest"
+              "$ref": "#/definitions/NewFeedRequest"
             }
           }
         ],
         "tags": [
-          "article"
+          "feed"
         ],
         "security": [
           {
@@ -273,30 +241,28 @@
         ]
       }
     },
-    "/v1/article/search": {
-      "post": {
-        "summary": "搜索帧（文章）",
-        "operationId": "SearchArticle",
+    "/v1/feed/{id}": {
+      "get": {
+        "summary": "帧（文章）详情",
+        "operationId": "GetFeedDetail",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/SearchArticleResponse"
+              "$ref": "#/definitions/GetFeedDetailResponse"
             }
           }
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "id",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/SearchArticleRequest"
-            }
+            "type": "string"
           }
         ],
         "tags": [
-          "article"
+          "feed"
         ],
         "security": [
           {
@@ -397,10 +363,37 @@
         ]
       }
     },
-    "/v1/home/get-feeds": {
+    "/v1/home/getfeeds": {
       "post": {
         "summary": "获取首页信息流",
         "operationId": "GetIndexFeeds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetIndexFeedsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetIndexFeedsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "home"
+        ]
+      }
+    },
+    "/v1/home/search": {
+      "post": {
+        "summary": "搜索帧（文章）",
+        "operationId": "SearchFeed",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -594,33 +587,6 @@
         ]
       }
     },
-    "/v1/user/info": {
-      "post": {
-        "summary": "获取用户信息 不需要token",
-        "operationId": "UserInfoHandler",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/UserInfoResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/UserInfoRequest"
-            }
-          }
-        ],
-        "tags": [
-          "user"
-        ]
-      }
-    },
     "/v1/user/login": {
       "post": {
         "summary": "uid账号登录",
@@ -661,6 +627,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "kip",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -750,6 +722,31 @@
           "user"
         ]
       }
+    },
+    "/v1/user/{uid}": {
+      "get": {
+        "summary": "获取用户信息 不需要token",
+        "operationId": "UserInfoHandler",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/UserInfoResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "user"
+        ]
+      }
     }
   },
   "definitions": {
@@ -767,97 +764,6 @@
       "required": [
         "status",
         "operator"
-      ]
-    },
-    "Article": {
-      "type": "object",
-      "properties": {
-        "Id": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 主键ID"
-        },
-        "Title": {
-          "type": "string",
-          "description": " 标题"
-        },
-        "Content": {
-          "type": "string",
-          "description": " 内容"
-        },
-        "Media": {
-          "type": "string",
-          "description": " 媒体资源"
-        },
-        "Description": {
-          "type": "string",
-          "description": " 描述"
-        },
-        "AuthorId": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 作者ID"
-        },
-        "Status": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 状态 0:待审核 1:审核不通过 2:可见 3:用户删除"
-        },
-        "Type": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 状态 0:默认图片帧 1:视频帧 2:纯文字帧"
-        },
-        "CommentNum": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 评论数"
-        },
-        "LikeNum": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 点赞数"
-        },
-        "CollectNum": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 收藏数"
-        },
-        "ViewNum": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 浏览数"
-        },
-        "ShareNum": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 分享数"
-        },
-        "TagIds": {
-          "type": "string",
-          "description": " 标签ID"
-        },
-        "User": {
-          "type": "string"
-        }
-      },
-      "title": "Article",
-      "required": [
-        "id",
-        "title",
-        "content",
-        "media",
-        "description",
-        "author_id",
-        "status",
-        "type",
-        "comment_num",
-        "like_num",
-        "collect_num",
-        "view_num",
-        "share_num",
-        "tag_ids",
-        "user"
       ]
     },
     "Auth": {
@@ -947,15 +853,15 @@
     "ChangeUserInfoRequest": {
       "type": "object",
       "properties": {
-        "Nickname": {
+        "nick_name": {
           "type": "string",
           "description": " 昵称"
         },
-        "Signature": {
+        "signature": {
           "type": "string",
           "description": " 简介"
         },
-        "Avatar": {
+        "avatar": {
           "type": "string",
           "description": " 头像"
         }
@@ -996,7 +902,7 @@
         "type"
       ]
     },
-    "DeleteArticleRequest": {
+    "DeleteFeedRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -1004,7 +910,7 @@
           "format": "int64"
         }
       },
-      "title": "DeleteArticleRequest",
+      "title": "DeleteFeedRequest",
       "required": [
         "id"
       ]
@@ -1053,10 +959,125 @@
         "user"
       ]
     },
+    "FeedDetail": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": " 标题"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "media_url": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string",
+          "description": " 内容"
+        },
+        "type": {
+          "type": "integer",
+          "format": "uint8",
+          "description": " 状态 0:默认图片帧 1:视频帧 2:纯文字帧"
+        },
+        "comment_num": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 评论数"
+        },
+        "like_num": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 点赞数"
+        },
+        "collect_num": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 收藏数"
+        },
+        "view_num": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 浏览数"
+        },
+        "share_num": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 分享数"
+        },
+        "media": {
+          "$ref": "#/definitions/MediaInfo"
+        },
+        "media_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": " 多媒体列表"
+        },
+        "user": {
+          "$ref": "#/definitions/FeedUser"
+        },
+        "publish_time": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 发布时间"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 创建时间"
+        },
+        "update_time": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 最后修改时间"
+        },
+        "ai_insp": {
+          "type": "integer",
+          "format": "int64",
+          "description": " AI检验，默认0没有问题，1出现问题。"
+        },
+        "ai_insp_code": {
+          "type": "integer",
+          "format": "int64",
+          "description": " AI检验的状态码"
+        },
+        "insp": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 人工校验为0时可用，默认为1待检验"
+        }
+      },
+      "title": "FeedDetail",
+      "required": [
+        "title",
+        "id",
+        "media_url",
+        "content",
+        "type",
+        "comment_num",
+        "like_num",
+        "collect_num",
+        "view_num",
+        "share_num",
+        "media",
+        "media_list",
+        "user",
+        "publish_time",
+        "create_time",
+        "update_time",
+        "ai_insp",
+        "ai_insp_code",
+        "insp"
+      ]
+    },
     "FeedUser": {
       "type": "object",
       "properties": {
-        "id": {
+        "user_id": {
           "type": "integer",
           "format": "int64"
         },
@@ -1069,7 +1090,7 @@
       },
       "title": "FeedUser",
       "required": [
-        "id",
+        "user_id",
         "user_name",
         "avatar"
       ]
@@ -1117,29 +1138,20 @@
         "message"
       ]
     },
-    "GetArticleRequest": {
+    "GetFeedDetailRequest": {
       "type": "object",
-      "properties": {
-        "id": {
-          "type": "integer",
-          "format": "int64"
-        }
-      },
-      "title": "GetArticleRequest",
-      "required": [
-        "id"
-      ]
+      "title": "GetFeedDetailRequest"
     },
-    "GetArticleResponse": {
+    "GetFeedDetailResponse": {
       "type": "object",
       "properties": {
-        "article": {
-          "$ref": "#/definitions/Article"
+        "Feed": {
+          "$ref": "#/definitions/FeedDetail"
         }
       },
-      "title": "GetArticleResponse",
+      "title": "GetFeedDetailResponse",
       "required": [
-        "article"
+        "Feed"
       ]
     },
     "GetIndexFeedsRequest": {
@@ -1263,7 +1275,7 @@
         "height"
       ]
     },
-    "NewArticleRequest": {
+    "NewFeedRequest": {
       "type": "object",
       "properties": {
         "title": {
@@ -1286,7 +1298,7 @@
           "description": " 描述"
         }
       },
-      "title": "NewArticleRequest",
+      "title": "NewFeedRequest",
       "required": [
         "title",
         "content",
@@ -1352,9 +1364,16 @@
         "type"
       ]
     },
-    "SearchArticleRequest": {
+    "SearchFeedRequest": {
       "type": "object",
       "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "query": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -1365,26 +1384,13 @@
           "type": "string"
         }
       },
-      "title": "SearchArticleRequest",
+      "title": "SearchFeedRequest",
       "required": [
+        "offset",
+        "query",
         "title",
         "author",
         "tag"
-      ]
-    },
-    "SearchArticleResponse": {
-      "type": "object",
-      "properties": {
-        "articles": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Article"
-          }
-        }
-      },
-      "title": "SearchArticleResponse",
-      "required": [
-        "articles"
       ]
     },
     "StatusResponse": {
@@ -1464,16 +1470,7 @@
     },
     "UserInfoRequest": {
       "type": "object",
-      "properties": {
-        "user_id": {
-          "type": "integer",
-          "format": "int64"
-        }
-      },
-      "title": "UserInfoRequest",
-      "required": [
-        "user_id"
-      ]
+      "title": "UserInfoRequest"
     },
     "UserInfoResponse": {
       "type": "object",
@@ -1513,6 +1510,13 @@
         "follow_count": {
           "type": "integer",
           "format": "int64"
+        },
+        "ip_location": {
+          "type": "string"
+        },
+        "active_time": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "title": "UserInfoResponse",
@@ -1526,7 +1530,9 @@
         "signature",
         "feed_count",
         "fans_count",
-        "follow_count"
+        "follow_count",
+        "ip_location",
+        "active_time"
       ]
     },
     "UserRelationResponse": {

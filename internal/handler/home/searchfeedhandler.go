@@ -11,17 +11,17 @@ import (
 	"zerobackend/internal/types"
 )
 
-// UserFeedsHandler 获取用户主页帖子
-func UserFeedsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+// 搜索帧（文章）
+func SearchFeedHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.UserFeedsRequest
+		var req types.GetIndexFeedsRequest
 		if err := httpx.Parse(r, &req); err != nil {
 			xhttp.JsonBaseResponseCtx(r.Context(), w, err)
 			return
 		}
 
-		l := home.NewUserFeedsLogic(r.Context(), svcCtx)
-		resp, err := l.UserFeeds(&req)
+		l := home.NewSearchFeedLogic(r.Context(), svcCtx)
+		resp, err := l.SearchFeed(&req)
 		if err != nil {
 			// code-data 响应格式
 			xhttp.JsonBaseResponseCtx(r.Context(), w, err)
