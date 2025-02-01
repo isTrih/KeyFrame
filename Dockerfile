@@ -8,10 +8,11 @@ RUN apk add --no-cache tzdata \
     && echo "Asia/Shanghai" > /etc/timezone
 
 # 将你的二进制文件复制到容器中
-COPY chaozjani /chaozjani
-COPY etc /etc
+COPY keyframeGo /keyframeGo
+COPY /etc/chaozjani.yaml /etc/keyframeGo.yaml
+COPY /etc/cz88_public_v4.czdb etc/cz88_public_v4.czdb
 # 设置可执行权限（如果需要）
-RUN chmod +x /chaozjani
+RUN chmod +x /keyframeGo
 
 # 指定容器启动时运行的命令
-CMD ["/chaozjani"]
+CMD ["/keyframeGo"]

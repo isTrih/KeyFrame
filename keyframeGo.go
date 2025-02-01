@@ -27,9 +27,9 @@ func main() {
 		c.RestConf,
 		rest.WithCors(domains...),
 		rest.WithCustomCors(func(header http.Header) {
-			header.Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token,Authorization,Token,X-Token,X-User-Id,OS,Platform, Version")
+			header.Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token,Authorization,Token,X-Token,X-User-Id,OS,Platform, Version,kip")
 			header.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH")
-			header.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
+			header.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, ")
 		}, nil, "*"))
 	defer server.Stop()
 
