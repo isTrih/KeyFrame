@@ -19,7 +19,6 @@ type (
         Id uint64 `json:"id"`
         MediaUrl string `json:"media_url"`
         MediaInfo MediaInfo `json:"media"`
-        ViewNum uint32 `json:"view_num"`
         LikeNum uint32 `json:"like_num"`
         Loaded bool `json:"loaded"`
         User FeedUser `json:"user"`
@@ -32,8 +31,8 @@ type (
 
 type (
     GetIndexFeedsRequest {
-        Offset uint64 `json:"offset"`
-        Query string `json:"query, optional"`
+        Offset uint64 `form:"os, default=0"`
+        Query string `form:"q, optional"`
     }
 
     GetIndexFeedsResponse {
@@ -42,9 +41,9 @@ type (
     }
 
     UserFeedsRequest {
-        Offset uint64 `json:"offset"`
-        UserId uint64 `json:"user_id"`
-        FeedType string `json:"feed_type"`
+        Offset uint64 `form:"os, default=0"`
+        UserId uint64 `form:"uid"`
+        FeedType uint8 `form:"ftype, default=0"`
     }
 
     SearchFeedRequest {
@@ -62,17 +61,17 @@ type (
     group: home
 )
 
-service chaozjani {
+service keyframeGo {
     @doc "获取首页信息流"
     @handler GetIndexFeeds
-    post /getfeeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
+    get /getfeeds (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
 
     @doc "获取用户主页帖子"
     @handler UserFeeds
-    post /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
+    get /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
 
     @doc "搜索帧（文章）"
     @handler SearchFeed
-    post /search (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
+    get /search (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
 }
 

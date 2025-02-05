@@ -22,7 +22,7 @@ type (
 		articleModel
 		GetFeeds(ctx context.Context, offset uint64, query string) ([]*Feeds, error)
 		GetUncheckFeeds(ctx context.Context, offset uint64) ([]*Feeds, error)
-		GetUserFeeds(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error)
+		GetUserUploadList(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error)
 		GetFeedsNum(ctx context.Context, uid uint64) (int, error)
 		FindOneMix(ctx context.Context, id uint64) (*Feeds, error)
 		FindOneDetail(ctx context.Context, id uint64) (*FeedDetail, error)
@@ -40,60 +40,24 @@ type (
 		CoverUrl string `db:"cover_url"`
 		Height   uint32 `db:"height"`
 		Width    uint32 `db:"width"`
-		Views    uint32 `db:"view_num"`
-		Likes    uint32 `db:"like_num"`
+		LikeNum  uint32 `db:"like_count"`
 	}
 
 	FeedDetail struct {
-		Id         uint64 `db:"id"`          // ID
-		Title      string `db:"title"`       // 标题
-		Content    string `db:"content"`     // 内容
-		AuthorId   uint64 `db:"author_id"`   // 作者ID User表
-		UserName   string `db:"nickname"`    // 作者昵称 User表
-		Avatar     string `db:"avatar"`      // 作者头像 User表
-		LikeNum    uint64 `db:"like_num"`    // 点赞数
-		ShareNum   uint64 `db:"share_num"`   // 分享数
-		ViewNum    uint64 `db:"view_num"`    // 浏览数
-		CollectNum uint64 `db:"collect_num"` // 收藏数
-		CommentNum uint64 `db:"comment_num"` // 评论数
+		Id       uint64 `db:"id"`        // ID
+		Title    string `db:"title"`     // 标题
+		Content  string `db:"content"`   // 内容
+		AuthorId uint64 `db:"author_id"` // 作者ID User表
+		UserName string `db:"nickname"`  // 作者昵称 User表
+		Avatar   string `db:"avatar"`    // 作者头像 User表
 
 		CoverUrl  string         `db:"cover_url"`  // 封面 Media表
 		Height    uint32         `db:"height"`     // 高度 Media表
 		Width     uint32         `db:"width"`      // 宽度 Media表
 		MediaList sql.NullString `db:"media_list"` // 多媒体列表 Media表
 
-		Insp       uint64 `db:"insp"`         // 人工校验为0时可用，默认为1待检验
-		AiInsp     uint64 `db:"ai_insp"`      // AI检验，默认0没有问题，1出现问题。
-		AiInspCode uint64 `db:"ai_insp_code"` // AI检验的状态码
-
-		Type        uint8     `db:"type"`         // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
 		PublishTime time.Time `db:"publish_time"` // 发布时间
-		CreateTime  time.Time `db:"create_time"`  // 创建时间
-		UpdateTime  time.Time `db:"update_time"`  // 最后修改时间
-
-	}
-	FeedDetail2 struct {
-		Id          uint64   `db:"id"`
-		Title       string   `db:"title"`
-		AuthorId    uint64   `db:"author_id"`
-		Nickname    string   `db:"nickname"`
-		Avatar      string   `db:"avatar"`
-		CoverUrl    string   `db:"cover_url"`
-		Height      uint32   `db:"height"`
-		Width       uint32   `db:"width"`
-		MediaList   []string `db:"media_list"`
-		Content     string   `db:"content"`
-		CreateTime  uint64   `db:"create_time"`
-		UpdateTime  uint64   `db:"update_time"`
-		PublishTime uint64   `db:"publish_time"`
-		CollectNum  uint64   `db:"collect_num"`
-		CommentNum  uint64   `db:"comment_num"`
-		ShareNum    uint64   `db:"share_num"`
-		AiInsp      uint64   `db:"ai_insp"`
-		AiInspCode  uint64   `db:"ai_insp_code"`
-		Insp        uint64   `db:"insp"`
-		LikeNum     uint64   `db:"like_num"`
-		ViewNum     uint64   `db:"view_num"`
+		IpLocation  string    `db:"ip_location"`  // IP归属地
 	}
 )
 
@@ -107,15 +71,40 @@ func NewArticleModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 // GetFeeds 获取文章 query是接在 Where 的 and 后面的字符串 如："a.id = 1 and a.title = 'test'"
 func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query string) ([]*Feeds, error) {
 	var list []*Feeds
-	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
-	sql := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.status = 0 order by a.update_time desc limit 10 offset %d", row, m.table, offset)
+	row := "a.id,a.title,a.author_id,b.nickname,b.avatar,c.cover_url,c.height,c.width, COALESCE(action_count.like_count, 0) AS like_count"
+	q := fmt.Sprintf(`
+    SELECT %s
+    FROM %s AS a
+    LEFT JOIN user AS b ON a.author_id = b.id
+    LEFT JOIN media AS c ON a.id = c.article_id
+    LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
+    WHERE a.status = 0
+    ORDER BY a.update_time DESC
+    LIMIT 10 OFFSET ?;
+`, row, m.table)
 	if len(query) != 0 {
-		sql = fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.status = 0 and %s order by a.update_time desc limit 10 offset %d", row, m.table, query, offset)
+		q = fmt.Sprintf(`
+    SELECT %s    
+    FROM %s AS a
+    LEFT JOIN user AS b ON a.author_id = b.id
+    LEFT JOIN media AS c ON a.id = c.article_id
+    LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
+    WHERE a.status = 0 AND (a.title LIKE '%%%s%%' OR a.content LIKE '%%%s%%' OR b.nickname LIKE '%%%s%%')
+    ORDER BY a.update_time DESC
+    LIMIT 10 OFFSET %d;
+`, row, m.table, query, query, query, offset)
+
+		err := m.QueryRowsNoCacheCtx(ctx, &list, q)
+		if err != nil {
+			logx.Error("query failed query ", err)
+			return nil, err
+		}
+		return list, nil
 	}
 
-	err := m.QueryRowsNoCacheCtx(ctx, &list, sql)
+	err := m.QueryRowsNoCacheCtx(ctx, &list, q, offset)
 	if err != nil {
-		logx.Error("query failed", err)
+		logx.Error("query failed ", err)
 		return nil, err
 	}
 	return list, nil
@@ -154,26 +143,37 @@ func (m *defaultArticleModel) GetFeedsNum(ctx context.Context, uid uint64) (int,
 
 }
 
-// GetUserFeeds 获取用户主页文章
-func (m *defaultArticleModel) GetUserFeeds(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error) {
-
+// GetUserUploadList 获取用户主页文章列表
+func (m *defaultArticleModel) GetUserUploadList(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error) {
 	var list []*Feeds
-	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
-	sql := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where b.id = %d order by a.update_time desc limit 10 offset %d", row, m.table, uid, offset)
-	err := m.QueryRowsNoCacheCtx(ctx, &list, sql)
+	row := "a.id, a.title, a.author_id, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
+	s := fmt.Sprintf(`
+    SELECT %s
+    FROM %s AS a
+    LEFT JOIN user AS b ON a.author_id = b.id
+    LEFT JOIN media AS c ON a.id = c.article_id
+    LEFT JOIN action_count AS d ON a.id = d.target_id AND d.target_type = 1
+    WHERE b.id = %d
+    ORDER BY a.update_time DESC
+    LIMIT 10 OFFSET %d
+`, row, m.table, uid, offset)
+
+	err := m.QueryRowsNoCacheCtx(ctx, &list, s)
 	if err != nil {
+		logx.Error("query failed", err)
 		return nil, err
 	}
 	return list, nil
 }
 
+// FindOneMix 根据ID获取文章预览信息
 func (m *defaultArticleModel) FindOneMix(ctx context.Context, id uint64) (*Feeds, error) {
 	chaozjArticleIdKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", id)
-	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
+	row := "a.id, a.title, a.author_id, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
 
 	var resp Feeds
 	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.id = ? and a.status = 0 limit 1", row, m.table)
+		query := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id LEFT JOIN action_count AS d ON a.id = d.target_id AND d.target_type = 1 where a.id = ? and a.status = 0 limit 1", row, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
 	switch err {
@@ -186,13 +186,14 @@ func (m *defaultArticleModel) FindOneMix(ctx context.Context, id uint64) (*Feeds
 	}
 }
 
+// FindOneDetail 获取文章详情
 func (m *defaultArticleModel) FindOneDetail(ctx context.Context, id uint64) (*FeedDetail, error) {
 	chaozjArticleIdKey := fmt.Sprintf("%s%v", "cache:keyframe:article:detail:id:", id)
-	row := "a.id,a.title,a.content,a.author_id,b.avatar,b.nickname,a.like_num,a.share_num,a.view_num,a.collect_num,a.comment_num,c.cover_url,c.height,c.width,c.media_list,a.insp,a.ai_insp,a.ai_insp_code,a.type,a.update_time,a.publish_time,a.create_time"
+	qury := fmt.Sprintf("SELECT article.id,article.title,article.content,article.author_id,article.ip_location,article.publish_time,user.avatar,user.nickname,media.cover_url,media.height,media.width,media.media_list FROM article LEFT JOIN user ON article.author_id = user.id LEFT JOIN media ON article.id = media.article_id WHERE article_id = ? AND article.status = 0 LIMIT 1")
+
 	var resp FeedDetail
 	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.id = ? and a.status = 0 limit 1", row, m.table)
-		return conn.QueryRowCtx(ctx, v, query, id)
+		return conn.QueryRowCtx(ctx, v, qury, id)
 	})
 	switch err {
 	case nil:

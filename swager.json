@@ -263,11 +263,6 @@
         ],
         "tags": [
           "feed"
-        ],
-        "security": [
-          {
-            "apiKey": []
-          }
         ]
       }
     },
@@ -364,7 +359,7 @@
       }
     },
     "/v1/home/getfeeds": {
-      "post": {
+      "get": {
         "summary": "获取首页信息流",
         "operationId": "GetIndexFeeds",
         "responses": {
@@ -375,23 +370,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/GetIndexFeedsRequest"
-            }
-          }
-        ],
         "tags": [
           "home"
         ]
       }
     },
     "/v1/home/search": {
-      "post": {
+      "get": {
         "summary": "搜索帧（文章）",
         "operationId": "SearchFeed",
         "responses": {
@@ -402,23 +387,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/GetIndexFeedsRequest"
-            }
-          }
-        ],
         "tags": [
           "home"
         ]
       }
     },
     "/v1/home/userfeeds": {
-      "post": {
+      "get": {
         "summary": "获取用户主页帖子",
         "operationId": "UserFeeds",
         "responses": {
@@ -429,16 +404,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/UserFeedsRequest"
-            }
-          }
-        ],
         "tags": [
           "home"
         ]
@@ -931,10 +896,6 @@
         "media": {
           "$ref": "#/definitions/MediaInfo"
         },
-        "view_num": {
-          "type": "integer",
-          "format": "int32"
-        },
         "like_num": {
           "type": "integer",
           "format": "int32"
@@ -953,7 +914,6 @@
         "id",
         "media_url",
         "media",
-        "view_num",
         "like_num",
         "loaded",
         "user"
@@ -968,19 +928,16 @@
         },
         "id": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": " ID"
         },
         "media_url": {
-          "type": "string"
+          "type": "string",
+          "description": " 封面"
         },
         "content": {
           "type": "string",
           "description": " 内容"
-        },
-        "type": {
-          "type": "integer",
-          "format": "uint8",
-          "description": " 状态 0:默认图片帧 1:视频帧 2:纯文字帧"
         },
         "comment_num": {
           "type": "integer",
@@ -997,18 +954,9 @@
           "format": "int64",
           "description": " 收藏数"
         },
-        "view_num": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 浏览数"
-        },
-        "share_num": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 分享数"
-        },
         "media": {
-          "$ref": "#/definitions/MediaInfo"
+          "$ref": "#/definitions/MediaInfo",
+          "description": " 多媒体信息"
         },
         "media_list": {
           "type": "array",
@@ -1018,37 +966,17 @@
           "description": " 多媒体列表"
         },
         "user": {
-          "$ref": "#/definitions/FeedUser"
+          "$ref": "#/definitions/FeedUser",
+          "description": " 作者"
         },
         "publish_time": {
           "type": "integer",
           "format": "int64",
           "description": " 发布时间"
         },
-        "create_time": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 创建时间"
-        },
-        "update_time": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 最后修改时间"
-        },
-        "ai_insp": {
-          "type": "integer",
-          "format": "int64",
-          "description": " AI检验，默认0没有问题，1出现问题。"
-        },
-        "ai_insp_code": {
-          "type": "integer",
-          "format": "int64",
-          "description": " AI检验的状态码"
-        },
-        "insp": {
-          "type": "integer",
-          "format": "int64",
-          "description": " 人工校验为0时可用，默认为1待检验"
+        "ip_location": {
+          "type": "string",
+          "description": " ip归属地"
         }
       },
       "title": "FeedDetail",
@@ -1057,21 +985,14 @@
         "id",
         "media_url",
         "content",
-        "type",
         "comment_num",
         "like_num",
         "collect_num",
-        "view_num",
-        "share_num",
         "media",
         "media_list",
         "user",
         "publish_time",
-        "create_time",
-        "update_time",
-        "ai_insp",
-        "ai_insp_code",
-        "insp"
+        "ip_location"
       ]
     },
     "FeedUser": {
@@ -1156,20 +1077,7 @@
     },
     "GetIndexFeedsRequest": {
       "type": "object",
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "query": {
-          "type": "string"
-        }
-      },
-      "title": "GetIndexFeedsRequest",
-      "required": [
-        "offset",
-        "query"
-      ]
+      "title": "GetIndexFeedsRequest"
     },
     "GetIndexFeedsResponse": {
       "type": "object",
@@ -1448,25 +1356,7 @@
     },
     "UserFeedsRequest": {
       "type": "object",
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "user_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "feed_type": {
-          "type": "string"
-        }
-      },
-      "title": "UserFeedsRequest",
-      "required": [
-        "offset",
-        "user_id",
-        "feed_type"
-      ]
+      "title": "UserFeedsRequest"
     },
     "UserInfoRequest": {
       "type": "object",

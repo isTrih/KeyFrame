@@ -53,6 +53,7 @@ type (
 		ViewNum     int64     `db:"view_num"`     // 浏览数
 		ShareNum    int64     `db:"share_num"`    // 分享数
 		TagIds      string    `db:"tag_ids"`      // 标签ID
+		IpLocation  string    `db:"ip_location"`  // IP归属地
 		PublishTime time.Time `db:"publish_time"` // 发布时间
 		CreateTime  time.Time `db:"create_time"`  // 创建时间
 		UpdateTime  time.Time `db:"update_time"`  // 最后修改时间
@@ -98,8 +99,8 @@ func (m *defaultArticleModel) FindOne(ctx context.Context, id uint64) (*Article,
 func (m *defaultArticleModel) Insert(ctx context.Context, data *Article) (sql.Result, error) {
 	keyframeArticleIdKey := fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, articleRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.PublishTime, data.AiInsp, data.AiInspCode, data.Insp)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, articleRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.IpLocation, data.PublishTime, data.AiInsp, data.AiInspCode, data.Insp)
 	}, keyframeArticleIdKey)
 	return ret, err
 }
@@ -108,7 +109,7 @@ func (m *defaultArticleModel) Update(ctx context.Context, data *Article) error {
 	keyframeArticleIdKey := fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, articleRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.PublishTime, data.AiInsp, data.AiInspCode, data.Insp, data.Id)
+		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.IpLocation, data.PublishTime, data.AiInsp, data.AiInspCode, data.Insp, data.Id)
 	}, keyframeArticleIdKey)
 	return err
 }

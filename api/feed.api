@@ -2,25 +2,18 @@ syntax = "v1"
 type (
     // 文章
     FeedDetail {
-        Title string `json:"title"`                  // 标题
-        Id uint64 `json:"id"`                        // ID
-        MediaUrl string `json:"media_url"`           // 封面
-        Content string `json:"content"`              // 内容
-        Type uint8 `json:"type"`                     // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
-        CommentNum uint64 `json:"comment_num"`       // 评论数
-        LikeNum uint64 `json:"like_num"`             // 点赞数
-        CollectNum uint64 `json:"collect_num"`       // 收藏数
-        ViewNum uint64 `json:"view_num"`             // 浏览数
-        ShareNum uint64 `json:"share_num"`           // 分享数
-        MediaInfo MediaInfo `json:"media"`           // 多媒体信息
-        MediaList []string `json:"media_list"`       // 多媒体列表
-        Author FeedUser `json:"user"`                // 作者
-        PublishTime uint64 `json:"publish_time"`     // 发布时间
-        CreateTime uint64 `json:"create_time"`       // 创建时间
-        UpdateTime uint64 `json:"update_time"`       // 最后修改时间
-        AiInsp uint64 `json:"ai_insp"`               // AI检验，默认0没有问题，1出现问题。
-        AiInspCode uint64 `json:"ai_insp_code"`      // AI检验的状态码
-        Insp uint64 `json:"insp"`                    // 人工校验为0时可用，默认为1待检验
+        Title string `json:"title"`                                                       // 标题
+        Id uint64 `json:"id"`                                                             // ID
+        MediaUrl string `json:"media_url"`                                                // 封面
+        Content string `json:"content"`                                                   // 内容
+        CommentNum uint64 `json:"comment_num"`                                            // 评论数
+        LikeNum uint64 `json:"like_num"`                                                  // 点赞数
+        CollectNum uint64 `json:"collect_num"`                                            // 收藏数
+        MediaInfo MediaInfo `json:"media"`                                                // 多媒体信息
+        MediaList []string `json:"media_list"`                                            // 多媒体列表
+        Author FeedUser `json:"user"`                                                     // 作者
+        PublishTime uint64 `json:"publish_time"`                                          // 发布时间
+        IpLocation string `json:"ip_location"`                                            // ip归属地
     }
 )
 type (
@@ -55,7 +48,7 @@ type (
 )
 
 
-service chaozjani {
+service keyframeGo {
     @doc "帧（文章）详情"
     @handler GetFeedDetail
     get /:id (GetFeedDetailRequest) returns (GetFeedDetailResponse)
@@ -70,7 +63,7 @@ service chaozjani {
 )
 
 
-service chaozjani {
+service keyframeGo {
     @doc "创建帧（文章）"
     @handler NewFeed
     post /new (NewFeedRequest) returns (StatusResponse)

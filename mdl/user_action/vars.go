@@ -1,4 +1,4 @@
-package tag_resource
+package user_action
 
 import "github.com/zeromicro/go-zero/core/stores/sqlx"
 

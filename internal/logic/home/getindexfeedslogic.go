@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/logx"
+	"net/url"
 	"slices"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -26,12 +27,18 @@ func NewGetIndexFeedsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get
 
 func (l *GetIndexFeedsLogic) GetIndexFeeds(req *types.GetIndexFeedsRequest) (resp *types.GetIndexFeedsResponse, err error) {
 	offset := req.Offset
-	list, err := l.svcCtx.ArticleModel.GetFeeds(l.ctx, offset, "")
+
+	query, err := url.QueryUnescape(req.Query) // 解码
+	if err != nil {
+		fmt.Println("Decoded Error:", err)
+		return nil, err
+	}
+	list, err := l.svcCtx.ArticleModel.GetFeeds(l.ctx, offset, query)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(list)
-	var feeds []types.Feed
+	var feeds = []types.Feed{}
 	var tmp []uint64
 	for _, v := range list {
 		if slices.Contains(tmp, v.Id) == false {
@@ -39,8 +46,7 @@ func (l *GetIndexFeedsLogic) GetIndexFeeds(req *types.GetIndexFeedsRequest) (res
 			feeds = append(feeds, types.Feed{
 				Id:      v.Id,
 				Title:   v.Title,
-				ViewNum: v.Views,
-				LikeNum: v.Likes,
+				LikeNum: v.LikeNum,
 				User: types.FeedUser{
 					Id:       v.AuthorId,
 					UserName: v.UserName,

@@ -1,4 +1,4 @@
-package collect
+package user_follow
 
 import "github.com/zeromicro/go-zero/core/stores/sqlx"
 

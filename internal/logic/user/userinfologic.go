@@ -60,8 +60,8 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 
 	resp.FeedCount = uint64(feedCount)
 
-	//查询用户的粉丝数
-	followCount, err := l.svcCtx.FollowCountModel.FindOneByUserId(l.ctx, req.UserId)
+	//查询用户的关注以及粉丝数
+	followCount, err := l.svcCtx.UserFollowModel.GetUserFollowNum(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
 		return nil, errors.New(4003, "查询数据失败")
@@ -70,8 +70,8 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 		resp.FansCount = 0
 		resp.FollowCount = 0
 	} else {
-		resp.FansCount = followCount.FansCount
-		resp.FollowCount = followCount.FollowCount
+		resp.FansCount = uint64(followCount.FanCount)
+		resp.FollowCount = uint64(followCount.FollowCount)
 	}
 
 	//返回数据

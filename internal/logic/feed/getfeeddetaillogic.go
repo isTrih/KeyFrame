@@ -3,9 +3,12 @@ package feed
 import (
 	"context"
 	"encoding/json"
+	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"github.com/zeromicro/x/errors"
+	"zerobackend/internal/nats/producer"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
+	"zerobackend/mdl/action_count"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -32,6 +35,19 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 		return nil, err
 	}
 
+	action, actionErr := l.svcCtx.ActionCountModel.FindOneByTargetIdTargetType(l.ctx, req.Id, 1)
+	switch actionErr {
+	case nil:
+		break
+	case sqlc.ErrNotFound:
+		action = &action_count.ActionCount{
+			LikeCount:    0,
+			CollectCount: 0,
+		}
+	default:
+		return nil, err
+	}
+
 	var urls []string
 	err = json.Unmarshal([]byte(a.MediaList.String), &urls)
 	if err != nil {
@@ -44,12 +60,9 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 			Id:         a.Id,
 			MediaUrl:   a.CoverUrl,
 			Content:    a.Content,
-			Type:       a.Type,
-			CommentNum: a.CommentNum,
-			LikeNum:    a.LikeNum,
-			CollectNum: a.CollectNum,
-			ViewNum:    a.ViewNum,
-			ShareNum:   a.ShareNum,
+			CommentNum: 0,
+			LikeNum:    action.LikeCount,
+			CollectNum: action.CollectCount,
 			MediaInfo: types.MediaInfo{
 				Width:  a.Width,
 				Height: a.Height,
@@ -61,12 +74,13 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 				Avatar:   a.Avatar,
 			},
 			PublishTime: uint64(a.PublishTime.Unix()),
-			CreateTime:  uint64(a.CreateTime.Unix()),
-			UpdateTime:  uint64(a.UpdateTime.Unix()),
-			AiInsp:      a.AiInsp,
-			AiInspCode:  a.AiInspCode,
-			Insp:        a.Insp,
+			IpLocation:  a.IpLocation,
 		},
+	}
+
+	Queeerr := producer.SendMessageToQueue("测试")
+	if Queeerr != nil {
+		return nil, Queeerr
 	}
 
 	return resp, nil

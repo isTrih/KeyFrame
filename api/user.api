@@ -106,7 +106,7 @@ type (
     prefix: /v1/user
     group: user
 )
-service chaozjani {
+service keyframeGo {
     @doc "用户注册"
     @handler RegisterHandler
     post /register (RegisterRequest) returns (RegisterResponse)
@@ -140,7 +140,7 @@ service chaozjani {
     group: user
 )
 
-service chaozjani {
+service keyframeGo {
     @doc "获取用户关注、收藏、点赞列表"
     @handler UserRelationHandler
     get /relation returns (UserRelationResponse)

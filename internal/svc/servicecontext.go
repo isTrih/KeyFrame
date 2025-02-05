@@ -6,18 +6,12 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zhengjianyang/goCzdb"
 	"zerobackend/internal/config"
+	"zerobackend/mdl/action_count"
 	"zerobackend/mdl/article"
-	"zerobackend/mdl/collect"
-	"zerobackend/mdl/follow"
-	"zerobackend/mdl/follow_count"
-	"zerobackend/mdl/like_count"
-	"zerobackend/mdl/like_record"
 	"zerobackend/mdl/media"
-	"zerobackend/mdl/reply"
-	"zerobackend/mdl/reply_count"
-	"zerobackend/mdl/tag"
-	"zerobackend/mdl/tag_resource"
 	"zerobackend/mdl/user"
+	"zerobackend/mdl/user_action"
+	"zerobackend/mdl/user_follow"
 )
 
 // ServiceContext 服务上下文
@@ -27,21 +21,16 @@ type ServiceContext struct {
 	IP4Searcher      *goCzdb.DbSearcher
 	UserModel        user.UserModel
 	ArticleModel     article.ArticleModel
-	ReplyModel       reply.ReplyModel
-	ReplyCountModel  reply_count.ReplyCountModel
-	TagModel         tag.TagModel
-	TagResourceModel tag_resource.TagResourceModel
-	LikeCountModel   like_count.LikeCountModel
-	LikeRecordModel  like_record.LikeRecordModel
-	FollowModel      follow.FollowModel
-	FollowCountModel follow_count.FollowCountModel
 	MediaModel       media.MediaModel
-	CollectModel     collect.CollectModel
+	UserActionModel  user_action.UserActionModel   // 用户行为记录表
+	UserFollowModel  user_follow.UserFollowModel   // 用户关注关系表
+	ActionCountModel action_count.ActionCountModel // 行为统计表
 }
 
 // NewServiceContext 初始化服务上下文
 func NewServiceContext(c config.Config) *ServiceContext {
 
+	// 初始化IP查询器
 	searcher4, err4 := goCzdb.NewDbSearcher(c.IPCheck.Path4, "MEMORY", c.IPCheck.KEY)
 	if err4 != nil {
 		fmt.Printf("Ipv4查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path4, err4)
@@ -59,17 +48,16 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		IP4Searcher: searcher4,
 		Config:      c,
-		//用户数据库
+		// 用户数据库
 		UserModel: user.NewUserModel(keyframeGo, c.Cache),
-		//文章数据库
+		// 文章数据库
 		ArticleModel: article.NewArticleModel(keyframeGo, c.Cache),
-		//关注数量
-		FollowCountModel: follow_count.NewFollowCountModel(keyframeGo, c.Cache),
-		//收藏
-		CollectModel: collect.NewCollectModel(keyframeGo, c.Cache),
-		//点赞
-		LikeRecordModel: like_record.NewLikeRecordModel(keyframeGo, c.Cache),
-		LikeCountModel:  like_count.NewLikeCountModel(keyframeGo, c.Cache),
-		BizRedis:        rds,
+		// 点赞 收藏 关注数据库
+		UserActionModel: user_action.NewUserActionModel(keyframeGo, c.Cache),
+		// 用户关注关系表
+		UserFollowModel: user_follow.NewUserFollowModel(keyframeGo, c.Cache),
+		// 用户行为记录表
+		ActionCountModel: action_count.NewActionCountModel(keyframeGo, c.Cache),
+		BizRedis:         rds,
 	}
 }

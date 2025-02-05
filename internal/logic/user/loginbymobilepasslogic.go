@@ -56,7 +56,7 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	}
 	fmt.Println(region, net.ParseIP(ip))
 	//更新IP信息以及归属地
-	upErr := l.svcCtx.UserModel.UpdateIp(l.ctx, user.Id, region, ip)
+	upErr := l.svcCtx.UserModel.UpdateIpByMobile(l.ctx, req.Mobile, region, ip)
 	if upErr != nil {
 		fmt.Println(upErr)
 		return nil, errors.New(4004, "更新数据失败，请联系管理员")

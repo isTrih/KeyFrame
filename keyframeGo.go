@@ -36,6 +36,11 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
+	//// 初始化 NATS 连接
+	//natsclient.InitNats()
+	//// 启动消息消费者
+	//go consumer.StartMessageConsumer()
+
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 
 	defer ctx.IP4Searcher.Close()
