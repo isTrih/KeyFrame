@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"zerobackend/internal/config"
 	"zerobackend/internal/handler"
+	"zerobackend/internal/nats/consumer"
+	"zerobackend/internal/nats/natsclient"
 	"zerobackend/internal/svc"
 )
 
@@ -36,10 +38,10 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
 
-	//// 初始化 NATS 连接
-	//natsclient.InitNats()
-	//// 启动消息消费者
-	//go consumer.StartMessageConsumer()
+	// 初始化 NATS 连接
+	natsclient.InitNats(c.NATS.ADDR)
+	// 启动消息消费者
+	go consumer.StartMessageConsumer(ctx)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 

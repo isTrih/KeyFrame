@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/zeromicro/go-zero/core/stores/sqlc"
+	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/x/errors"
+	"strconv"
 	"zerobackend/internal/nats/producer"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -78,7 +80,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 		},
 	}
 
-	Queeerr := producer.SendMessageToQueue("测试")
+	Queeerr := producer.SendMessageToQueue(strconv.FormatInt(int64(timex.Now()), 10))
 	if Queeerr != nil {
 		return nil, Queeerr
 	}

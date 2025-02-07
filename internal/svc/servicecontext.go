@@ -39,7 +39,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	keyframeGo := sqlx.NewMysql(c.DB.DataSource)
 	rds, err := redis.NewRedis(redis.RedisConf{
 		Host: c.BizRedis.Host,
-		Pass: c.BizRedis.Pass,
 		Type: c.BizRedis.Type})
 	if err != nil {
 		panic(err)
