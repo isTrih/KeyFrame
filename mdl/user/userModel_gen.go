@@ -24,8 +24,8 @@ var (
 	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjUserIdPrefix     = "cache:chaozj:user:id:"
-	cacheChaozjUserMobilePrefix = "cache:chaozj:user:mobile:"
+	cacheKeyframeUserIdPrefix     = "cache:keyframe:user:id:"
+	cacheKeyframeUserMobilePrefix = "cache:keyframe:user:mobile:"
 )
 
 type (
@@ -43,19 +43,21 @@ type (
 	}
 
 	User struct {
-		Id         uint64       `db:"id"`          // 主键ID
-		Password   string       `db:"password"`    // 密码
-		Nickname   string       `db:"nickname"`    // 昵称
-		Signature  string       `db:"signature"`   // 简介
-		Avatar     string       `db:"avatar"`      // 头像
-		Type       int64        `db:"type"`        // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
-		Vnote      string       `db:"vnote"`       // V认证信息
-		Mobile     string       `db:"mobile"`      // 手机号
-		Status     int64        `db:"status"`      // 状态 0:正常 1:禁用 2:删除
-		BannedTime sql.NullTime `db:"banned_time"` // 封禁时间
-		BanTime    int64        `db:"ban_time"`    // 封禁时长
-		CreateTime time.Time    `db:"create_time"` // 创建时间
-		UpdateTime time.Time    `db:"update_time"` // 最后修改时间
+		Id         uint64    `db:"id"`          // 主键ID
+		Password   string    `db:"password"`    // 密码
+		Nickname   string    `db:"nickname"`    // 昵称
+		Signature  string    `db:"signature"`   // 简介
+		Avatar     string    `db:"avatar"`      // 头像
+		Type       int64     `db:"type"`        //  0:默认用户 1:正式用户 2:个人V认证用户 3:企业V认证用户，4以上:超正经员工
+		Vnote      string    `db:"vnote"`       // V认证信息
+		Mobile     string    `db:"mobile"`      // 手机号
+		Status     int64     `db:"status"`      // 状态 0:正常 1:禁用 2:删除
+		BannedTime time.Time `db:"banned_time"` // 封禁时间
+		BanTime    int64     `db:"ban_time"`    // 封禁时长
+		CreateTime time.Time `db:"create_time"` // 创建时间
+		UpdateTime time.Time `db:"update_time"` // 最后修改时间
+		IpAddress  string    `db:"ip_address"`  // IP地址
+		IpLocation string    `db:"ip_location"` // IP归属地
 	}
 )
 
@@ -72,19 +74,19 @@ func (m *defaultUserModel) Delete(ctx context.Context, id uint64) error {
 		return err
 	}
 
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, id)
-	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
+	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
+	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, chaozjUserIdKey, chaozjUserMobileKey)
+	}, keyframeUserIdKey, keyframeUserMobileKey)
 	return err
 }
 
 func (m *defaultUserModel) FindOne(ctx context.Context, id uint64) (*User, error) {
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, id)
+	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
 	var resp User
-	err := m.QueryRowCtx(ctx, &resp, chaozjUserIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+	err := m.QueryRowCtx(ctx, &resp, keyframeUserIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
 		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", userRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
@@ -99,9 +101,9 @@ func (m *defaultUserModel) FindOne(ctx context.Context, id uint64) (*User, error
 }
 
 func (m *defaultUserModel) FindOneByMobile(ctx context.Context, mobile string) (*User, error) {
-	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, mobile)
+	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, mobile)
 	var resp User
-	err := m.QueryRowIndexCtx(ctx, &resp, chaozjUserMobileKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+	err := m.QueryRowIndexCtx(ctx, &resp, keyframeUserMobileKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
 		query := fmt.Sprintf("select %s from %s where `mobile` = ? limit 1", userRows, m.table)
 		if err := conn.QueryRowCtx(ctx, &resp, query, mobile); err != nil {
 			return nil, err
@@ -119,12 +121,12 @@ func (m *defaultUserModel) FindOneByMobile(ctx context.Context, mobile string) (
 }
 
 func (m *defaultUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, data.Id)
-	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
+	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, data.Id)
+	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Password, data.Nickname, data.Signature, data.Avatar, data.Type, data.Vnote, data.Mobile, data.Status, data.BannedTime, data.BanTime)
-	}, chaozjUserIdKey, chaozjUserMobileKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Password, data.Nickname, data.Signature, data.Avatar, data.Type, data.Vnote, data.Mobile, data.Status, data.BannedTime, data.BanTime, data.IpAddress, data.IpLocation)
+	}, keyframeUserIdKey, keyframeUserMobileKey)
 	return ret, err
 }
 
@@ -134,17 +136,17 @@ func (m *defaultUserModel) Update(ctx context.Context, newData *User) error {
 		return err
 	}
 
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, data.Id)
-	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheChaozjUserMobilePrefix, data.Mobile)
+	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, data.Id)
+	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Password, newData.Nickname, newData.Signature, newData.Avatar, newData.Type, newData.Vnote, newData.Mobile, newData.Status, newData.BannedTime, newData.BanTime, newData.Id)
-	}, chaozjUserIdKey, chaozjUserMobileKey)
+		return conn.ExecCtx(ctx, query, newData.Password, newData.Nickname, newData.Signature, newData.Avatar, newData.Type, newData.Vnote, newData.Mobile, newData.Status, newData.BannedTime, newData.BanTime, newData.IpAddress, newData.IpLocation, newData.Id)
+	}, keyframeUserIdKey, keyframeUserMobileKey)
 	return err
 }
 
 func (m *defaultUserModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheChaozjUserIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, primary)
 }
 
 func (m *defaultUserModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {

@@ -36,6 +36,7 @@ type (
     LoginMobilePassRequest {
         Mobile string `json:"mobile"`
         Password string `json:"password"`
+        KIP string `header:"kip,optional"`
     }
     LoginResponse {
         UserId uint64 `json:"user_id"`
@@ -46,7 +47,7 @@ type (
         Token string `json:"token"`
     }
     UserInfoRequest {
-        UserId uint64 `json:"user_id"`
+        UserId uint64 `path:"uid"`
     }
     UserInfoResponse {
         UserId uint64 `json:"user_id"`
@@ -59,6 +60,8 @@ type (
         FeedCount uint64 `json:"feed_count"`
         FansCount uint64 `json:"fans_count"`
         FollowCount uint64 `json:"follow_count"`
+        IpLocation string `json:"ip_location"`
+        ActiveTime uint64 `json:"active_time"`
     }
     ChangeMobileRequest {
         OldMobile string `json:"old_mobile"`
@@ -84,9 +87,9 @@ type (
     }
 
     ChangeUserInfoRequest {
-        Nickname string `db:"nick_name"`   // 昵称
-        Signature string `db:"signature"`  // 简介
-        Avatar string `db:"avatar"`        // 头像
+        Nickname string `json:"nick_name"`   // 昵称
+        Signature string `json:"signature"`  // 简介
+        Avatar string `json:"avatar"`        // 头像
     }
 
     ChangeUserInfoResponse {
@@ -103,14 +106,14 @@ type (
     prefix: /v1/user
     group: user
 )
-service chaozjani {
+service keyframeGo {
     @doc "用户注册"
     @handler RegisterHandler
     post /register (RegisterRequest) returns (RegisterResponse)
 
     @doc "获取用户信息 不需要token"
     @handler UserInfoHandler
-    post /info (UserInfoRequest) returns (UserInfoResponse)
+    get /:uid (UserInfoRequest) returns (UserInfoResponse)
 
     @doc "获取验证码"
     @handler VerifyCodeHandler
@@ -137,7 +140,7 @@ service chaozjani {
     group: user
 )
 
-service chaozjani {
+service keyframeGo {
     @doc "获取用户关注、收藏、点赞列表"
     @handler UserRelationHandler
     get /relation returns (UserRelationResponse)

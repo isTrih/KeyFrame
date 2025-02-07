@@ -16,7 +16,7 @@ type (
     jwt: Auth
     group: upload
 )
-service chaozjani {
+service keyframeGo {
     @doc "获取到上传token"
     @handler GetUpToken
     get /normal returns (UpResponse)

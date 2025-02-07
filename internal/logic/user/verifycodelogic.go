@@ -33,7 +33,7 @@ func (l *VerifyCodeLogic) VerifyCode(req *types.VerifyCodeRequest) (resp *types.
 	code := rand.Intn(900000) + 100000
 
 	// 存储到redis中
-	rdsErr := utils.RedisStorage(req.Mobile, code, 600)
+	rdsErr := utils.RedisStorage(l.svcCtx.Config, req.Mobile, code, 600)
 	if rdsErr != nil {
 		return nil, rdsErr
 	}

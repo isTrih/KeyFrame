@@ -35,7 +35,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if user == nil {
 		return nil, errors.New(6021, "用户不存在")
@@ -48,28 +48,30 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	resp.Status = uint8(user.Status)
 	resp.VNote = user.Vnote
 	resp.Signature = user.Signature
+	resp.IpLocation = user.IpLocation
+	resp.ActiveTime = uint64(user.CreateTime.Unix())
 
 	//查询用户的文章数
 	feedCount, err := l.svcCtx.ArticleModel.GetFeedsNum(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 
 	resp.FeedCount = uint64(feedCount)
 
-	//查询用户的粉丝数
-	followCount, err := l.svcCtx.FollowCountModel.FindOneByUserId(l.ctx, req.UserId)
+	//查询用户的关注以及粉丝数
+	followCount, err := l.svcCtx.UserFollowModel.GetUserFollowNum(l.ctx, req.UserId)
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if followCount == nil {
 		resp.FansCount = 0
 		resp.FollowCount = 0
 	} else {
-		resp.FansCount = followCount.FansCount
-		resp.FollowCount = followCount.FollowCount
+		resp.FansCount = uint64(followCount.FanCount)
+		resp.FollowCount = uint64(followCount.FollowCount)
 	}
 
 	//返回数据

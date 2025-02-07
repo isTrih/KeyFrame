@@ -11,7 +11,7 @@ ustatus, _ := statusjson.Int64()
 //user, err := l.svcCtx.UserModel.FindOne(l.ctx, uint64(uid))
 //if err != nil && err != model.ErrNotFound {
 //	fmt.Println(err)
-//	return nil, errors.New(4001, "查询数据失败")
+//	return nil, errors.New(4003, "查询数据失败")
 //}
 //if user == nil {
 //	return nil, errors.New(6021, "用户不存在")

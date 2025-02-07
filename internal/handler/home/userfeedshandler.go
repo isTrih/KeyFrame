@@ -11,7 +11,7 @@ import (
 	"zerobackend/internal/types"
 )
 
-// 获取用户主页帖子
+// UserFeedsHandler 获取用户主页帖子
 func UserFeedsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.UserFeedsRequest

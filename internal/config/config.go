@@ -24,6 +24,13 @@ type Config struct {
 	Unisms struct {
 		SK string
 	}
+	IPCheck struct {
+		Path4 string
+		KEY   string
+	}
 	Cache    cache.CacheConf // 配置文件中添加一个 Cache 字段，用来配置Redis缓存相关的配置
-	BizRedis redis.RedisConf
+	BizRedis redis.RedisConf // 配置文件中添加一个 BizRedis 字段，用来配置业务Redis相关的配置
+	NATS     struct {
+		ADDR string
+	}
 }

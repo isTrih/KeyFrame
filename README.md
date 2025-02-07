@@ -16,4 +16,11 @@
 
 [//]: # (- pkg 目录存放通用方法)
 
-需要将chaozjani.yaml文件拷贝到项目根目录下ll
+需要将chaozjani.yaml文件拷贝到项目根目录下
+
+
+```
+用户请求 → Go-zero API 服务 → Redis (HINCRBY) → NATS → Go-zero Consumer → MySQL (批量更新)
+│                                      │
+└─ 兜底直接更新 MySQL (fallbackToDB)     └─ 定时一致性校验
+```

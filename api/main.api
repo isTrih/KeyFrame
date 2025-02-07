@@ -2,29 +2,12 @@ syntax = "v1"
 
 import "user.api"
 import "home.api"
-import "article.api"
+import "feed.api"
 import "follow.api"
 import "admin.api"
 import "upload.api"
 
 type (
-	Article {
-		Id          uint64 `db:"id"` // 主键ID
-		Title       string `db:"title"` // 标题
-		Content     string `db:"content"` // 内容
-		Media       string `db:"media"` // 媒体资源
-		Description string `db:"description"` // 描述
-		AuthorId    uint64 `db:"author_id"` // 作者ID
-		Status      int64  `db:"status"` // 状态 0:待审核 1:审核不通过 2:可见 3:用户删除
-		Type        int64  `db:"type"` // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
-		CommentNum  int64  `db:"comment_num"` // 评论数
-		LikeNum     int64  `db:"like_num"` // 点赞数
-		CollectNum  int64  `db:"collect_num"` // 收藏数
-		ViewNum     int64  `db:"view_num"` // 浏览数
-		ShareNum    int64  `db:"share_num"` // 分享数
-		TagIds      string `db:"tag_ids"` // 标签ID
-		User        string `db:"user"`
-	}
 	User {
 		Nickname  string `db:"nick_name"` // 昵称
 		Signature string `db:"signature"` // 简介

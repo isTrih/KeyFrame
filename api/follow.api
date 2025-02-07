@@ -22,7 +22,7 @@ type (
 )
 
 
-service chaozjani {
+service keyframeGo {
     @doc "关注/取消关注用户"
     @handler FollowHandler
     post /follow (FollowRequest) returns (FollowResponse)

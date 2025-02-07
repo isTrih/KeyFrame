@@ -36,7 +36,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 
 	var user sql.Result
 
-	rds, rds2 := utils.RedisCheck(req.Mobile, req.VerifyCode)
+	rds, rds2 := utils.RedisCheck(l.svcCtx.Config, req.Mobile, req.VerifyCode)
 	if rds != nil {
 		return nil, rds
 	}
@@ -47,14 +47,14 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	check, checkerr := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
 	if checkerr != nil && checkerr != model.ErrNotFound {
 		fmt.Println(checkerr)
-		return nil, errors.New(4001, "查询数据失败")
+		return nil, errors.New(4003, "查询数据失败")
 	}
 	if check == nil {
 		user, err = l.svcCtx.UserModel.Insert(l.ctx, &model.User{
 			Mobile:    req.Mobile,
 			Nickname:  req.Username,
 			Password:  EncryptPassword(req.Password),
-			Signature: "CHAOZJ",
+			Signature: "",
 			Avatar:    "https://coss.chaozj.com/default/avatar.jpg",
 		})
 		if err != nil {

@@ -23,7 +23,7 @@ var (
 	mediaRowsExpectAutoSet   = strings.Join(stringx.Remove(mediaFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	mediaRowsWithPlaceHolder = strings.Join(stringx.Remove(mediaFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjMediaIdPrefix = "cache:chaozj:media:id:"
+	cacheKeyframeMediaIdPrefix = "cache:keyframe:media:id:"
 )
 
 type (
@@ -57,18 +57,18 @@ func newMediaModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) *
 }
 
 func (m *defaultMediaModel) Delete(ctx context.Context, id uint64) error {
-	chaozjMediaIdKey := fmt.Sprintf("%s%v", cacheChaozjMediaIdPrefix, id)
+	keyframeMediaIdKey := fmt.Sprintf("%s%v", cacheKeyframeMediaIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, chaozjMediaIdKey)
+	}, keyframeMediaIdKey)
 	return err
 }
 
 func (m *defaultMediaModel) FindOne(ctx context.Context, id uint64) (*Media, error) {
-	chaozjMediaIdKey := fmt.Sprintf("%s%v", cacheChaozjMediaIdPrefix, id)
+	keyframeMediaIdKey := fmt.Sprintf("%s%v", cacheKeyframeMediaIdPrefix, id)
 	var resp Media
-	err := m.QueryRowCtx(ctx, &resp, chaozjMediaIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+	err := m.QueryRowCtx(ctx, &resp, keyframeMediaIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
 		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", mediaRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
@@ -83,25 +83,25 @@ func (m *defaultMediaModel) FindOne(ctx context.Context, id uint64) (*Media, err
 }
 
 func (m *defaultMediaModel) Insert(ctx context.Context, data *Media) (sql.Result, error) {
-	chaozjMediaIdKey := fmt.Sprintf("%s%v", cacheChaozjMediaIdPrefix, data.Id)
+	keyframeMediaIdKey := fmt.Sprintf("%s%v", cacheKeyframeMediaIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, mediaRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.ArticleId, data.CoverUrl, data.Height, data.Width, data.MediaList)
-	}, chaozjMediaIdKey)
+	}, keyframeMediaIdKey)
 	return ret, err
 }
 
 func (m *defaultMediaModel) Update(ctx context.Context, data *Media) error {
-	chaozjMediaIdKey := fmt.Sprintf("%s%v", cacheChaozjMediaIdPrefix, data.Id)
+	keyframeMediaIdKey := fmt.Sprintf("%s%v", cacheKeyframeMediaIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, mediaRowsWithPlaceHolder)
 		return conn.ExecCtx(ctx, query, data.ArticleId, data.CoverUrl, data.Height, data.Width, data.MediaList, data.Id)
-	}, chaozjMediaIdKey)
+	}, keyframeMediaIdKey)
 	return err
 }
 
 func (m *defaultMediaModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheChaozjMediaIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cacheKeyframeMediaIdPrefix, primary)
 }
 
 func (m *defaultMediaModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {

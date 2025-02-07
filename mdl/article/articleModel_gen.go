@@ -24,7 +24,7 @@ var (
 	articleRowsExpectAutoSet   = strings.Join(stringx.Remove(articleFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	articleRowsWithPlaceHolder = strings.Join(stringx.Remove(articleFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheChaozjArticleIdPrefix = "cache:chaozj:article:id:"
+	cacheKeyframeArticleIdPrefix = "cache:keyframe:article:id:"
 )
 
 type (
@@ -45,7 +45,7 @@ type (
 		Title       string    `db:"title"`        // 标题
 		Content     string    `db:"content"`      // 内容
 		AuthorId    uint64    `db:"author_id"`    // 作者ID
-		Status      int64     `db:"status"`       // 状态 0:待审核 1:审核不通过 2:可见 3:用户隐私
+		Status      int64     `db:"status"`       // 状态 0:正常 1:仅自己 2:删除
 		Type        int64     `db:"type"`         // 状态 0:默认图片帧 1:视频帧 2:纯文字帧
 		CommentNum  int64     `db:"comment_num"`  // 评论数
 		LikeNum     int64     `db:"like_num"`     // 点赞数
@@ -53,9 +53,13 @@ type (
 		ViewNum     int64     `db:"view_num"`     // 浏览数
 		ShareNum    int64     `db:"share_num"`    // 分享数
 		TagIds      string    `db:"tag_ids"`      // 标签ID
+		IpLocation  string    `db:"ip_location"`  // IP归属地
 		PublishTime time.Time `db:"publish_time"` // 发布时间
 		CreateTime  time.Time `db:"create_time"`  // 创建时间
 		UpdateTime  time.Time `db:"update_time"`  // 最后修改时间
+		AiInsp      uint64    `db:"ai_insp"`      // AI检验，默认0没有问题，1出现问题。
+		AiInspCode  uint64    `db:"ai_insp_code"` // AI检验的状态码
+		Insp        uint64    `db:"insp"`         // 人工校验为0时可用，默认为1待检验
 	}
 )
 
@@ -67,18 +71,18 @@ func newArticleModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 }
 
 func (m *defaultArticleModel) Delete(ctx context.Context, id uint64) error {
-	chaozjArticleIdKey := fmt.Sprintf("%s%v", cacheChaozjArticleIdPrefix, id)
+	keyframeArticleIdKey := fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, chaozjArticleIdKey)
+	}, keyframeArticleIdKey)
 	return err
 }
 
 func (m *defaultArticleModel) FindOne(ctx context.Context, id uint64) (*Article, error) {
-	chaozjArticleIdKey := fmt.Sprintf("%s%v", cacheChaozjArticleIdPrefix, id)
+	keyframeArticleIdKey := fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, id)
 	var resp Article
-	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+	err := m.QueryRowCtx(ctx, &resp, keyframeArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
 		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", articleRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
@@ -93,25 +97,25 @@ func (m *defaultArticleModel) FindOne(ctx context.Context, id uint64) (*Article,
 }
 
 func (m *defaultArticleModel) Insert(ctx context.Context, data *Article) (sql.Result, error) {
-	chaozjArticleIdKey := fmt.Sprintf("%s%v", cacheChaozjArticleIdPrefix, data.Id)
+	keyframeArticleIdKey := fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, articleRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.PublishTime)
-	}, chaozjArticleIdKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, articleRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.IpLocation, data.PublishTime, data.AiInsp, data.AiInspCode, data.Insp)
+	}, keyframeArticleIdKey)
 	return ret, err
 }
 
 func (m *defaultArticleModel) Update(ctx context.Context, data *Article) error {
-	chaozjArticleIdKey := fmt.Sprintf("%s%v", cacheChaozjArticleIdPrefix, data.Id)
+	keyframeArticleIdKey := fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, articleRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.PublishTime, data.Id)
-	}, chaozjArticleIdKey)
+		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.AuthorId, data.Status, data.Type, data.CommentNum, data.LikeNum, data.CollectNum, data.ViewNum, data.ShareNum, data.TagIds, data.IpLocation, data.PublishTime, data.AiInsp, data.AiInspCode, data.Insp, data.Id)
+	}, keyframeArticleIdKey)
 	return err
 }
 
 func (m *defaultArticleModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheChaozjArticleIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cacheKeyframeArticleIdPrefix, primary)
 }
 
 func (m *defaultArticleModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {

@@ -24,7 +24,7 @@ type (
     jwt: Auth
 )
 
-service chaozjani {
+service keyframeGo {
     @doc "改变用户权限"
     @handler ChangeFeedStatus
     post /user/changetype (ChangeUserTypeRequest) returns (AdminRes)
@@ -45,7 +45,7 @@ service chaozjani {
     jwt: Auth
 )
 
-service chaozjani {
+service keyframeGo {
     @doc "封禁动态"
     @handler BanFeed
     post /feed/ban (ChangeUserTypeRequest) returns (AdminRes)
