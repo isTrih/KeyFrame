@@ -96,9 +96,10 @@ type (
         Status string `json:"status"`
     }
     UserRelationResponse {
-        Follow []uint64 `json:"follow"`
-        Collect []uint64 `json:"collect"`
-        Like []uint64 `json:"like"`
+        LikeFeedList string `json:"like_feeds"`       // 点赞帖子
+        CollectFeedList string `json:"collect_feeds"` // 收藏帖子
+        LikeCommentList string `json:"like_comments"` // 点赞评论
+        FollowList string `json:"follow_users"`       // 关注列表
     }
 )
 

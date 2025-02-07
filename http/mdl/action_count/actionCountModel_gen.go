@@ -48,7 +48,6 @@ type (
 		TargetType   int64     `db:"target_type"`   // 目标类型：1-文章, 2-评论, 3-用户
 		LikeCount    uint64    `db:"like_count"`    // 点赞数
 		CollectCount uint64    `db:"collect_count"` // 收藏数
-		FollowCount  uint64    `db:"follow_count"`  // 关注数
 		UpdateTime   time.Time `db:"update_time"`
 	}
 )
@@ -116,8 +115,8 @@ func (m *defaultActionCountModel) Insert(ctx context.Context, data *ActionCount)
 	keyframeActionCountIdKey := fmt.Sprintf("%s%v", cacheKeyframeActionCountIdPrefix, data.Id)
 	keyframeActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cacheKeyframeActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, actionCountRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.TargetId, data.TargetType, data.LikeCount, data.CollectCount, data.FollowCount)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, actionCountRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.TargetId, data.TargetType, data.LikeCount, data.CollectCount)
 	}, keyframeActionCountIdKey, keyframeActionCountTargetIdTargetTypeKey)
 	return ret, err
 }
@@ -132,7 +131,7 @@ func (m *defaultActionCountModel) Update(ctx context.Context, newData *ActionCou
 	keyframeActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cacheKeyframeActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, actionCountRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.TargetId, newData.TargetType, newData.LikeCount, newData.CollectCount, newData.FollowCount, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.TargetId, newData.TargetType, newData.LikeCount, newData.CollectCount, newData.Id)
 	}, keyframeActionCountIdKey, keyframeActionCountTargetIdTargetTypeKey)
 	return err
 }

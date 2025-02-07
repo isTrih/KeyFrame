@@ -15,9 +15,9 @@ type (
 	// and implement the added methods in customUserModel.
 	UserModel interface {
 		userModel
-		Trans(ctx context.Context, fn func(ctx context.Context, session sqlx.Session) error) error
 		UpdateIp(ctx context.Context, id uint64, il string, ia string) error
 		UpdateIpByMobile(ctx context.Context, mobile string, il string, ia string) error
+		UpdatePassword(ctx context.Context, id uint64, newPassword string) error
 	}
 
 	customUserModel struct {
@@ -30,12 +30,6 @@ func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) Us
 	return &customUserModel{
 		defaultUserModel: newUserModel(conn, c, opts...),
 	}
-}
-
-func (m *customUserModel) Trans(ctx context.Context, fn func(ctx context.Context, session sqlx.Session) error) error {
-	return m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
-		return fn(ctx, session)
-	})
 }
 
 // UpdateIp 更新用户ip
@@ -70,5 +64,14 @@ func (m *defaultUserModel) UpdateIpByMobile(ctx context.Context, mobile string, 
 		query := fmt.Sprintf("update %s set `ip_location` = ?, `ip_address` = ? where `mobile` = ?", m.table)
 		return conn.ExecCtx(ctx, query, il, ia, mobile)
 	}, chaozjUserMobileKey)
+	return err
+}
+
+func (m *defaultUserModel) UpdatePassword(ctx context.Context, id uint64, newPassword string) error {
+	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("UPDATE %s SET `password` = ? WHERE `id` = ?", m.table)
+		return conn.ExecCtx(ctx, query, newPassword, id)
+	}, chaozjUserIdKey)
 	return err
 }

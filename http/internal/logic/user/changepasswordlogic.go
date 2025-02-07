@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/zeromicro/x/errors"
 
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -15,7 +17,7 @@ type ChangePasswordLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// 更改密码 需要token
+// NewChangePasswordLogic 更改密码 需要token
 func NewChangePasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ChangePasswordLogic {
 	return &ChangePasswordLogic{
 		Logger: logx.WithContext(ctx),
@@ -25,7 +27,16 @@ func NewChangePasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ch
 }
 
 func (l *ChangePasswordLogic) ChangePassword(req *types.ChangePasswordRequest) (resp *types.ChangePasswordResponse, err error) {
-	// todo: add your logic here and delete this line
-
-	return
+	if req.NewPassword != req.OldPassword {
+		// 可以更改密码
+		uidjson, _ := l.ctx.Value("UID").(json.Number)
+		uid, _ := uidjson.Int64()
+		// 更改密码
+		err = l.svcCtx.UserModel.UpdatePassword(l.ctx, uint64(uid), EncryptPassword(req.NewPassword))
+		resp = &types.ChangePasswordResponse{
+			Status: "SUCCESS",
+		}
+		return resp, nil
+	}
+	return nil, errors.New(4003, "新密码与旧密码相同")
 }

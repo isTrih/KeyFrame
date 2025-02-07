@@ -9,22 +9,22 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type UserRelationLogic struct {
+type ChangeMobileLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-// NewUserRelationLogic // 获取用户关注\收藏\点赞列表
-func NewUserRelationLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserRelationLogic {
-	return &UserRelationLogic{
+// NewChangeMobileLogic 更改手机号码
+func NewChangeMobileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ChangeMobileLogic {
+	return &ChangeMobileLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
 }
 
-func (l *UserRelationLogic) UserRelation() (resp *types.UserRelationResponse, err error) {
+func (l *ChangeMobileLogic) ChangeMobile(req *types.ChangeMobileRequest) (resp *types.ChangeMobileResponse, err error) {
 	// todo: add your logic here and delete this line
 
 	return

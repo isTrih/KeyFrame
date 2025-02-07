@@ -43,7 +43,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 		return resp, nil
 	}
 
-	if ftype == 1 {
+	if ftype == 2 {
 		feedIds, _ := l.GetLikeIds(l.ctx, req.UserId, offset)
 		if len(feedIds) > 0 {
 			var tmp []uint64
@@ -119,7 +119,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 			resp.Feeds = feeds
 			return resp, nil
 		}
-	} else if ftype == 2 {
+	} else if ftype == 1 {
 		feedIds, _ := l.GetCollectIds(l.ctx, req.UserId, offset)
 		if len(feedIds) > 0 {
 			var tmp []uint64

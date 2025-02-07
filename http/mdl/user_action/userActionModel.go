@@ -18,10 +18,21 @@ type (
 		userActionModel
 		GetUserCollectList(ctx context.Context, offset uint64, uid uint64) ([]*article.Feeds, error)
 		GetUserLikeList(ctx context.Context, offset uint64, uid uint64) ([]*article.Feeds, error)
+		// GetUserActionHistory 获取用户行为包括点赞收藏等行为列表
+		// actionType 1-动态点赞, 2-评论点赞, 3-收藏 4-关注列表
+		// uid 用户ID
+		GetUserActionHistory(ctx context.Context, uid uint64) (*ActionList, error)
 	}
 
 	customUserActionModel struct {
 		*defaultUserActionModel
+	}
+
+	ActionList struct {
+		LikeFeedList    string `db:"type_1_list"` // 点赞帖子
+		CollectFeedList string `db:"type_3_list"` // 收藏帖子
+		LikeCommentList string `db:"type_2_list"` // 点赞评论
+		FollowList      string `db:"type_4_list"` // 关注列表
 	}
 )
 
@@ -99,7 +110,6 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
     WHERE 
         user_action.user_id = ? 
         AND article.status = 0 
-        AND user_action.target_type = 1 
         AND user_action.action_type = 3 
         AND user_action.action_value = 1
     ORDER BY 
@@ -113,4 +123,64 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
 		return nil, err
 	}
 	return list, nil
+}
+
+// GetUserActionHistory 获取用户行为包括点赞收藏等行为列表
+// actionType 1-动态点赞, 2-评论点赞, 3-收藏 4-关注列表
+// uid 用户ID
+func (m *defaultUserActionModel) GetUserActionHistory(ctx context.Context, uid uint64) (*ActionList, error) {
+	var list ActionList
+	sql := fmt.Sprintf(`
+SELECT
+    IFNULL(
+        (
+            SELECT GROUP_CONCAT(target_id)
+            FROM user_action
+            WHERE user_id = ?
+              AND action_type = 1
+              AND action_value = 1
+            ORDER BY update_time DESC
+        ),
+        '0'
+    ) AS type_1_list,
+    IFNULL(
+        (
+            SELECT GROUP_CONCAT(target_id)
+            FROM user_action
+            WHERE user_id = ?
+              AND action_type = 2
+              AND action_value = 1
+            ORDER BY update_time DESC
+        ),
+        '0'
+    ) AS type_2_list,
+    IFNULL(
+        (
+            SELECT GROUP_CONCAT(target_id)
+            FROM user_action
+            WHERE user_id = ?
+              AND action_type = 3
+              AND action_value = 1
+            ORDER BY update_time DESC
+        ),
+        '0'
+    ) AS type_3_list,
+    IFNULL(
+        (
+            SELECT GROUP_CONCAT(target_id)
+            FROM user_action
+            WHERE user_id = ?
+              AND action_type = 4
+              AND action_value = 1
+            ORDER BY update_time DESC
+        ),
+        '0'
+    ) AS type_4_list;
+`)
+	err := m.QueryRowNoCacheCtx(ctx, &list, sql, uid, uid, uid, uid)
+	if err != nil {
+		logx.Error("query failed", err)
+		return nil, err
+	}
+	return &list, nil
 }
