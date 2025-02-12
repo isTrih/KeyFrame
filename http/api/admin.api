@@ -14,7 +14,7 @@ type (
         //用户id
         UserId string `json:"user_id"`
         //权限类型
-        Type uint8 `json:"type"`
+        Type uint16 `json:"type"`
     }
 )
 @server(

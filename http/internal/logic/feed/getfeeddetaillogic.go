@@ -74,6 +74,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 				Id:       a.AuthorId,
 				UserName: a.UserName,
 				Avatar:   a.Avatar,
+				Type:     a.Type,
 			},
 			PublishTime: uint64(a.PublishTime.Unix()),
 			IpLocation:  a.IpLocation,

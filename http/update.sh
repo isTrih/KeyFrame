@@ -3,7 +3,7 @@ version=$1
 
 
 go env -w CGO_ENABLED=0 GOOS=linux GOARCH=amd64 # 设置编译环境
-go build keyframeGo.go
+go build -ldflags="-s -w" -tags no_k8s keyframeGo.go
 echo "$(date '+%Y-%m-%d %H:%M:%S') - 成功构建项目：${version}" >> build.log
 
 

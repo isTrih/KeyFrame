@@ -19,6 +19,7 @@ type ServiceContext struct {
 	BizRedis         *redis.Redis
 	Config           config.Config
 	IP4Searcher      *goCzdb.DbSearcher
+	IP6Searcher      *goCzdb.DbSearcher
 	UserModel        user.UserModel
 	ArticleModel     article.ArticleModel
 	MediaModel       media.MediaModel
@@ -30,10 +31,15 @@ type ServiceContext struct {
 // NewServiceContext 初始化服务上下文
 func NewServiceContext(c config.Config) *ServiceContext {
 
-	// 初始化IP查询器
+	// 初始化IP4查询器
 	searcher4, err4 := goCzdb.NewDbSearcher(c.IPCheck.Path4, "MEMORY", c.IPCheck.KEY)
 	if err4 != nil {
 		fmt.Printf("Ipv4查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path4, err4)
+	}
+	// 初始化IP6查询器
+	searcher6, err6 := goCzdb.NewDbSearcher(c.IPCheck.Path6, "MEMORY", c.IPCheck.KEY)
+	if err6 != nil {
+		fmt.Printf("Ipv6查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path6, err4)
 	}
 
 	keyframeGo := sqlx.NewMysql(c.DB.DataSource)
@@ -46,6 +52,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 	return &ServiceContext{
 		IP4Searcher: searcher4,
+		IP6Searcher: searcher6,
 		Config:      c,
 		// 用户数据库
 		UserModel: user.NewUserModel(keyframeGo, c.Cache),

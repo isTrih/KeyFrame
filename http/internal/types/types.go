@@ -13,7 +13,6 @@ type Auth struct {
 }
 
 type ChangeMobileRequest struct {
-	OldMobile  string `json:"old_mobile"`
 	NewMobile  string `json:"new_mobile"`
 	VerifyCode string `json:"verifyCode"`
 }
@@ -23,16 +22,11 @@ type ChangeMobileResponse struct {
 }
 
 type ChangePasswordRequest struct {
-	OldPassword string `json:"old_password"`
 	NewPassword string `json:"new_password"`
 }
 
 type ChangePasswordResponse struct {
 	Status string `json:"status"`
-}
-
-type ChangeResquest struct {
-	Key string `json:"key"`
 }
 
 type ChangeUserInfoRequest struct {
@@ -47,7 +41,7 @@ type ChangeUserInfoResponse struct {
 
 type ChangeUserTypeRequest struct {
 	UserId string `json:"user_id"`
-	Type   uint8  `json:"type"`
+	Type   uint16 `json:"type"`
 }
 
 type DeleteFeedRequest struct {
@@ -83,6 +77,7 @@ type FeedUser struct {
 	Id       uint64 `json:"user_id"`
 	UserName string `json:"user_name"`
 	Avatar   string `json:"avatar"`
+	Type     uint16 `json:"type"`
 }
 
 type FollowListResponse struct {
@@ -116,6 +111,14 @@ type GetIndexFeedsResponse struct {
 	Feeds  []Feed `json:"feeds"`
 }
 
+type GetUpTokenRequest struct {
+	Type string `form:"t, default=img"`
+}
+
+type GetUpTokenResponse struct {
+	Token string `json:"token"`
+}
+
 type LoginMobilePassRequest struct {
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
@@ -132,7 +135,7 @@ type LoginResponse struct {
 	UserName  string `json:"user_name"`
 	Avatar    string `json:"avatar"`
 	Signature string `json:"signature"`
-	UserType  uint8  `json:"type"`
+	UserType  uint16 `json:"type"`
 	Token     string `json:"token"`
 }
 
@@ -161,30 +164,18 @@ type RegisterResponse struct {
 	UserName  string `json:"user_name"`
 	Avatar    string `json:"avatar"`
 	Signature string `json:"signature"`
-	UserType  uint8  `json:"type"`
-}
-
-type SearchFeedRequest struct {
-	Offset uint64 `json:"offset, default=0"`
-	Query  string `json:"query, optional"`
-	Title  string `json:"title, optional"`
-	Author string `json:"author, optional"`
-	Tag    string `json:"tag, optional"`
+	UserType  uint16 `json:"type"`
 }
 
 type StatusResponse struct {
 	Status string `json:"status"`
 }
 
-type UpResponse struct {
-	Token string `json:"token"`
-}
-
 type User struct {
 	Nickname  string `db:"nick_name"` // 昵称
 	Signature string `db:"signature"` // 简介
 	Avatar    string `db:"avatar"`    // 头像
-	Type      uint8  `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+	Type      uint16 `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 }
 
 type UserFeedsRequest struct {
@@ -201,7 +192,7 @@ type UserInfoResponse struct {
 	UserId      uint64 `json:"user_id"`
 	Username    string `json:"user_name"`
 	Avatar      string `json:"avatar"`
-	Type        uint8  `json:"type"`
+	Type        uint16 `json:"type"`
 	Status      uint8  `json:"status"`
 	VNote       string `json:"v_note"`
 	Signature   string `json:"signature"`
@@ -210,6 +201,7 @@ type UserInfoResponse struct {
 	FollowCount uint64 `json:"follow_count"`
 	IpLocation  string `json:"ip_location"`
 	ActiveTime  uint64 `json:"active_time"`
+	BanTime     int8   `json:"ban_time"`
 }
 
 type UserRelationResponse struct {

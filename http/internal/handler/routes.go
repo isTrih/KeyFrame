@@ -133,12 +133,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: home.GetIndexFeedsHandler(serverCtx),
 			},
 			{
-				// 搜索帧（文章）
-				Method:  http.MethodGet,
-				Path:    "/search",
-				Handler: home.SearchFeedHandler(serverCtx),
-			},
-			{
 				// 获取用户主页帖子
 				Method:  http.MethodGet,
 				Path:    "/userfeeds",
@@ -150,12 +144,6 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 
 	server.AddRoutes(
 		[]rest.Route{
-			{
-				// 获取到上传修改型token
-				Method:  http.MethodGet,
-				Path:    "/change",
-				Handler: upload.GetUpTokenChangeHandler(serverCtx),
-			},
 			{
 				// 获取到上传token
 				Method:  http.MethodGet,
@@ -171,16 +159,10 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
-				// 获取用户信息 不需要token
+				// 获取用户信息
 				Method:  http.MethodGet,
 				Path:    "/:uid",
 				Handler: user.UserInfoHandler(serverCtx),
-			},
-			{
-				// 更改手机号码
-				Method:  http.MethodPost,
-				Path:    "/change-mobile",
-				Handler: user.ChangeMobileHandler(serverCtx),
 			},
 			{
 				// uid账号登录
@@ -213,13 +195,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
-				// 更改用户信息 需要token
+				// 更改用户信息(token)
 				Method:  http.MethodPost,
 				Path:    "/change-info",
 				Handler: user.ChangeUserInfoHandler(serverCtx),
 			},
 			{
-				// 更改密码 需要token
+				// 更改手机号码(token)
+				Method:  http.MethodPost,
+				Path:    "/change-mobile",
+				Handler: user.ChangeMobileHandler(serverCtx),
+			},
+			{
+				// 更改密码(token)
 				Method:  http.MethodPost,
 				Path:    "/change-password",
 				Handler: user.ChangePasswordHandler(serverCtx),

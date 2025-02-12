@@ -27,12 +27,15 @@ func NewChangePasswordLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ch
 }
 
 func (l *ChangePasswordLogic) ChangePassword(req *types.ChangePasswordRequest) (resp *types.ChangePasswordResponse, err error) {
-	if req.NewPassword != req.OldPassword {
+	uidjson, _ := l.ctx.Value("UID").(json.Number)
+	uid, _ := uidjson.Int64()
+	user, _ := l.svcCtx.UserModel.FindOne(l.ctx, uint64(uid))
+	encryptedPassword := EncryptPassword(req.NewPassword)
+	if encryptedPassword != user.Password {
 		// 可以更改密码
-		uidjson, _ := l.ctx.Value("UID").(json.Number)
-		uid, _ := uidjson.Int64()
+
 		// 更改密码
-		err = l.svcCtx.UserModel.UpdatePassword(l.ctx, uint64(uid), EncryptPassword(req.NewPassword))
+		err = l.svcCtx.UserModel.UpdatePassword(l.ctx, uint64(uid), encryptedPassword)
 		resp = &types.ChangePasswordResponse{
 			Status: "SUCCESS",
 		}

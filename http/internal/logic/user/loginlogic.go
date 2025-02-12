@@ -57,7 +57,7 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	// 返回token
 	resp = new(types.LoginResponse)
 	resp.Token = accessToken
-	resp.UserType = uint8(user.Type)
+	resp.UserType = uint16(user.Type)
 	resp.Avatar = user.Avatar
 	resp.Signature = user.Signature
 	resp.UserName = user.Nickname

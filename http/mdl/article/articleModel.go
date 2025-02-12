@@ -44,13 +44,14 @@ type (
 	}
 
 	FeedDetail struct {
-		Id       uint64 `db:"id"`        // ID
-		Title    string `db:"title"`     // 标题
-		Content  string `db:"content"`   // 内容
-		AuthorId uint64 `db:"author_id"` // 作者ID User表
-		UserName string `db:"nickname"`  // 作者昵称 User表
-		Avatar   string `db:"avatar"`    // 作者头像 User表
+		Id      uint64 `db:"id"`      // ID
+		Title   string `db:"title"`   // 标题
+		Content string `db:"content"` // 内容
 
+		AuthorId  uint64         `db:"author_id"`  // 作者ID User表
+		UserName  string         `db:"nickname"`   // 作者昵称 User表
+		Avatar    string         `db:"avatar"`     // 作者头像 User表
+		Type      uint16         `db:"type"`       // 作者类型 User表
 		CoverUrl  string         `db:"cover_url"`  // 封面 Media表
 		Height    uint32         `db:"height"`     // 高度 Media表
 		Width     uint32         `db:"width"`      // 宽度 Media表
@@ -189,7 +190,7 @@ func (m *defaultArticleModel) FindOneMix(ctx context.Context, id uint64) (*Feeds
 // FindOneDetail 获取文章详情
 func (m *defaultArticleModel) FindOneDetail(ctx context.Context, id uint64) (*FeedDetail, error) {
 	chaozjArticleIdKey := fmt.Sprintf("%s%v", "cache:keyframe:article:detail:id:", id)
-	qury := fmt.Sprintf("SELECT article.id,article.title,article.content,article.author_id,article.ip_location,article.publish_time,user.avatar,user.nickname,media.cover_url,media.height,media.width,media.media_list FROM article LEFT JOIN user ON article.author_id = user.id LEFT JOIN media ON article.id = media.article_id WHERE article_id = ? AND article.status = 0 LIMIT 1")
+	qury := fmt.Sprintf("SELECT article.id,article.title,article.content,article.author_id,article.ip_location,article.publish_time,user.avatar,user.nickname,user.type,media.cover_url,media.height,media.width,media.media_list FROM article LEFT JOIN user ON article.author_id = user.id LEFT JOIN media ON article.id = media.article_id WHERE article_id = ? AND article.status = 0 LIMIT 1")
 
 	var resp FeedDetail
 	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {

@@ -21,7 +21,7 @@ type (
         UserName string `json:"user_name"`
         Avatar string `json:"avatar"`
         Signature string `json:"signature"`
-        UserType uint8 `json:"type"`
+        UserType uint16 `json:"type"`
     }
     VerifyCodeRequest {
         Mobile string `json:"mobile"`
@@ -43,7 +43,7 @@ type (
         UserName string `json:"user_name"`
         Avatar string `json:"avatar"`
         Signature string `json:"signature"`
-        UserType uint8 `json:"type"`
+        UserType uint16 `json:"type"`
         Token string `json:"token"`
     }
     UserInfoRequest {
@@ -53,7 +53,7 @@ type (
         UserId uint64 `json:"user_id"`
         Username string `json:"user_name"`
         Avatar string `json:"avatar"`
-        Type uint8 `json:"type"`
+        Type uint16 `json:"type"`
         Status uint8 `json:"status"`
         VNote string `json:"v_note"`
         Signature string `json:"signature"`
@@ -62,14 +62,7 @@ type (
         FollowCount uint64 `json:"follow_count"`
         IpLocation string `json:"ip_location"`
         ActiveTime uint64 `json:"active_time"`
-    }
-    ChangeMobileRequest {
-        OldMobile string `json:"old_mobile"`
-        NewMobile string `json:"new_mobile"`
-        VerifyCode string `json:"verifyCode"`
-    }
-    ChangeMobileResponse {
-        Status string `json:"status"`
+        BanTime int8 `json:"ban_time"`
     }
 )
 
@@ -79,9 +72,9 @@ type (
     }
 
     ChangePasswordRequest {
-        OldPassword string `json:"old_password"`
         NewPassword string `json:"new_password"`
     }
+
     ChangePasswordResponse {
         Status string `json:"status"`
     }
@@ -101,6 +94,14 @@ type (
         LikeCommentList string `json:"like_comments"` // 点赞评论
         FollowList string `json:"follow_users"`       // 关注列表
     }
+
+    ChangeMobileRequest {
+        NewMobile string `json:"new_mobile"`
+        VerifyCode string `json:"verifyCode"`
+    }
+    ChangeMobileResponse {
+        Status string `json:"status"`
+    }
 )
 
 @server(
@@ -112,7 +113,7 @@ service keyframeGo {
     @handler RegisterHandler
     post /register (RegisterRequest) returns (RegisterResponse)
 
-    @doc "获取用户信息 不需要token"
+    @doc "获取用户信息"
     @handler UserInfoHandler
     get /:uid (UserInfoRequest) returns (UserInfoResponse)
 
@@ -127,10 +128,6 @@ service keyframeGo {
     @doc "手机密码登录"
     @handler LoginByMobilePassHandler
     post /login-mobile-pass (LoginMobilePassRequest) returns (LoginResponse)
-
-    @doc "更改手机号码"
-    @handler ChangeMobileHandler
-    post /change-mobile (ChangeMobileRequest) returns (ChangeMobileResponse)
 }
 
 @server(
@@ -146,11 +143,15 @@ service keyframeGo {
     @handler UserRelationHandler
     get /relation returns (UserRelationResponse)
 
-    @doc "更改密码 需要token"
+    @doc "更改密码(token)"
     @handler ChangePasswordHandler
     post /change-password (ChangePasswordRequest) returns (ChangePasswordResponse)
 
-    @doc "更改用户信息 需要token"
+    @doc "更改用户信息(token)"
     @handler ChangeUserInfoHandler
     post /change-info (ChangeUserInfoRequest) returns (ChangeUserInfoResponse)
+
+    @doc "更改手机号码(token)"
+    @handler ChangeMobileHandler
+    post /change-mobile (ChangeMobileRequest) returns (ChangeMobileResponse)
 }

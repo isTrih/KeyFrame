@@ -11,6 +11,7 @@ RUN apk add --no-cache tzdata \
 COPY keyframeGo /keyframeGo
 COPY /etc/chaozjani.yaml /etc/keyframeGo.yaml
 COPY /etc/cz88_public_v4.czdb etc/cz88_public_v4.czdb
+COPY /etc/cz88_public_v6.czdb etc/cz88_public_v6.czdb
 # 设置可执行权限（如果需要）
 RUN chmod +x /keyframeGo
 

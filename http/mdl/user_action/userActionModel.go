@@ -177,7 +177,10 @@ SELECT
         '0'
     ) AS type_4_list;
 `)
-	err := m.QueryRowNoCacheCtx(ctx, &list, sql, uid, uid, uid, uid)
+	keyUserActions := fmt.Sprintf("%s%v", "user:action:id:", uid)
+	err := m.QueryRowCtx(ctx, &list, keyUserActions, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+		return conn.QueryRowCtx(ctx, v, sql, uid, uid, uid, uid)
+	})
 	if err != nil {
 		logx.Error("query failed", err)
 		return nil, err
