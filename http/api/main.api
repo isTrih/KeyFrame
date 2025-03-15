@@ -16,3 +16,23 @@ type (
 	}
 )
 
+type (
+	testRequest {
+		Content string `json:"content"`
+	}
+	testResponse {
+		Content string `json:"content"`
+	}
+)
+
+@server (
+	prefix:    /v1/test
+	group:     test
+	signature: true
+)
+service keyframeGo {
+	@doc "创建帧（文章）"
+	@handler NormalTest
+	post /normal (testRequest) returns (testResponse)
+}
+

@@ -3,6 +3,7 @@ package article
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"time"
@@ -26,28 +27,29 @@ type (
 		GetFeedsNum(ctx context.Context, uid uint64) (int, error)
 		FindOneMix(ctx context.Context, id uint64) (*Feeds, error)
 		FindOneDetail(ctx context.Context, id uint64) (*FeedDetail, error)
+		NewFeed(ctx context.Context, title string, content string, rawContent string, cover string, height uint32, width uint32, media []string, uid int64, region string, insp uint8) error
 	}
 
 	customArticleModel struct {
 		*defaultArticleModel
 	}
 	Feeds struct {
-		Id       uint64 `db:"id"`
-		Title    string `db:"title"`
-		AuthorId uint64 `db:"author_id"`
-		UserName string `db:"nickname"`
-		Avatar   string `db:"avatar"`
-		CoverUrl string `db:"cover_url"`
-		Height   uint32 `db:"height"`
-		Width    uint32 `db:"width"`
-		LikeNum  uint32 `db:"like_count"`
+		Id          uint64    `db:"id"`
+		Title       string    `db:"title"`
+		AuthorId    uint64    `db:"author_id"`
+		UserName    string    `db:"nickname"`
+		Avatar      string    `db:"avatar"`
+		CoverUrl    string    `db:"cover_url"`
+		Height      uint32    `db:"height"`
+		Width       uint32    `db:"width"`
+		LikeNum     uint32    `db:"like_count"`
+		PublishTime time.Time `db:"publish_time"` // 发布时间
 	}
 
 	FeedDetail struct {
-		Id      uint64 `db:"id"`      // ID
-		Title   string `db:"title"`   // 标题
-		Content string `db:"content"` // 内容
-
+		Id        uint64         `db:"id"`         // ID
+		Title     string         `db:"title"`      // 标题
+		Content   string         `db:"content"`    // 内容
 		AuthorId  uint64         `db:"author_id"`  // 作者ID User表
 		UserName  string         `db:"nickname"`   // 作者昵称 User表
 		Avatar    string         `db:"avatar"`     // 作者头像 User表
@@ -72,16 +74,20 @@ func NewArticleModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 // GetFeeds 获取文章 query是接在 Where 的 and 后面的字符串 如："a.id = 1 and a.title = 'test'"
 func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query string) ([]*Feeds, error) {
 	var list []*Feeds
-	row := "a.id,a.title,a.author_id,b.nickname,b.avatar,c.cover_url,c.height,c.width, COALESCE(action_count.like_count, 0) AS like_count"
+	row := "a.id,a.title,a.author_id,a.publish_time,b.nickname,b.avatar,c.cover_url,c.height,c.width, COALESCE(action_count.like_count, 0) AS like_count"
 	q := fmt.Sprintf(`
     SELECT %s
     FROM %s AS a
     LEFT JOIN user AS b ON a.author_id = b.id
     LEFT JOIN media AS c ON a.id = c.article_id
     LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
-    WHERE a.status = 0
-    ORDER BY a.update_time DESC
-    LIMIT 10 OFFSET ?;
+    WHERE a.status = 0   
+    AND 
+        (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
+    		  ELSE 1 = 1  -- 当 a.ai_insp 为 0 时，此条件恒为真，即不考虑 a.insp 的值
+    	END)
+    ORDER BY a.publish_time DESC
+    LIMIT 18 OFFSET ?;
 `, row, m.table)
 	if len(query) != 0 {
 		q = fmt.Sprintf(`
@@ -90,9 +96,13 @@ func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query
     LEFT JOIN user AS b ON a.author_id = b.id
     LEFT JOIN media AS c ON a.id = c.article_id
     LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
-    WHERE a.status = 0 AND (a.title LIKE '%%%s%%' OR a.content LIKE '%%%s%%' OR b.nickname LIKE '%%%s%%')
-    ORDER BY a.update_time DESC
-    LIMIT 10 OFFSET %d;
+    WHERE a.status = 0 AND (a.title LIKE '%%%s%%' OR a.raw_content LIKE '%%%s%%' OR b.nickname LIKE '%%%s%%')
+        AND 
+        (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
+    		  ELSE 1 = 1  -- 当 a.ai_insp 为 0 时，此条件恒为真，即不考虑 a.insp 的值
+    	END)
+    ORDER BY a.publish_time DESC
+    LIMIT 18 OFFSET %d;
 `, row, m.table, query, query, query, offset)
 
 		err := m.QueryRowsNoCacheCtx(ctx, &list, q)
@@ -115,7 +125,7 @@ func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query
 func (m *defaultArticleModel) GetUncheckFeeds(ctx context.Context, offset uint64) ([]*Feeds, error) {
 
 	var list []*Feeds
-	row := "a.id,a.title,a.author_id,a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
+	row := "a.id,a.title,a.author_id, a.publish_time, a.like_num,a.view_num,b.nickname,b.avatar,c.cover_url,c.height,c.width"
 	sql := fmt.Sprintf("select %s from %s as a left join user as b on a.author_id = b.id left join media as c on a.id=c.article_id where a.status = 0 order by a.update_time desc limit 10 offset %d", row, m.table, offset)
 
 	err := m.QueryRowsNoCacheCtx(ctx, &list, sql)
@@ -147,15 +157,19 @@ func (m *defaultArticleModel) GetFeedsNum(ctx context.Context, uid uint64) (int,
 // GetUserUploadList 获取用户主页文章列表
 func (m *defaultArticleModel) GetUserUploadList(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error) {
 	var list []*Feeds
-	row := "a.id, a.title, a.author_id, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
+	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
 	s := fmt.Sprintf(`
     SELECT %s
     FROM %s AS a
     LEFT JOIN user AS b ON a.author_id = b.id
     LEFT JOIN media AS c ON a.id = c.article_id
     LEFT JOIN action_count AS d ON a.id = d.target_id AND d.target_type = 1
-    WHERE b.id = %d
-    ORDER BY a.update_time DESC
+    WHERE b.id = %d        
+    	AND 
+        (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
+    		  ELSE 1 = 1  -- 当 a.ai_insp 为 0 时，此条件恒为真，即不考虑 a.insp 的值
+    	END)
+    ORDER BY a.publish_time DESC
     LIMIT 10 OFFSET %d
 `, row, m.table, uid, offset)
 
@@ -170,7 +184,7 @@ func (m *defaultArticleModel) GetUserUploadList(ctx context.Context, offset uint
 // FindOneMix 根据ID获取文章预览信息
 func (m *defaultArticleModel) FindOneMix(ctx context.Context, id uint64) (*Feeds, error) {
 	chaozjArticleIdKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", id)
-	row := "a.id, a.title, a.author_id, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
+	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
 
 	var resp Feeds
 	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
@@ -204,4 +218,39 @@ func (m *defaultArticleModel) FindOneDetail(ctx context.Context, id uint64) (*Fe
 	default:
 		return nil, err
 	}
+}
+
+func (m *defaultArticleModel) NewFeed(ctx context.Context,
+	title string, content string, rawContent string,
+	cover string, height uint32, width uint32, media []string,
+	uid int64, region string, insp uint8,
+) error {
+
+	// 将切片转换为 JSON 字符串
+	mediaListJSON, err := json.Marshal(media)
+	if err != nil {
+		fmt.Println("JSON 编码失败:", err)
+		return err
+	}
+	err = m.TransactCtx(ctx, func(ctx context.Context, session sqlx.Session) error {
+		r, err := session.ExecCtx(ctx, "insert into article (title, content, raw_content, author_id, ip_location, publish_time, ai_insp) values (?,?,?,?,?,?,?)",
+			title, content, rawContent, uid, region, time.Now(), insp)
+		if err != nil {
+			fmt.Println("插入 article 表失败:", err)
+			return err
+		}
+		articleId, _ := r.LastInsertId()
+		_, err = session.ExecCtx(ctx, "insert into media (article_id,cover_url,height,width,media_list) values (?,?,?,?,?)",
+			articleId, cover, height, width, mediaListJSON)
+		if err != nil {
+			fmt.Println("插入 media 表失败:", err)
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Println("事务执行失败:", err)
+		return err
+	}
+	return nil
 }

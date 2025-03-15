@@ -11,6 +11,7 @@ import (
 	feed "zerobackend/internal/handler/feed"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
+	test "zerobackend/internal/handler/test"
 	upload "zerobackend/internal/handler/upload"
 	user "zerobackend/internal/handler/user"
 	"zerobackend/internal/svc"
@@ -92,6 +93,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/new",
 				Handler: feed.NewFeedHandler(serverCtx),
 			},
+			{
+				// 分享小红书帧（文章）
+				Method:  http.MethodGet,
+				Path:    "/share/xhs",
+				Handler: feed.ShareFeedXHSHandler(serverCtx),
+			},
 		},
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithSignature(serverCtx.Config.Signature),
@@ -140,6 +147,19 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/v1/home"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 创建帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/normal",
+				Handler: test.NormalTestHandler(serverCtx),
+			},
+		},
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/test"),
 	)
 
 	server.AddRoutes(

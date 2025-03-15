@@ -8,10 +8,10 @@ RUN apk add --no-cache tzdata \
     && echo "Asia/Shanghai" > /etc/timezone
 
 # 将你的二进制文件复制到容器中
-COPY keyframeGo /keyframeGo
-#COPY /etc/chaozjani.yaml /etc/keyframeGo.yaml
-#COPY /etc/cz88_public_v4.czdb etc/cz88_public_v4.czdb
-#COPY /etc/cz88_public_v6.czdb etc/cz88_public_v6.czdb
+COPY prometheus-nats-exporter /prometheus-nats-exporter
+COPY /etc/chaozjani.yaml /etc/keyframeGo.yaml
+COPY /etc/cz88_public_v4.czdb etc/cz88_public_v4.czdb
+COPY /etc/cz88_public_v6.czdb etc/cz88_public_v6.czdb
 # 设置可执行权限（如果需要）
 RUN chmod +x /keyframeGo
 

@@ -145,10 +145,13 @@ type MediaInfo struct {
 }
 
 type NewFeedRequest struct {
-	Title       string   `json:"title"`       // 标题
-	Content     string   `json:"content"`     // 内容
-	Media       []string `json:"media"`       // 封面
-	Description string   `json:"description"` // 描述
+	Title      string    `json:"title"`               // 标题
+	Content    string    `json:"content"`             // 富文本内容
+	RawContent string    `json:"raw_content"`         // 原始内容
+	Cover      string    `json:"cover,optional"`      // 封面
+	CoverInfo  MediaInfo `json:"cover_info,optional"` // 封面信息
+	Media      []string  `json:"media,optional"`      // 图片
+	KIP        string    `header:"kip,optional"`
 }
 
 type RegisterRequest struct {
@@ -165,6 +168,12 @@ type RegisterResponse struct {
 	Avatar    string `json:"avatar"`
 	Signature string `json:"signature"`
 	UserType  uint16 `json:"type"`
+}
+
+type ShareFeedXHSResponse struct {
+	Nonce     string `json:"nonce"`
+	Signature string `json:"signature"`
+	Timestamp string `json:"timestamp"`
 }
 
 type StatusResponse struct {
@@ -217,4 +226,12 @@ type VerifyCodeRequest struct {
 
 type VerifyCodeResponse struct {
 	Status string `json:"status"`
+}
+
+type TestRequest struct {
+	Content string `json:"content"`
+}
+
+type TestResponse struct {
+	Content string `json:"content"`
 }

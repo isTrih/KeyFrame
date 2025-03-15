@@ -55,6 +55,8 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
         media.cover_url, 
         media.height, 
         media.width, 
+        user_action.update_time as publish_time,
+
         COALESCE(action_count.like_count, 0) AS like_count
     FROM 
         user_action
@@ -73,7 +75,7 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
         AND user_action.action_type = 1 
         AND user_action.action_value = 1
     ORDER BY 
-        article.update_time DESC 
+        article.publish_time DESC 
     LIMIT 10 OFFSET ?;
 `)
 	err := m.QueryRowsNoCacheCtx(ctx, &list, sql, uid, offset)
@@ -90,12 +92,13 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
     SELECT 
         article.id, 
         article.title, 
-        article.author_id, 
+        article.author_id,
         user.nickname, 
         user.avatar, 
         media.cover_url, 
         media.height, 
-        media.width, 
+        media.width,
+        user_action.update_time as publish_time,
         COALESCE(action_count.like_count, 0) AS like_count
     FROM 
         user_action
@@ -113,7 +116,7 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
         AND user_action.action_type = 3 
         AND user_action.action_value = 1
     ORDER BY 
-        article.update_time DESC 
+        article.publish_time DESC 
     LIMIT 10 OFFSET ?;
 `)
 

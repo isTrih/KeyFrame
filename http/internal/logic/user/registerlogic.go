@@ -33,6 +33,11 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
+	insp, err := utils.DoInsp(l.svcCtx.Config, req.Username)
+	if insp != 0 {
+		// 违规逻辑
+		return nil, errors.New(6099, "昵称有违规内容")
+	}
 
 	var user sql.Result
 
