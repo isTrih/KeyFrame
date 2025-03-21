@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="生产" uuid="bd49aab1-4c49-4f8d-81fa-4514db033140">
-      <driver-ref>mysql.8</driver-ref>
+    <data-source source="LOCAL" name="keyframe_test@121.37.154.241" uuid="9b805ed5-32c2-49a3-a97b-0587d8fa0a49">
+      <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
-      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://124.70.131.126:3306/keyframe</jdbc-url>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://121.37.154.241:5432/keyframe_test</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

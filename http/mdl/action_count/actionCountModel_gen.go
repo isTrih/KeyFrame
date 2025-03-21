@@ -19,22 +19,22 @@ import (
 )
 
 var (
-	actionCountFieldNames          = builder.RawFieldNames(&ActionCount{})
+	actionCountFieldNames          = builder.RawFieldNames(&ActionCount{}, true)
 	actionCountRows                = strings.Join(actionCountFieldNames, ",")
-	actionCountRowsExpectAutoSet   = strings.Join(stringx.Remove(actionCountFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
-	actionCountRowsWithPlaceHolder = strings.Join(stringx.Remove(actionCountFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
+	actionCountRowsExpectAutoSet   = strings.Join(stringx.Remove(actionCountFieldNames, "id", "create_at", "create_time", "created_at", "update_at", "update_time", "updated_at"), ",")
+	actionCountRowsWithPlaceHolder = builder.PostgreSqlJoin(stringx.Remove(actionCountFieldNames, "id", "create_at", "create_time", "created_at", "update_at", "update_time", "updated_at"))
 
-	cacheKeyframeActionCountIdPrefix                 = "cache:keyframe:actionCount:id:"
-	cacheKeyframeActionCountTargetIdTargetTypePrefix = "cache:keyframe:actionCount:targetId:targetType:"
+	cachePublicActionCountIdPrefix                 = "cache:public:actionCount:id:"
+	cachePublicActionCountTargetIdTargetTypePrefix = "cache:public:actionCount:targetId:targetType:"
 )
 
 type (
 	actionCountModel interface {
 		Insert(ctx context.Context, data *ActionCount) (sql.Result, error)
-		FindOne(ctx context.Context, id uint64) (*ActionCount, error)
-		FindOneByTargetIdTargetType(ctx context.Context, targetId uint64, targetType int64) (*ActionCount, error)
+		FindOne(ctx context.Context, id int64) (*ActionCount, error)
+		FindOneByTargetIdTargetType(ctx context.Context, targetId int64, targetType int64) (*ActionCount, error)
 		Update(ctx context.Context, data *ActionCount) error
-		Delete(ctx context.Context, id uint64) error
+		Delete(ctx context.Context, id int64) error
 	}
 
 	defaultActionCountModel struct {
@@ -43,11 +43,11 @@ type (
 	}
 
 	ActionCount struct {
-		Id           uint64    `db:"id"`            // 自增主键
-		TargetId     uint64    `db:"target_id"`     // 目标ID
+		Id           int64     `db:"id"`            // 自增主键
+		TargetId     int64     `db:"target_id"`     // 目标ID
 		TargetType   int64     `db:"target_type"`   // 目标类型：1-文章, 2-评论, 3-用户
-		LikeCount    uint64    `db:"like_count"`    // 点赞数
-		CollectCount uint64    `db:"collect_count"` // 收藏数
+		LikeCount    int64     `db:"like_count"`    // 点赞数
+		CollectCount int64     `db:"collect_count"` // 收藏数
 		UpdateTime   time.Time `db:"update_time"`
 	}
 )
@@ -55,30 +55,30 @@ type (
 func newActionCountModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) *defaultActionCountModel {
 	return &defaultActionCountModel{
 		CachedConn: sqlc.NewConn(conn, c, opts...),
-		table:      "`action_count`",
+		table:      `"public"."action_count"`,
 	}
 }
 
-func (m *defaultActionCountModel) Delete(ctx context.Context, id uint64) error {
+func (m *defaultActionCountModel) Delete(ctx context.Context, id int64) error {
 	data, err := m.FindOne(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	keyframeActionCountIdKey := fmt.Sprintf("%s%v", cacheKeyframeActionCountIdPrefix, id)
-	keyframeActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cacheKeyframeActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
+	publicActionCountIdKey := fmt.Sprintf("%s%v", cachePublicActionCountIdPrefix, id)
+	publicActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cachePublicActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
+		query := fmt.Sprintf("delete from %s where id = $1", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, keyframeActionCountIdKey, keyframeActionCountTargetIdTargetTypeKey)
+	}, publicActionCountIdKey, publicActionCountTargetIdTargetTypeKey)
 	return err
 }
 
-func (m *defaultActionCountModel) FindOne(ctx context.Context, id uint64) (*ActionCount, error) {
-	keyframeActionCountIdKey := fmt.Sprintf("%s%v", cacheKeyframeActionCountIdPrefix, id)
+func (m *defaultActionCountModel) FindOne(ctx context.Context, id int64) (*ActionCount, error) {
+	publicActionCountIdKey := fmt.Sprintf("%s%v", cachePublicActionCountIdPrefix, id)
 	var resp ActionCount
-	err := m.QueryRowCtx(ctx, &resp, keyframeActionCountIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", actionCountRows, m.table)
+	err := m.QueryRowCtx(ctx, &resp, publicActionCountIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+		query := fmt.Sprintf("select %s from %s where id = $1 limit 1", actionCountRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
 	switch err {
@@ -91,11 +91,11 @@ func (m *defaultActionCountModel) FindOne(ctx context.Context, id uint64) (*Acti
 	}
 }
 
-func (m *defaultActionCountModel) FindOneByTargetIdTargetType(ctx context.Context, targetId uint64, targetType int64) (*ActionCount, error) {
-	keyframeActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cacheKeyframeActionCountTargetIdTargetTypePrefix, targetId, targetType)
+func (m *defaultActionCountModel) FindOneByTargetIdTargetType(ctx context.Context, targetId int64, targetType int64) (*ActionCount, error) {
+	publicActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cachePublicActionCountTargetIdTargetTypePrefix, targetId, targetType)
 	var resp ActionCount
-	err := m.QueryRowIndexCtx(ctx, &resp, keyframeActionCountTargetIdTargetTypeKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
-		query := fmt.Sprintf("select %s from %s where `target_id` = ? and `target_type` = ? limit 1", actionCountRows, m.table)
+	err := m.QueryRowIndexCtx(ctx, &resp, publicActionCountTargetIdTargetTypeKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where target_id = $1 and target_type = $2 limit 1", actionCountRows, m.table)
 		if err := conn.QueryRowCtx(ctx, &resp, query, targetId, targetType); err != nil {
 			return nil, err
 		}
@@ -112,12 +112,12 @@ func (m *defaultActionCountModel) FindOneByTargetIdTargetType(ctx context.Contex
 }
 
 func (m *defaultActionCountModel) Insert(ctx context.Context, data *ActionCount) (sql.Result, error) {
-	keyframeActionCountIdKey := fmt.Sprintf("%s%v", cacheKeyframeActionCountIdPrefix, data.Id)
-	keyframeActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cacheKeyframeActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
+	publicActionCountIdKey := fmt.Sprintf("%s%v", cachePublicActionCountIdPrefix, data.Id)
+	publicActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cachePublicActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, actionCountRowsExpectAutoSet)
+		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4)", m.table, actionCountRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.TargetId, data.TargetType, data.LikeCount, data.CollectCount)
-	}, keyframeActionCountIdKey, keyframeActionCountTargetIdTargetTypeKey)
+	}, publicActionCountIdKey, publicActionCountTargetIdTargetTypeKey)
 	return ret, err
 }
 
@@ -127,21 +127,21 @@ func (m *defaultActionCountModel) Update(ctx context.Context, newData *ActionCou
 		return err
 	}
 
-	keyframeActionCountIdKey := fmt.Sprintf("%s%v", cacheKeyframeActionCountIdPrefix, data.Id)
-	keyframeActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cacheKeyframeActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
+	publicActionCountIdKey := fmt.Sprintf("%s%v", cachePublicActionCountIdPrefix, data.Id)
+	publicActionCountTargetIdTargetTypeKey := fmt.Sprintf("%s%v:%v", cachePublicActionCountTargetIdTargetTypePrefix, data.TargetId, data.TargetType)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, actionCountRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.TargetId, newData.TargetType, newData.LikeCount, newData.CollectCount, newData.Id)
-	}, keyframeActionCountIdKey, keyframeActionCountTargetIdTargetTypeKey)
+		query := fmt.Sprintf("update %s set %s where id = $1", m.table, actionCountRowsWithPlaceHolder)
+		return conn.ExecCtx(ctx, query, newData.Id, newData.TargetId, newData.TargetType, newData.LikeCount, newData.CollectCount)
+	}, publicActionCountIdKey, publicActionCountTargetIdTargetTypeKey)
 	return err
 }
 
 func (m *defaultActionCountModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheKeyframeActionCountIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cachePublicActionCountIdPrefix, primary)
 }
 
 func (m *defaultActionCountModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {
-	query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", actionCountRows, m.table)
+	query := fmt.Sprintf("select %s from %s where id = $1 limit 1", actionCountRows, m.table)
 	return conn.QueryRowCtx(ctx, v, query, primary)
 }
 

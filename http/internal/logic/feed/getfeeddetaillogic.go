@@ -37,7 +37,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 		return nil, err
 	}
 
-	action, actionErr := l.svcCtx.ActionCountModel.FindOneByTargetIdTargetType(l.ctx, req.Id, 1)
+	action, actionErr := l.svcCtx.ActionCountModel.FindOneByTargetIdTargetType(l.ctx, int64(req.Id), 1)
 	switch actionErr {
 	case nil:
 		break
@@ -63,8 +63,8 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 			MediaUrl:   a.CoverUrl,
 			Content:    a.Content,
 			CommentNum: 0,
-			LikeNum:    action.LikeCount,
-			CollectNum: action.CollectCount,
+			LikeNum:    uint64(action.LikeCount),
+			CollectNum: uint64(action.CollectCount),
 			MediaInfo: types.MediaInfo{
 				Width:  a.Width,
 				Height: a.Height,

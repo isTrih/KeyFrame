@@ -29,7 +29,7 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	// 获取用户信息
-	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
+	user, err := l.svcCtx.UserModel.FindOne(l.ctx, int64(req.UserId))
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
 		return nil, errors.New(4003, "查询数据失败")
@@ -61,6 +61,6 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	resp.Avatar = user.Avatar
 	resp.Signature = user.Signature
 	resp.UserName = user.Nickname
-	resp.UserId = user.Id
+	resp.UserId = uint64(user.Id)
 	return resp, nil
 }

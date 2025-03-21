@@ -98,7 +98,7 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	resp.Signature = user.Signature
 	//resp.Signature = req.XRI
 	resp.UserName = user.Nickname
-	resp.UserId = user.Id
+	resp.UserId = uint64(user.Id)
 
 	return resp, nil
 }

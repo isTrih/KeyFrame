@@ -19,22 +19,22 @@ import (
 )
 
 var (
-	userFieldNames          = builder.RawFieldNames(&User{})
+	userFieldNames          = builder.RawFieldNames(&User{}, true)
 	userRows                = strings.Join(userFieldNames, ",")
-	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
-	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
+	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "create_at", "create_time", "created_at", "update_at", "update_time", "updated_at"), ",")
+	userRowsWithPlaceHolder = builder.PostgreSqlJoin(stringx.Remove(userFieldNames, "id", "create_at", "create_time", "created_at", "update_at", "update_time", "updated_at"))
 
-	cacheKeyframeUserIdPrefix     = "cache:keyframe:user:id:"
-	cacheKeyframeUserMobilePrefix = "cache:keyframe:user:mobile:"
+	cachePublicUserIdPrefix     = "cache:public:user:id:"
+	cachePublicUserMobilePrefix = "cache:public:user:mobile:"
 )
 
 type (
 	userModel interface {
 		Insert(ctx context.Context, data *User) (sql.Result, error)
-		FindOne(ctx context.Context, id uint64) (*User, error)
+		FindOne(ctx context.Context, id int64) (*User, error)
 		FindOneByMobile(ctx context.Context, mobile string) (*User, error)
 		Update(ctx context.Context, data *User) error
-		Delete(ctx context.Context, id uint64) error
+		Delete(ctx context.Context, id int64) error
 	}
 
 	defaultUserModel struct {
@@ -43,51 +43,51 @@ type (
 	}
 
 	User struct {
-		Id         uint64    `db:"id"`          // 主键ID
-		Password   string    `db:"password"`    // 密码
-		Nickname   string    `db:"nickname"`    // 昵称
-		Signature  string    `db:"signature"`   // 简介
-		Avatar     string    `db:"avatar"`      // 头像
-		Type       int64     `db:"type"`        //  0:默认用户 100:正式用户 200:个人V认证用户 300:企业V认证用户，400以上:超正经员工, 900以上特殊账号
-		Vnote      string    `db:"vnote"`       // V认证信息
-		Mobile     string    `db:"mobile"`      // 手机号
-		Status     int64     `db:"status"`      // 状态 0:正常 1:禁用 2:删除
-		BannedTime time.Time `db:"banned_time"` // 封禁时间
-		BanTime    int64     `db:"ban_time"`    // 封禁时长
-		CreateTime time.Time `db:"create_time"` // 创建时间
-		UpdateTime time.Time `db:"update_time"` // 最后修改时间
-		IpAddress  string    `db:"ip_address"`  // IP地址
-		IpLocation string    `db:"ip_location"` // IP归属地
+		Id         int64        `db:"id"`          // 主键ID
+		Password   string       `db:"password"`    // 密码
+		Nickname   string       `db:"nickname"`    // 昵称
+		Signature  string       `db:"signature"`   // 简介
+		Avatar     string       `db:"avatar"`      // 头像
+		Type       int64        `db:"type"`        //  0:默认用户 100:正式用户 200:个人V认证用户 300:企业V认证用户，400以上:超正经员工, 900以上特殊账号
+		Vnote      string       `db:"vnote"`       // V认证信息
+		Mobile     string       `db:"mobile"`      // 手机号
+		Status     int64        `db:"status"`      // 状态 0:正常 1:禁用 2:删除
+		BannedTime sql.NullTime `db:"banned_time"` // 封禁时间
+		BanTime    int64        `db:"ban_time"`    // 封禁时长
+		CreateTime time.Time    `db:"create_time"` // 创建时间
+		UpdateTime time.Time    `db:"update_time"` // 最后修改时间
+		IpAddress  string       `db:"ip_address"`  // IP地址
+		IpLocation string       `db:"ip_location"` // IP归属地
 	}
 )
 
 func newUserModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) *defaultUserModel {
 	return &defaultUserModel{
 		CachedConn: sqlc.NewConn(conn, c, opts...),
-		table:      "`user`",
+		table:      `"public"."user"`,
 	}
 }
 
-func (m *defaultUserModel) Delete(ctx context.Context, id uint64) error {
+func (m *defaultUserModel) Delete(ctx context.Context, id int64) error {
 	data, err := m.FindOne(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
-	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
+	publicUserIdKey := fmt.Sprintf("%s%v", cachePublicUserIdPrefix, id)
+	publicUserMobileKey := fmt.Sprintf("%s%v", cachePublicUserMobilePrefix, data.Mobile)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
+		query := fmt.Sprintf("delete from %s where id = $1", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, keyframeUserIdKey, keyframeUserMobileKey)
+	}, publicUserIdKey, publicUserMobileKey)
 	return err
 }
 
-func (m *defaultUserModel) FindOne(ctx context.Context, id uint64) (*User, error) {
-	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
+func (m *defaultUserModel) FindOne(ctx context.Context, id int64) (*User, error) {
+	publicUserIdKey := fmt.Sprintf("%s%v", cachePublicUserIdPrefix, id)
 	var resp User
-	err := m.QueryRowCtx(ctx, &resp, keyframeUserIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", userRows, m.table)
+	err := m.QueryRowCtx(ctx, &resp, publicUserIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+		query := fmt.Sprintf("select %s from %s where id = $1 limit 1", userRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
 	switch err {
@@ -101,10 +101,10 @@ func (m *defaultUserModel) FindOne(ctx context.Context, id uint64) (*User, error
 }
 
 func (m *defaultUserModel) FindOneByMobile(ctx context.Context, mobile string) (*User, error) {
-	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, mobile)
+	publicUserMobileKey := fmt.Sprintf("%s%v", cachePublicUserMobilePrefix, mobile)
 	var resp User
-	err := m.QueryRowIndexCtx(ctx, &resp, keyframeUserMobileKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
-		query := fmt.Sprintf("select %s from %s where `mobile` = ? limit 1", userRows, m.table)
+	err := m.QueryRowIndexCtx(ctx, &resp, publicUserMobileKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where mobile = $1 limit 1", userRows, m.table)
 		if err := conn.QueryRowCtx(ctx, &resp, query, mobile); err != nil {
 			return nil, err
 		}
@@ -121,12 +121,12 @@ func (m *defaultUserModel) FindOneByMobile(ctx context.Context, mobile string) (
 }
 
 func (m *defaultUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
-	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, data.Id)
-	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
+	publicUserIdKey := fmt.Sprintf("%s%v", cachePublicUserIdPrefix, data.Id)
+	publicUserMobileKey := fmt.Sprintf("%s%v", cachePublicUserMobilePrefix, data.Mobile)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
+		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)", m.table, userRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.Password, data.Nickname, data.Signature, data.Avatar, data.Type, data.Vnote, data.Mobile, data.Status, data.BannedTime, data.BanTime, data.IpAddress, data.IpLocation)
-	}, keyframeUserIdKey, keyframeUserMobileKey)
+	}, publicUserIdKey, publicUserMobileKey)
 	return ret, err
 }
 
@@ -136,21 +136,21 @@ func (m *defaultUserModel) Update(ctx context.Context, newData *User) error {
 		return err
 	}
 
-	keyframeUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, data.Id)
-	keyframeUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, data.Mobile)
+	publicUserIdKey := fmt.Sprintf("%s%v", cachePublicUserIdPrefix, data.Id)
+	publicUserMobileKey := fmt.Sprintf("%s%v", cachePublicUserMobilePrefix, data.Mobile)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Password, newData.Nickname, newData.Signature, newData.Avatar, newData.Type, newData.Vnote, newData.Mobile, newData.Status, newData.BannedTime, newData.BanTime, newData.IpAddress, newData.IpLocation, newData.Id)
-	}, keyframeUserIdKey, keyframeUserMobileKey)
+		query := fmt.Sprintf("update %s set %s where id = $1", m.table, userRowsWithPlaceHolder)
+		return conn.ExecCtx(ctx, query, newData.Id, newData.Password, newData.Nickname, newData.Signature, newData.Avatar, newData.Type, newData.Vnote, newData.Mobile, newData.Status, newData.BannedTime, newData.BanTime, newData.IpAddress, newData.IpLocation)
+	}, publicUserIdKey, publicUserMobileKey)
 	return err
 }
 
 func (m *defaultUserModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cachePublicUserIdPrefix, primary)
 }
 
 func (m *defaultUserModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {
-	query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", userRows, m.table)
+	query := fmt.Sprintf("select %s from %s where id = $1 limit 1", userRows, m.table)
 	return conn.QueryRowCtx(ctx, v, query, primary)
 }
 

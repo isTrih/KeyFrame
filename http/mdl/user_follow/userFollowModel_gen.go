@@ -19,22 +19,22 @@ import (
 )
 
 var (
-	userFollowFieldNames          = builder.RawFieldNames(&UserFollow{})
+	userFollowFieldNames          = builder.RawFieldNames(&UserFollow{}, true)
 	userFollowRows                = strings.Join(userFollowFieldNames, ",")
-	userFollowRowsExpectAutoSet   = strings.Join(stringx.Remove(userFollowFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
-	userFollowRowsWithPlaceHolder = strings.Join(stringx.Remove(userFollowFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
+	userFollowRowsExpectAutoSet   = strings.Join(stringx.Remove(userFollowFieldNames, "id", "create_at", "create_time", "created_at", "update_at", "update_time", "updated_at"), ",")
+	userFollowRowsWithPlaceHolder = builder.PostgreSqlJoin(stringx.Remove(userFollowFieldNames, "id", "create_at", "create_time", "created_at", "update_at", "update_time", "updated_at"))
 
-	cacheKeyframeUserFollowIdPrefix                   = "cache:keyframe:userFollow:id:"
-	cacheKeyframeUserFollowUserIdFollowedUserIdPrefix = "cache:keyframe:userFollow:userId:followedUserId:"
+	cachePublicUserFollowIdPrefix                   = "cache:public:userFollow:id:"
+	cachePublicUserFollowUserIdFollowedUserIdPrefix = "cache:public:userFollow:userId:followedUserId:"
 )
 
 type (
 	userFollowModel interface {
 		Insert(ctx context.Context, data *UserFollow) (sql.Result, error)
-		FindOne(ctx context.Context, id uint64) (*UserFollow, error)
-		FindOneByUserIdFollowedUserId(ctx context.Context, userId uint64, followedUserId uint64) (*UserFollow, error)
+		FindOne(ctx context.Context, id int64) (*UserFollow, error)
+		FindOneByUserIdFollowedUserId(ctx context.Context, userId int64, followedUserId int64) (*UserFollow, error)
 		Update(ctx context.Context, data *UserFollow) error
-		Delete(ctx context.Context, id uint64) error
+		Delete(ctx context.Context, id int64) error
 	}
 
 	defaultUserFollowModel struct {
@@ -43,9 +43,9 @@ type (
 	}
 
 	UserFollow struct {
-		Id             uint64    `db:"id"`
-		UserId         uint64    `db:"user_id"`          // 关注者ID
-		FollowedUserId uint64    `db:"followed_user_id"` // 被关注用户ID
+		Id             int64     `db:"id"`
+		UserId         int64     `db:"user_id"`          // 关注者ID
+		FollowedUserId int64     `db:"followed_user_id"` // 被关注用户ID
 		Status         int64     `db:"status"`           // 状态：1-关注，0-取消
 		CreateTime     time.Time `db:"create_time"`
 		UpdateTime     time.Time `db:"update_time"`
@@ -55,30 +55,30 @@ type (
 func newUserFollowModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) *defaultUserFollowModel {
 	return &defaultUserFollowModel{
 		CachedConn: sqlc.NewConn(conn, c, opts...),
-		table:      "`user_follow`",
+		table:      `"public"."user_follow"`,
 	}
 }
 
-func (m *defaultUserFollowModel) Delete(ctx context.Context, id uint64) error {
+func (m *defaultUserFollowModel) Delete(ctx context.Context, id int64) error {
 	data, err := m.FindOne(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	keyframeUserFollowIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserFollowIdPrefix, id)
-	keyframeUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cacheKeyframeUserFollowUserIdFollowedUserIdPrefix, data.UserId, data.FollowedUserId)
+	publicUserFollowIdKey := fmt.Sprintf("%s%v", cachePublicUserFollowIdPrefix, id)
+	publicUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cachePublicUserFollowUserIdFollowedUserIdPrefix, data.UserId, data.FollowedUserId)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
+		query := fmt.Sprintf("delete from %s where id = $1", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, keyframeUserFollowIdKey, keyframeUserFollowUserIdFollowedUserIdKey)
+	}, publicUserFollowIdKey, publicUserFollowUserIdFollowedUserIdKey)
 	return err
 }
 
-func (m *defaultUserFollowModel) FindOne(ctx context.Context, id uint64) (*UserFollow, error) {
-	keyframeUserFollowIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserFollowIdPrefix, id)
+func (m *defaultUserFollowModel) FindOne(ctx context.Context, id int64) (*UserFollow, error) {
+	publicUserFollowIdKey := fmt.Sprintf("%s%v", cachePublicUserFollowIdPrefix, id)
 	var resp UserFollow
-	err := m.QueryRowCtx(ctx, &resp, keyframeUserFollowIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", userFollowRows, m.table)
+	err := m.QueryRowCtx(ctx, &resp, publicUserFollowIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
+		query := fmt.Sprintf("select %s from %s where id = $1 limit 1", userFollowRows, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
 	switch err {
@@ -91,11 +91,11 @@ func (m *defaultUserFollowModel) FindOne(ctx context.Context, id uint64) (*UserF
 	}
 }
 
-func (m *defaultUserFollowModel) FindOneByUserIdFollowedUserId(ctx context.Context, userId uint64, followedUserId uint64) (*UserFollow, error) {
-	keyframeUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cacheKeyframeUserFollowUserIdFollowedUserIdPrefix, userId, followedUserId)
+func (m *defaultUserFollowModel) FindOneByUserIdFollowedUserId(ctx context.Context, userId int64, followedUserId int64) (*UserFollow, error) {
+	publicUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cachePublicUserFollowUserIdFollowedUserIdPrefix, userId, followedUserId)
 	var resp UserFollow
-	err := m.QueryRowIndexCtx(ctx, &resp, keyframeUserFollowUserIdFollowedUserIdKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
-		query := fmt.Sprintf("select %s from %s where `user_id` = ? and `followed_user_id` = ? limit 1", userFollowRows, m.table)
+	err := m.QueryRowIndexCtx(ctx, &resp, publicUserFollowUserIdFollowedUserIdKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where user_id = $1 and followed_user_id = $2 limit 1", userFollowRows, m.table)
 		if err := conn.QueryRowCtx(ctx, &resp, query, userId, followedUserId); err != nil {
 			return nil, err
 		}
@@ -112,12 +112,12 @@ func (m *defaultUserFollowModel) FindOneByUserIdFollowedUserId(ctx context.Conte
 }
 
 func (m *defaultUserFollowModel) Insert(ctx context.Context, data *UserFollow) (sql.Result, error) {
-	keyframeUserFollowIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserFollowIdPrefix, data.Id)
-	keyframeUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cacheKeyframeUserFollowUserIdFollowedUserIdPrefix, data.UserId, data.FollowedUserId)
+	publicUserFollowIdKey := fmt.Sprintf("%s%v", cachePublicUserFollowIdPrefix, data.Id)
+	publicUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cachePublicUserFollowUserIdFollowedUserIdPrefix, data.UserId, data.FollowedUserId)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?)", m.table, userFollowRowsExpectAutoSet)
+		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3)", m.table, userFollowRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.UserId, data.FollowedUserId, data.Status)
-	}, keyframeUserFollowIdKey, keyframeUserFollowUserIdFollowedUserIdKey)
+	}, publicUserFollowIdKey, publicUserFollowUserIdFollowedUserIdKey)
 	return ret, err
 }
 
@@ -127,21 +127,21 @@ func (m *defaultUserFollowModel) Update(ctx context.Context, newData *UserFollow
 		return err
 	}
 
-	keyframeUserFollowIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserFollowIdPrefix, data.Id)
-	keyframeUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cacheKeyframeUserFollowUserIdFollowedUserIdPrefix, data.UserId, data.FollowedUserId)
+	publicUserFollowIdKey := fmt.Sprintf("%s%v", cachePublicUserFollowIdPrefix, data.Id)
+	publicUserFollowUserIdFollowedUserIdKey := fmt.Sprintf("%s%v:%v", cachePublicUserFollowUserIdFollowedUserIdPrefix, data.UserId, data.FollowedUserId)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userFollowRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.UserId, newData.FollowedUserId, newData.Status, newData.Id)
-	}, keyframeUserFollowIdKey, keyframeUserFollowUserIdFollowedUserIdKey)
+		query := fmt.Sprintf("update %s set %s where id = $1", m.table, userFollowRowsWithPlaceHolder)
+		return conn.ExecCtx(ctx, query, newData.Id, newData.UserId, newData.FollowedUserId, newData.Status)
+	}, publicUserFollowIdKey, publicUserFollowUserIdFollowedUserIdKey)
 	return err
 }
 
 func (m *defaultUserFollowModel) formatPrimary(primary any) string {
-	return fmt.Sprintf("%s%v", cacheKeyframeUserFollowIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cachePublicUserFollowIdPrefix, primary)
 }
 
 func (m *defaultUserFollowModel) queryPrimary(ctx context.Context, conn sqlx.SqlConn, v, primary any) error {
-	query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", userFollowRows, m.table)
+	query := fmt.Sprintf("select %s from %s where id = $1 limit 1", userFollowRows, m.table)
 	return conn.QueryRowCtx(ctx, v, query, primary)
 }
 

@@ -14,8 +14,12 @@ type Config struct {
 		AccessSecret string // 密钥
 		AccessExpire int64  // 过期时间
 	}
-	// 数据库
+	// MYSQL数据库
 	DB struct {
+		DataSource string // 数据源
+	}
+	// PSOTGRESQL数据库
+	PG struct {
 		DataSource string // 数据源
 	}
 	// 七牛云储存

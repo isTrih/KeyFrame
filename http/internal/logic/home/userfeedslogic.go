@@ -281,7 +281,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 }
 
 func (l *UserFeedsLogic) GetCollectIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
-	key := fmt.Sprintf("user:id:%d:collect", uid)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:collect", uid)
 
 	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
 
@@ -345,7 +345,7 @@ func (l *UserFeedsLogic) addCacheCollect(ctx context.Context, feedIds []*article
 	if len(feedIds) == 0 {
 		return nil
 	}
-	key := fmt.Sprintf("user:id:%d:collect", userId)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:collect", userId)
 	for _, feedId := range feedIds {
 		var score int64
 		score = feedId.PublishTime.Unix()
@@ -359,7 +359,7 @@ func (l *UserFeedsLogic) addCacheCollect(ctx context.Context, feedIds []*article
 }
 
 func (l *UserFeedsLogic) GetLikeIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
-	key := fmt.Sprintf("user:id:%d:like", uid)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:like", uid)
 
 	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
 
@@ -423,7 +423,7 @@ func (l *UserFeedsLogic) addCacheLike(ctx context.Context, feedIds []*article.Fe
 	if len(feedIds) == 0 {
 		return nil
 	}
-	key := fmt.Sprintf("user:id:%d:like", userId)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:like", userId)
 	for _, feedId := range feedIds {
 		var score int64
 		score = feedId.PublishTime.Unix()
@@ -437,7 +437,7 @@ func (l *UserFeedsLogic) addCacheLike(ctx context.Context, feedIds []*article.Fe
 }
 
 func (l *UserFeedsLogic) GetUploadIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
-	key := fmt.Sprintf("user:id:%d:upload", uid)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:upload", uid)
 	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
 	if err != nil {
 		return nil, err
@@ -499,7 +499,7 @@ func (l *UserFeedsLogic) addCacheUpload(ctx context.Context, feedIds []*article.
 	if len(feedIds) == 0 {
 		return nil
 	}
-	key := fmt.Sprintf("user:id:%d:upload", userId)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:upload", userId)
 	for _, feedId := range feedIds {
 		var score int64
 		score = feedId.PublishTime.Unix()

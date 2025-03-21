@@ -41,9 +41,9 @@ func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) Us
 // returns error
 func (m *defaultUserModel) UpdateIp(ctx context.Context, id uint64, il string, ia string) error {
 
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
+	chaozjUserIdKey := fmt.Sprintf("%s%v", cachePublicUserIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("update %s set `ip_location` = ?, `ip_address` = ? where `id` = ?", m.table)
+		query := fmt.Sprintf(`update %s set ip_location = $1, ip_address =$2 where id = $3`, m.table)
 		return conn.ExecCtx(ctx, query, il, ia, id)
 	}, chaozjUserIdKey)
 	return err
@@ -57,18 +57,17 @@ func (m *defaultUserModel) UpdateIp(ctx context.Context, id uint64, il string, i
 //
 // returns error
 func (m *defaultUserModel) UpdateIpByMobile(ctx context.Context, mobile string, il string, ia string) error {
-	chaozjUserMobileKey := fmt.Sprintf("%s%v", cacheKeyframeUserMobilePrefix, mobile)
+	chaozjUserMobileKey := fmt.Sprintf("%s%v", cachePublicUserMobilePrefix, mobile)
 
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-
-		query := fmt.Sprintf("update %s set `ip_location` = ?, `ip_address` = ? where `mobile` = ?", m.table)
+		query := fmt.Sprintf(`update %s set ip_location = $1, ip_address =$2 where mobile = $3`, m.table)
 		return conn.ExecCtx(ctx, query, il, ia, mobile)
 	}, chaozjUserMobileKey)
 	return err
 }
 
 func (m *defaultUserModel) UpdatePassword(ctx context.Context, id uint64, newPassword string) error {
-	chaozjUserIdKey := fmt.Sprintf("%s%v", cacheKeyframeUserIdPrefix, id)
+	chaozjUserIdKey := fmt.Sprintf("%s%v", cachePublicUserIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("UPDATE %s SET `password` = ? WHERE `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, newPassword, id)

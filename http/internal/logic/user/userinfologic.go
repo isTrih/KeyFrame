@@ -32,7 +32,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	resp = new(types.UserInfoResponse)
 
 	//查询用户基本信息
-	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
+	user, err := l.svcCtx.UserModel.FindOne(l.ctx, int64(req.UserId))
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
 		return nil, errors.New(4003, "查询数据失败")
@@ -41,7 +41,7 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 		return nil, errors.New(6021, "用户不存在")
 	}
 
-	resp.UserId = user.Id
+	resp.UserId = uint64(user.Id)
 	resp.Username = user.Nickname
 	resp.Avatar = user.Avatar
 	resp.Type = uint16(user.Type)

@@ -50,8 +50,8 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
         article.id, 
         article.title, 
         article.author_id, 
-        user.nickname, 
-        user.avatar, 
+        "user".nickname, 
+        "user".avatar, 
         media.cover_url, 
         media.height, 
         media.width, 
@@ -63,20 +63,20 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
     LEFT JOIN 
         article ON user_action.target_id = article.id
     LEFT JOIN 
-        user ON article.author_id = user.id
+        "user" ON article.author_id = "user".id
     LEFT JOIN 
         media ON article.id = media.article_id
     LEFT JOIN 
         action_count ON article.id = action_count.target_id AND action_count.target_type = 1
     WHERE 
-        user_action.user_id = ? 
+        user_action.user_id = $1 
         AND article.status = 0 
         AND user_action.target_type = 1 
         AND user_action.action_type = 1 
         AND user_action.action_value = 1
     ORDER BY 
         article.publish_time DESC 
-    LIMIT 10 OFFSET ?;
+    LIMIT 10 OFFSET $2;
 `)
 	err := m.QueryRowsNoCacheCtx(ctx, &list, sql, uid, offset)
 	if err != nil {
@@ -93,8 +93,8 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
         article.id, 
         article.title, 
         article.author_id,
-        user.nickname, 
-        user.avatar, 
+        "user".nickname, 
+        "user".avatar, 
         media.cover_url, 
         media.height, 
         media.width,
@@ -105,19 +105,19 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
     LEFT JOIN 
         article ON user_action.target_id = article.id
     LEFT JOIN 
-        user ON article.author_id = user.id
+        "user" ON article.author_id = "user".id
     LEFT JOIN 
         media ON article.id = media.article_id
     LEFT JOIN 
         action_count ON article.id = action_count.target_id AND action_count.target_type = 1
     WHERE 
-        user_action.user_id = ? 
+        user_action.user_id = $1 
         AND article.status = 0 
         AND user_action.action_type = 3 
         AND user_action.action_value = 1
     ORDER BY 
         article.publish_time DESC 
-    LIMIT 10 OFFSET ?;
+    LIMIT 10 OFFSET $2;
 `)
 
 	err := m.QueryRowsNoCacheCtx(ctx, &list, sql, uid, offset)
@@ -133,56 +133,68 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
 // uid 用户ID
 func (m *defaultUserActionModel) GetUserActionHistory(ctx context.Context, uid uint64) (*ActionList, error) {
 	var list ActionList
-	sql := fmt.Sprintf(`
+	sql := `
 SELECT
-    IFNULL(
+    COALESCE(
         (
-            SELECT GROUP_CONCAT(target_id)
-            FROM user_action
-            WHERE user_id = ?
-              AND action_type = 1
-              AND action_value = 1
-            ORDER BY update_time DESC
+            SELECT STRING_AGG(target_id::text, ',')
+            FROM (
+                SELECT target_id
+                FROM user_action
+                WHERE user_id = $1
+                  AND action_type = 1
+                  AND action_value = 1
+                ORDER BY update_time DESC
+            ) subquery_1
         ),
         '0'
     ) AS type_1_list,
-    IFNULL(
+    COALESCE(
         (
-            SELECT GROUP_CONCAT(target_id)
-            FROM user_action
-            WHERE user_id = ?
-              AND action_type = 2
-              AND action_value = 1
-            ORDER BY update_time DESC
+            SELECT STRING_AGG(target_id::text, ',')
+            FROM (
+                SELECT target_id
+                FROM user_action
+                WHERE user_id = $1
+                  AND action_type = 2
+                  AND action_value = 1
+                ORDER BY update_time DESC
+            ) subquery_2
         ),
         '0'
     ) AS type_2_list,
-    IFNULL(
+    COALESCE(
         (
-            SELECT GROUP_CONCAT(target_id)
-            FROM user_action
-            WHERE user_id = ?
-              AND action_type = 3
-              AND action_value = 1
-            ORDER BY update_time DESC
+            SELECT STRING_AGG(target_id::text, ',')
+            FROM (
+                SELECT target_id
+                FROM user_action
+                WHERE user_id = $1
+                  AND action_type = 3
+                  AND action_value = 1
+                ORDER BY update_time DESC
+            ) subquery_3
         ),
         '0'
     ) AS type_3_list,
-    IFNULL(
+    COALESCE(
         (
-            SELECT GROUP_CONCAT(target_id)
-            FROM user_action
-            WHERE user_id = ?
-              AND action_type = 4
-              AND action_value = 1
-            ORDER BY update_time DESC
+            SELECT STRING_AGG(target_id::text, ',')
+            FROM (
+                SELECT target_id
+                FROM user_action
+                WHERE user_id = $1
+                  AND action_type = 4
+                  AND action_value = 1
+                ORDER BY update_time DESC
+            ) subquery_4
         ),
         '0'
     ) AS type_4_list;
-`)
+`
 	keyUserActions := fmt.Sprintf("%s%v", "user:action:id:", uid)
 	err := m.QueryRowCtx(ctx, &list, keyUserActions, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		return conn.QueryRowCtx(ctx, v, sql, uid, uid, uid, uid)
+		return conn.QueryRowCtx(ctx, v, sql, uid)
 	})
 	if err != nil {
 		logx.Error("query failed", err)

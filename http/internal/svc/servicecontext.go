@@ -2,8 +2,8 @@ package svc
 
 import (
 	"fmt"
+	"github.com/zeromicro/go-zero/core/stores/postgres"
 	"github.com/zeromicro/go-zero/core/stores/redis"
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zhengjianyang/goCzdb"
 	"zerobackend/internal/config"
 	"zerobackend/mdl/action_count"
@@ -42,7 +42,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		fmt.Printf("Ipv6查询器 failed to load content from `%s`: %s\n", c.IPCheck.Path6, err4)
 	}
 
-	keyframeGo := sqlx.NewMysql(c.DB.DataSource)
+	// KeyframeGo := sqlx.NewMysql(c.DB.DataSource)
+	keyframeGo := postgres.New(c.PG.DataSource)
 	rds, err := redis.NewRedis(redis.RedisConf{
 		Host: c.BizRedis.Host,
 		Type: c.BizRedis.Type})
