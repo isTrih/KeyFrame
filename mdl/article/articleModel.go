@@ -90,22 +90,23 @@ ORDER BY a.publish_time DESC
 LIMIT 18 OFFSET $1
 `, row, m.table)
 	if len(query) != 0 {
-		q = fmt.Sprintf(`
-    SELECT %s    
-    FROM %s AS a
-    LEFT JOIN user AS b ON a.author_id = b.id
-    LEFT JOIN media AS c ON a.id = c.article_id
-    LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
-    WHERE a.status = 0 AND (a.title LIKE '%%%s%%' OR a.raw_content LIKE '%%%s%%' OR b.nickname LIKE '%%%s%%')
-        AND 
-        (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
-    		  ELSE 1 = 1  -- 当 a.ai_insp 为 0 时，此条件恒为真，即不考虑 a.insp 的值
-    	END)
-    ORDER BY a.publish_time DESC
-    LIMIT 18 OFFSET %d
-`, row, m.table, query, query, query, offset)
+		// TODO:这里之后换成全文搜索
+		q := `
+        SELECT ` + row + `,
+		ts_rank(to_tsvector('zh_cn', a.raw_content), to_tsquery('zh_cn', $1)) AS rank
+        FROM ` + m.table + ` AS a
+        LEFT JOIN "user" AS b ON a.author_id = b.id
+        LEFT JOIN media AS c ON a.id = c.article_id
+        LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
+        WHERE 
+		  (CASE WHEN a.ai_insp != 0 THEN a.insp = 0 ELSE true END)
+ 		  AND a.status = 0 
+          AND (to_tsvector('zh_cn', raw_content) @@ to_tsquery('zh_cn', $1) OR a.title LIKE $1 || '%' OR b.nickname LIKE $1 || '%')
+        ORDER BY a.publish_time DESC ,rank DESC
+        LIMIT 18 OFFSET $2
+    `
 
-		err := m.QueryRowsNoCacheCtx(ctx, &list, q)
+		err := m.QueryRowsNoCacheCtx(ctx, &list, q, query, offset)
 		if err != nil {
 			logx.Error("query failed query ", err)
 			return nil, err

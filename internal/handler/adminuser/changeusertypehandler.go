@@ -4,14 +4,15 @@ import (
 	"net/http"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
+
 	xhttp "github.com/zeromicro/x/http"
 	"zerobackend/internal/logic/adminuser"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 )
 
-// 改变用户权限
-func ChangeFeedStatusHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+// ChangeUserTypeHandler // 改变用户权限
+func ChangeUserTypeHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.ChangeUserTypeRequest
 		if err := httpx.Parse(r, &req); err != nil {
@@ -19,8 +20,8 @@ func ChangeFeedStatusHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		l := adminuser.NewChangeFeedStatusLogic(r.Context(), svcCtx)
-		resp, err := l.ChangeFeedStatus(&req)
+		l := adminuser.NewChangeUserTypeLogic(r.Context(), svcCtx)
+		resp, err := l.ChangeUserType(&req)
 		if err != nil {
 			// code-data 响应格式
 			xhttp.JsonBaseResponseCtx(r.Context(), w, err)

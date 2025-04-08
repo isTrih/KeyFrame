@@ -2,6 +2,7 @@ package user_action
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -22,6 +23,12 @@ type (
 		// actionType 1-动态点赞, 2-评论点赞, 3-收藏 4-关注列表
 		// uid 用户ID
 		GetUserActionHistory(ctx context.Context, uid uint64) (*ActionList, error)
+		// ToggleAction 点赞/收藏/关注/取消点赞/取消收藏/取消关注
+		// actionType 1-动态点赞, 2-评论点赞, 3-收藏 4-关注列表
+		// uid 用户ID
+		// targetId 目标ID
+		// targetType 目标类型 1-文章 2-评论 3-用户
+		ToggleAction(ctx context.Context, uid, targetId, actionType, targetType int64) error
 	}
 
 	customUserActionModel struct {
@@ -45,7 +52,7 @@ func NewUserActionModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Opti
 
 func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uint64, uid uint64) ([]*article.Feeds, error) {
 	var list []*article.Feeds
-	sql := fmt.Sprintf(`
+	msql := fmt.Sprintf(`
     SELECT 
         article.id, 
         article.title, 
@@ -78,7 +85,7 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
         article.publish_time DESC 
     LIMIT 10 OFFSET $2;
 `)
-	err := m.QueryRowsNoCacheCtx(ctx, &list, sql, uid, offset)
+	err := m.QueryRowsNoCacheCtx(ctx, &list, msql, uid, offset)
 	if err != nil {
 		logx.Error("query failed", err)
 		return nil, err
@@ -88,7 +95,7 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
 
 func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset uint64, uid uint64) ([]*article.Feeds, error) {
 	var list []*article.Feeds
-	sql := fmt.Sprintf(`
+	msql := fmt.Sprintf(`
     SELECT 
         article.id, 
         article.title, 
@@ -120,7 +127,7 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
     LIMIT 10 OFFSET $2;
 `)
 
-	err := m.QueryRowsNoCacheCtx(ctx, &list, sql, uid, offset)
+	err := m.QueryRowsNoCacheCtx(ctx, &list, msql, uid, offset)
 	if err != nil {
 		logx.Error("query failed", err)
 		return nil, err
@@ -133,7 +140,7 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
 // uid 用户ID
 func (m *defaultUserActionModel) GetUserActionHistory(ctx context.Context, uid uint64) (*ActionList, error) {
 	var list ActionList
-	sql := `
+	msql := `
 SELECT
     COALESCE(
         (
@@ -192,13 +199,35 @@ SELECT
         '0'
     ) AS type_4_list;
 `
-	keyUserActions := fmt.Sprintf("%s%v", "user:action:id:", uid)
+	keyUserActions := fmt.Sprintf("cache:keyframe:user:id:%d:action", uid)
 	err := m.QueryRowCtx(ctx, &list, keyUserActions, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		return conn.QueryRowCtx(ctx, v, sql, uid)
+		return conn.QueryRowCtx(ctx, v, msql, uid)
 	})
 	if err != nil {
 		logx.Error("query failed", err)
 		return nil, err
 	}
 	return &list, nil
+}
+
+func (m *defaultUserActionModel) ToggleAction(ctx context.Context, uid, targetId, actionType, targetType int64) error {
+	keyUserActions := fmt.Sprintf("cache:keyframe:user:id:%d:action", uid)
+
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		msql := fmt.Sprintf(`
+		INSERT INTO user_action (user_id, target_id, action_type, target_type, action_value)
+		VALUES ($1, $2, $3, $4, 1)
+		ON CONFLICT (user_id, target_id, action_type, target_type)
+		DO UPDATE
+		SET action_value = CASE WHEN user_action.action_value = 1 THEN 0 ELSE 1 END,
+    		update_time = CURRENT_TIMESTAMP
+		WHERE user_action.user_id = $1 AND user_action.target_id = $2 AND user_action.action_type = $3 AND user_action.target_type = $4;    
+		`)
+		return conn.ExecCtx(ctx, msql, uid, targetId, actionType, targetType)
+	}, keyUserActions)
+	if err != nil {
+		logx.Error("操作失败", err)
+		return err
+	}
+	return nil
 }

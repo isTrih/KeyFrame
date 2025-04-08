@@ -1,6 +1,6 @@
 module zerobackend
 
-go 1.22.5
+go 1.24.2
 
 require (
 	github.com/apistd/uni-go-sdk v0.0.2
