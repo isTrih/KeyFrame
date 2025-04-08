@@ -64,7 +64,7 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
         media.width, 
         user_action.update_time as publish_time,
 
-        COALESCE(action_count.like_count, 0) AS like_count
+        COALESCE(article_metrics.likes, 0) AS like_count
     FROM 
         user_action
     LEFT JOIN 
@@ -74,7 +74,7 @@ func (m *defaultUserActionModel) GetUserLikeList(ctx context.Context, offset uin
     LEFT JOIN 
         media ON article.id = media.article_id
     LEFT JOIN 
-        action_count ON article.id = action_count.target_id AND action_count.target_type = 1
+        article_metrics ON article.id = article_metrics.article_id
     WHERE 
         user_action.user_id = $1 
         AND article.status = 0 
@@ -106,7 +106,7 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
         media.height, 
         media.width,
         user_action.update_time as publish_time,
-        COALESCE(action_count.like_count, 0) AS like_count
+        COALESCE(article_metrics.likes, 0) AS like_count
     FROM 
         user_action
     LEFT JOIN 
@@ -116,7 +116,7 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
     LEFT JOIN 
         media ON article.id = media.article_id
     LEFT JOIN 
-        action_count ON article.id = action_count.target_id AND action_count.target_type = 1
+        article_metrics ON article.id = article_metrics.article_id
     WHERE 
         user_action.user_id = $1 
         AND article.status = 0 
@@ -124,8 +124,7 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
         AND user_action.action_value = 1
     ORDER BY 
         article.publish_time DESC 
-    LIMIT 10 OFFSET $2;
-`)
+    LIMIT 10 OFFSET $2;`)
 
 	err := m.QueryRowsNoCacheCtx(ctx, &list, msql, uid, offset)
 	if err != nil {
@@ -140,9 +139,8 @@ func (m *defaultUserActionModel) GetUserCollectList(ctx context.Context, offset 
 // uid 用户ID
 func (m *defaultUserActionModel) GetUserActionHistory(ctx context.Context, uid uint64) (*ActionList, error) {
 	var list ActionList
-	msql := `
-SELECT
-    COALESCE(
+	msql := `SELECT
+        COALESCE(
         (
             SELECT STRING_AGG(target_id::text, ',')
             FROM (
@@ -197,8 +195,7 @@ SELECT
             ) subquery_4
         ),
         '0'
-    ) AS type_4_list;
-`
+    ) AS type_4_list;`
 	keyUserActions := fmt.Sprintf("cache:keyframe:user:id:%d:action", uid)
 	err := m.QueryRowCtx(ctx, &list, keyUserActions, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
 		return conn.QueryRowCtx(ctx, v, msql, uid)

@@ -159,6 +159,7 @@ type RegisterRequest struct {
 	Password   string `json:"password"`
 	Mobile     string `json:"mobile"`
 	VerifyCode string `json:"verifyCode"`
+	CZJCode    string `json:"czj_code,optional"` //邀请码用来绑定id
 }
 
 type RegisterResponse struct {

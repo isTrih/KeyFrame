@@ -3,8 +3,8 @@ package adminuser
 import (
 	"context"
 
-	"zerobackend/http/internal/svc"
-	"zerobackend/http/internal/types"
+	"zerobackend/internal/svc"
+	"zerobackend/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

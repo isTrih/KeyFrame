@@ -44,6 +44,14 @@ func (l *NewFeedLogic) NewFeed(req *types.NewFeedRequest) (resp *types.StatusRes
 			}
 		})
 	}
+	if req.Cover == "xx" && req.Media != nil {
+		threading.GoSafe(func() {
+			err := utils.BatchUpdateFileLifecycle(req.Media, "UNCOVER", accessKey, secretKey, bucket)
+			if err != nil {
+				fmt.Println("七牛出错", err)
+			}
+		})
+	}
 	// 检查违禁词
 	insp, _ := utils.DoInsp(l.svcCtx.Config, req.RawContent+req.Title)
 

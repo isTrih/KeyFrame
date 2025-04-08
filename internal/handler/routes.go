@@ -6,15 +6,15 @@ package handler
 import (
 	"net/http"
 
-	adminfeed "zerobackend/http/internal/handler/adminfeed"
-	adminuser "zerobackend/http/internal/handler/adminuser"
-	feed "zerobackend/http/internal/handler/feed"
-	follow "zerobackend/http/internal/handler/follow"
-	home "zerobackend/http/internal/handler/home"
-	test "zerobackend/http/internal/handler/test"
-	upload "zerobackend/http/internal/handler/upload"
-	user "zerobackend/http/internal/handler/user"
-	"zerobackend/http/internal/svc"
+	adminfeed "zerobackend/internal/handler/adminfeed"
+	adminuser "zerobackend/internal/handler/adminuser"
+	feed "zerobackend/internal/handler/feed"
+	follow "zerobackend/internal/handler/follow"
+	home "zerobackend/internal/handler/home"
+	test "zerobackend/internal/handler/test"
+	upload "zerobackend/internal/handler/upload"
+	user "zerobackend/internal/handler/user"
+	"zerobackend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
 )

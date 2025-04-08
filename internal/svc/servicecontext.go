@@ -6,8 +6,8 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zhengjianyang/goCzdb"
 	"zerobackend/internal/config"
-	"zerobackend/mdl/action_count"
 	"zerobackend/mdl/article"
+	"zerobackend/mdl/article_metrics"
 	"zerobackend/mdl/media"
 	"zerobackend/mdl/user"
 	"zerobackend/mdl/user_action"
@@ -16,16 +16,16 @@ import (
 
 // ServiceContext 服务上下文
 type ServiceContext struct {
-	BizRedis         *redis.Redis
-	Config           config.Config
-	IP4Searcher      *goCzdb.DbSearcher
-	IP6Searcher      *goCzdb.DbSearcher
-	UserModel        user.UserModel
-	ArticleModel     article.ArticleModel
-	MediaModel       media.MediaModel
-	UserActionModel  user_action.UserActionModel   // 用户行为记录表
-	UserFollowModel  user_follow.UserFollowModel   // 用户关注关系表
-	ActionCountModel action_count.ActionCountModel // 行为统计表
+	BizRedis            *redis.Redis
+	Config              config.Config
+	IP4Searcher         *goCzdb.DbSearcher
+	IP6Searcher         *goCzdb.DbSearcher
+	UserModel           user.UserModel
+	ArticleModel        article.ArticleModel                // 文章表
+	ArticleMetricsModel article_metrics.ArticleMetricsModel // 文章统计表
+	MediaModel          media.MediaModel
+	UserActionModel     user_action.UserActionModel // 用户行为记录表
+	UserFollowModel     user_follow.UserFollowModel // 用户关注关系表
 }
 
 // NewServiceContext 初始化服务上下文
@@ -64,7 +64,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		// 用户关注关系表
 		UserFollowModel: user_follow.NewUserFollowModel(keyframeGo, c.Cache),
 		// 用户行为记录表
-		ActionCountModel: action_count.NewActionCountModel(keyframeGo, c.Cache),
-		BizRedis:         rds,
+		ArticleMetricsModel: article_metrics.NewArticleMetricsModel(keyframeGo, c.Cache),
+		// 缓存
+		BizRedis: rds,
 	}
 }

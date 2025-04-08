@@ -48,4 +48,10 @@ type Config struct {
 	NATS struct {
 		ADDR string
 	}
+
+	// 邀请码密钥
+	InviteKey struct {
+		KEY string
+		IV  string
+	}
 }

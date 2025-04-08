@@ -74,13 +74,13 @@ func NewArticleModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 // GetFeeds 获取文章 query是接在 Where 的 and 后面的字符串 如："a.id = 1 and a.title = 'test'"
 func (m *defaultArticleModel) GetFeeds(ctx context.Context, offset uint64, query string) ([]*Feeds, error) {
 	var list []*Feeds
-	row := "a.id,a.title,a.author_id,a.publish_time,b.nickname,b.avatar,c.cover_url,c.height,c.width, COALESCE(action_count.like_count, 0) AS like_count"
+	row := "a.id,a.title,a.author_id,a.publish_time,b.nickname,b.avatar,c.cover_url,c.height,c.width, COALESCE(article_metrics.likes, 0) AS like_count"
 	q := fmt.Sprintf(`
 SELECT %s
 FROM %s AS a
 LEFT JOIN "user" AS b ON a.author_id = b.id
 LEFT JOIN media AS c ON a.id = c.article_id
-LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
+LEFT JOIN article_metrics ON a.id = article_metrics.article_id
 WHERE a.status = 0   
 AND 
     (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
@@ -97,7 +97,7 @@ LIMIT 18 OFFSET $1
         FROM ` + m.table + ` AS a
         LEFT JOIN "user" AS b ON a.author_id = b.id
         LEFT JOIN media AS c ON a.id = c.article_id
-        LEFT JOIN action_count ON a.id = action_count.target_id AND action_count.target_type = 1
+		LEFT JOIN article_metrics ON a.id = article_metrics.article_id
         WHERE 
 		  (CASE WHEN a.ai_insp != 0 THEN a.insp = 0 ELSE true END)
  		  AND a.status = 0 
@@ -163,13 +163,13 @@ func (m *defaultArticleModel) GetFeedsNum(ctx context.Context, uid uint64) (int,
 // GetUserUploadList 获取用户主页文章列表
 func (m *defaultArticleModel) GetUserUploadList(ctx context.Context, offset uint64, uid uint64) ([]*Feeds, error) {
 	var list []*Feeds
-	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
+	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.likes, 0) AS like_count"
 	s := fmt.Sprintf(`
     SELECT %s
     FROM %s AS a
     LEFT JOIN "user" AS b ON a.author_id = b.id
     LEFT JOIN media AS c ON a.id = c.article_id
-    LEFT JOIN action_count AS d ON a.id = d.target_id AND d.target_type = 1
+    LEFT JOIN article_metrics AS d ON a.id = d.article_id 
     WHERE b.id = %d        
     	AND 
         (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
@@ -190,11 +190,11 @@ func (m *defaultArticleModel) GetUserUploadList(ctx context.Context, offset uint
 // FindOneMix 根据ID获取文章预览信息
 func (m *defaultArticleModel) FindOneMix(ctx context.Context, id uint64) (*Feeds, error) {
 	chaozjArticleIdKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", id)
-	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.like_count, 0) AS like_count"
+	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.likes, 0) AS like_count"
 
 	var resp Feeds
 	err := m.QueryRowCtx(ctx, &resp, chaozjArticleIdKey, func(ctx context.Context, conn sqlx.SqlConn, v any) error {
-		query := fmt.Sprintf(`select %s from %s as a left join "user" as b on a.author_id = b.id left join "media" as c on a.id=c.article_id LEFT JOIN action_count AS d ON a.id = d.target_id AND d.target_type = 1 where a.id = $1 and a.status = 0 limit 1`,
+		query := fmt.Sprintf(`select %s from %s as a left join "user" as b on a.author_id = b.id left join "media" as c on a.id=c.article_id LEFT JOIN article_metrics AS d ON a.id = d.article_id where a.id = $1 and a.status = 0 limit 1`,
 			row, m.table)
 		return conn.QueryRowCtx(ctx, v, query, id)
 	})
