@@ -37,7 +37,11 @@ func NewUserFollowModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Opti
 
 func (m *defaultUserFollowModel) GetUserFollowNum(ctx context.Context, uid uint64) (*UserFollowNum, error) {
 	var userFollowNum UserFollowNum // 使用单个结构体实例来接收数据
-	sql := fmt.Sprintf("SELECT u.id AS user_id, (SELECT COUNT(*) FROM user_follow WHERE user_id = u.id AND status = 1) AS follow_count, (SELECT COUNT(*) FROM user_follow WHERE followed_user_id = u.id AND status = 1) AS follower_count FROM user u WHERE u.id = ?;")
+	sql := fmt.Sprintf(`
+		SELECT u.id AS user_id, 
+       (SELECT COUNT(*) FROM "public"."user_follow" WHERE user_id = u.id AND status = 1) AS follow_count, 
+       (SELECT COUNT(*) FROM "public"."user_follow" WHERE followed_user_id = u.id AND status = 1) AS follower_count 
+		FROM "public"."user" u WHERE u.id = $1`)
 	err := m.QueryRowNoCacheCtx(ctx, &userFollowNum, sql, uid) // 使用 QueryRowCtx 而不是 QueryRowsNoCacheCtx
 	if err != nil {
 		logx.Error("query failed", err)

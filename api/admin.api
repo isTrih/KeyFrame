@@ -14,7 +14,7 @@ type (
         //用户id
         UserId string `json:"user_id"`
         //权限类型
-        Type uint8 `json:"type"`
+        Type uint16 `json:"type"`
     }
 )
 @server(
@@ -26,7 +26,7 @@ type (
 
 service keyframeGo {
     @doc "改变用户权限"
-    @handler ChangeFeedStatus
+    @handler ChangeUserType
     post /user/changetype (ChangeUserTypeRequest) returns (AdminRes)
 
     @doc "封禁用户"

@@ -30,7 +30,13 @@ func NewUserFeedsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UserFee
 	}
 }
 
-const defaultEnd = 1 << 30
+const defaultEnd = 1 << 40
+
+// FeedWithIndex 用于存储文章和对应的索引
+type FeedWithIndex struct {
+	Index int
+	Feed  *article.Feeds
+}
 
 func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.GetIndexFeedsResponse, err error) {
 	offset := req.Offset
@@ -43,7 +49,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 		return resp, nil
 	}
 
-	if ftype == 1 {
+	if ftype == 2 {
 		feedIds, _ := l.GetLikeIds(l.ctx, req.UserId, offset)
 		if len(feedIds) > 0 {
 			var tmp []uint64
@@ -119,7 +125,7 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 			resp.Feeds = feeds
 			return resp, nil
 		}
-	} else if ftype == 2 {
+	} else if ftype == 1 {
 		feedIds, _ := l.GetCollectIds(l.ctx, req.UserId, offset)
 		if len(feedIds) > 0 {
 			var tmp []uint64
@@ -275,9 +281,9 @@ func (l *UserFeedsLogic) UserFeeds(req *types.UserFeedsRequest) (resp *types.Get
 }
 
 func (l *UserFeedsLogic) GetCollectIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
-	key := fmt.Sprintf("user:collect:id:%d", uid)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:collect", uid)
 
-	pairs, err := l.svcCtx.BizRedis.ZrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
+	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
 
 	if err != nil {
 		return nil, err
@@ -294,38 +300,55 @@ func (l *UserFeedsLogic) GetCollectIds(ctx context.Context, uid, offset uint64) 
 	return ids, nil
 }
 func (l *UserFeedsLogic) GetCollectListByIds(ctx context.Context, feedIds []uint64) ([]*article.Feeds, error) {
-	feeds, err := mr.MapReduce[uint64, *article.Feeds, []*article.Feeds](func(source chan<- uint64) {
+	// 用于存储每个索引对应的文章
+	result := make([]*article.Feeds, len(feedIds))
+
+	_, err := mr.MapReduce[uint64, FeedWithIndex, struct{}](func(source chan<- uint64) {
 		for _, fid := range feedIds {
 			source <- fid
 		}
-	}, func(id uint64, writer mr.Writer[*article.Feeds], cancel func(error)) {
+	}, func(id uint64, writer mr.Writer[FeedWithIndex], cancel func(error)) {
+		// 找到当前 id 在 feedIds 中的索引
+		var index int
+		for i, fid := range feedIds {
+			if fid == id {
+				index = i
+				break
+			}
+		}
+
 		p, err := l.svcCtx.ArticleModel.FindOneMix(ctx, id)
 		if err != nil {
 			cancel(err)
 			return
 		}
-		writer.Write(p)
-	}, func(pipe <-chan *article.Feeds, writer mr.Writer[[]*article.Feeds], cancel func(error)) {
-		var feeds []*article.Feeds
-		for feed := range pipe {
-			feeds = append(feeds, feed)
+		// 写入带有索引的文章
+		writer.Write(FeedWithIndex{
+			Index: index,
+			Feed:  p,
+		})
+	}, func(pipe <-chan FeedWithIndex, writer mr.Writer[struct{}], cancel func(error)) {
+		// 从管道中读取带有索引的文章，并根据索引放入结果切片中
+		for feedWithIndex := range pipe {
+			result[feedWithIndex.Index] = feedWithIndex.Feed
 		}
-		writer.Write(feeds)
+		// 这里不需要写入结果，因为已经填充到 result 切片中
+		writer.Write(struct{}{})
 	})
 	if err != nil {
 		return nil, err
 	}
-	return feeds, nil
+	return result, nil
 }
 func (l *UserFeedsLogic) addCacheCollect(ctx context.Context, feedIds []*article.Feeds, userId uint64) error {
 
 	if len(feedIds) == 0 {
 		return nil
 	}
-	key := fmt.Sprintf("user:collect:id:%d", userId)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:collect", userId)
 	for _, feedId := range feedIds {
 		var score int64
-		score = int64(feedId.Id)
+		score = feedId.PublishTime.Unix()
 
 		_, err := l.svcCtx.BizRedis.ZaddCtx(ctx, key, score, strconv.FormatUint(feedId.Id, 10))
 		if err != nil {
@@ -336,9 +359,9 @@ func (l *UserFeedsLogic) addCacheCollect(ctx context.Context, feedIds []*article
 }
 
 func (l *UserFeedsLogic) GetLikeIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
-	key := fmt.Sprintf("user:like:id:%d", uid)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:like", uid)
 
-	pairs, err := l.svcCtx.BizRedis.ZrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
+	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
 
 	if err != nil {
 		return nil, err
@@ -355,38 +378,55 @@ func (l *UserFeedsLogic) GetLikeIds(ctx context.Context, uid, offset uint64) ([]
 	return ids, nil
 }
 func (l *UserFeedsLogic) GetLikeListByIds(ctx context.Context, feedIds []uint64) ([]*article.Feeds, error) {
-	feeds, err := mr.MapReduce[uint64, *article.Feeds, []*article.Feeds](func(source chan<- uint64) {
+	// 用于存储每个索引对应的文章
+	result := make([]*article.Feeds, len(feedIds))
+
+	_, err := mr.MapReduce[uint64, FeedWithIndex, struct{}](func(source chan<- uint64) {
 		for _, fid := range feedIds {
 			source <- fid
 		}
-	}, func(id uint64, writer mr.Writer[*article.Feeds], cancel func(error)) {
+	}, func(id uint64, writer mr.Writer[FeedWithIndex], cancel func(error)) {
+		// 找到当前 id 在 feedIds 中的索引
+		var index int
+		for i, fid := range feedIds {
+			if fid == id {
+				index = i
+				break
+			}
+		}
+
 		p, err := l.svcCtx.ArticleModel.FindOneMix(ctx, id)
 		if err != nil {
 			cancel(err)
 			return
 		}
-		writer.Write(p)
-	}, func(pipe <-chan *article.Feeds, writer mr.Writer[[]*article.Feeds], cancel func(error)) {
-		var feeds []*article.Feeds
-		for feed := range pipe {
-			feeds = append(feeds, feed)
+		// 写入带有索引的文章
+		writer.Write(FeedWithIndex{
+			Index: index,
+			Feed:  p,
+		})
+	}, func(pipe <-chan FeedWithIndex, writer mr.Writer[struct{}], cancel func(error)) {
+		// 从管道中读取带有索引的文章，并根据索引放入结果切片中
+		for feedWithIndex := range pipe {
+			result[feedWithIndex.Index] = feedWithIndex.Feed
 		}
-		writer.Write(feeds)
+		// 这里不需要写入结果，因为已经填充到 result 切片中
+		writer.Write(struct{}{})
 	})
 	if err != nil {
 		return nil, err
 	}
-	return feeds, nil
+	return result, nil
 }
 func (l *UserFeedsLogic) addCacheLike(ctx context.Context, feedIds []*article.Feeds, userId uint64) error {
 
 	if len(feedIds) == 0 {
 		return nil
 	}
-	key := fmt.Sprintf("user:like:id:%d", userId)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:like", userId)
 	for _, feedId := range feedIds {
 		var score int64
-		score = int64(feedId.Id)
+		score = feedId.PublishTime.Unix()
 
 		_, err := l.svcCtx.BizRedis.ZaddCtx(ctx, key, score, strconv.FormatUint(feedId.Id, 10))
 		if err != nil {
@@ -397,14 +437,11 @@ func (l *UserFeedsLogic) addCacheLike(ctx context.Context, feedIds []*article.Fe
 }
 
 func (l *UserFeedsLogic) GetUploadIds(ctx context.Context, uid, offset uint64) ([]uint64, error) {
-	key := fmt.Sprintf("user:upload:id:%d", uid)
-
-	pairs, err := l.svcCtx.BizRedis.ZrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
-
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:upload", uid)
+	pairs, err := l.svcCtx.BizRedis.ZrevrangebyscoreWithScoresAndLimitCtx(ctx, key, 0, defaultEnd, int(offset/10), 10)
 	if err != nil {
 		return nil, err
 	}
-
 	var ids []uint64
 	for _, pair := range pairs {
 		id, err := strconv.ParseUint(pair.Key, 10, 64)
@@ -416,28 +453,45 @@ func (l *UserFeedsLogic) GetUploadIds(ctx context.Context, uid, offset uint64) (
 	return ids, nil
 }
 func (l *UserFeedsLogic) GetUploadListByIds(ctx context.Context, feedIds []uint64) ([]*article.Feeds, error) {
-	feeds, err := mr.MapReduce[uint64, *article.Feeds, []*article.Feeds](func(source chan<- uint64) {
+	// 用于存储每个索引对应的文章
+	result := make([]*article.Feeds, len(feedIds))
+
+	_, err := mr.MapReduce[uint64, FeedWithIndex, struct{}](func(source chan<- uint64) {
 		for _, fid := range feedIds {
 			source <- fid
 		}
-	}, func(id uint64, writer mr.Writer[*article.Feeds], cancel func(error)) {
+	}, func(id uint64, writer mr.Writer[FeedWithIndex], cancel func(error)) {
+		// 找到当前 id 在 feedIds 中的索引
+		var index int
+		for i, fid := range feedIds {
+			if fid == id {
+				index = i
+				break
+			}
+		}
+
 		p, err := l.svcCtx.ArticleModel.FindOneMix(ctx, id)
 		if err != nil {
 			cancel(err)
 			return
 		}
-		writer.Write(p)
-	}, func(pipe <-chan *article.Feeds, writer mr.Writer[[]*article.Feeds], cancel func(error)) {
-		var feeds []*article.Feeds
-		for feed := range pipe {
-			feeds = append(feeds, feed)
+		// 写入带有索引的文章
+		writer.Write(FeedWithIndex{
+			Index: index,
+			Feed:  p,
+		})
+	}, func(pipe <-chan FeedWithIndex, writer mr.Writer[struct{}], cancel func(error)) {
+		// 从管道中读取带有索引的文章，并根据索引放入结果切片中
+		for feedWithIndex := range pipe {
+			result[feedWithIndex.Index] = feedWithIndex.Feed
 		}
-		writer.Write(feeds)
+		// 这里不需要写入结果，因为已经填充到 result 切片中
+		writer.Write(struct{}{})
 	})
 	if err != nil {
 		return nil, err
 	}
-	return feeds, nil
+	return result, nil
 
 }
 func (l *UserFeedsLogic) addCacheUpload(ctx context.Context, feedIds []*article.Feeds, userId uint64) error {
@@ -445,16 +499,16 @@ func (l *UserFeedsLogic) addCacheUpload(ctx context.Context, feedIds []*article.
 	if len(feedIds) == 0 {
 		return nil
 	}
-	key := fmt.Sprintf("user:upload:id:%d", userId)
+	key := fmt.Sprintf("cache:keyframe:user:id:%d:upload", userId)
 	for _, feedId := range feedIds {
 		var score int64
-		score = int64(feedId.Id)
+		score = feedId.PublishTime.Unix()
 
 		_, err := l.svcCtx.BizRedis.ZaddCtx(ctx, key, score, strconv.FormatUint(feedId.Id, 10))
 		if err != nil {
 			return err
 		}
 	}
-	return l.svcCtx.BizRedis.ExpireCtx(ctx, key, 3600)
+	return l.svcCtx.BizRedis.ExpireCtx(ctx, key, 480)
 
 }

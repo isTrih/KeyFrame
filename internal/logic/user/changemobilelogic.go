@@ -15,7 +15,7 @@ type ChangeMobileLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// 更改手机号码
+// NewChangeMobileLogic 更改手机号码
 func NewChangeMobileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ChangeMobileLogic {
 	return &ChangeMobileLogic{
 		Logger: logx.WithContext(ctx),

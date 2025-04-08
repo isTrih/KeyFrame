@@ -12,7 +12,27 @@ type (
 		Nickname  string `db:"nick_name"` // 昵称
 		Signature string `db:"signature"` // 简介
 		Avatar    string `db:"avatar"` // 头像
-		Type      uint8  `db:"type"` // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+		Type      uint16 `db:"type"` // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 	}
 )
+
+type (
+	testRequest {
+		Content string `json:"content"`
+	}
+	testResponse {
+		Content string `json:"content"`
+	}
+)
+
+@server (
+	prefix:    /v1/test
+	group:     test
+	signature: true
+)
+service keyframeGo {
+	@doc "创建帧（文章）"
+	@handler NormalTest
+	post /normal (testRequest) returns (testResponse)
+}
 

@@ -1,4 +1,4 @@
-package action_count
+package article_metrics
 
 import "github.com/zeromicro/go-zero/core/stores/sqlx"
 

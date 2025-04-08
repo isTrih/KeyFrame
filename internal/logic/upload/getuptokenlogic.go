@@ -18,7 +18,7 @@ type GetUpTokenLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// NewGetUpTokenLogic // 获取到上传token
+// NewGetUpTokenLogic 获取到上传token
 func NewGetUpTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUpTokenLogic {
 	return &GetUpTokenLogic{
 		Logger: logx.WithContext(ctx),
@@ -27,20 +27,26 @@ func NewGetUpTokenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUpT
 	}
 }
 
-func (l *GetUpTokenLogic) GetUpToken() (resp *types.UpResponse, err error) {
+func (l *GetUpTokenLogic) GetUpToken(req *types.GetUpTokenRequest) (resp *types.GetUpTokenResponse, err error) {
 	accessKey := l.svcCtx.Config.Qiniu.AK
 	secretKey := l.svcCtx.Config.Qiniu.SK
 	mac := credentials.NewCredentials(accessKey, secretKey)
 	bucket := "chaozj-keyframe"
-	putPolicy, err := uptoken.NewPutPolicy(bucket, time.Now().Add(1*time.Hour))
+	// 上传凭证有效期5分钟
+	putPolicy, err := uptoken.NewPutPolicy(bucket, time.Now().Add(5*time.Minute))
 	if err != nil {
 		return nil, err
 	}
+	// 上传文件的key为文件类型+文件hash
+	putPolicy.SetSaveKey(req.Type + "/$(etag)")
+	putPolicy.SetForceSaveKey(true)
+
+	putPolicy.SetReturnBody(`{"key": $(etag),"w": $(imageInfo.width), "h": $(imageInfo.height)}`)
 	upToken, err := uptoken.NewSigner(putPolicy, mac).GetUpToken(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	resp = new(types.UpResponse)
+	resp = new(types.GetUpTokenResponse)
 	resp.Token = upToken
 	return resp, nil
 }

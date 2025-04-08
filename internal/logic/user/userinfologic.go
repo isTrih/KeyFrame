@@ -32,24 +32,25 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 	resp = new(types.UserInfoResponse)
 
 	//查询用户基本信息
-	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
+	user, err := l.svcCtx.UserModel.FindOne(l.ctx, int64(req.UserId))
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
 		return nil, errors.New(4003, "查询数据失败")
 	}
-	if user == nil {
+	if user == nil || user.Status == 2 {
 		return nil, errors.New(6021, "用户不存在")
 	}
 
-	resp.UserId = user.Id
+	resp.UserId = uint64(user.Id)
 	resp.Username = user.Nickname
 	resp.Avatar = user.Avatar
-	resp.Type = uint8(user.Type)
+	resp.Type = uint16(user.Type)
 	resp.Status = uint8(user.Status)
 	resp.VNote = user.Vnote
 	resp.Signature = user.Signature
 	resp.IpLocation = user.IpLocation
 	resp.ActiveTime = uint64(user.CreateTime.Unix())
+	resp.BanTime = int8(user.BanTime)
 
 	//查询用户的文章数
 	feedCount, err := l.svcCtx.ArticleModel.GetFeedsNum(l.ctx, req.UserId)

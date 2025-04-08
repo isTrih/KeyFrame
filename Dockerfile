@@ -1,4 +1,4 @@
-# 使用 scratch 作为基础镜像
+# 使用 alpine 作为基础镜像
 FROM swr.cn-east-3.myhuaweicloud.com/keyframe/alpine:latest
 LABEL authors="trih"
 
@@ -9,8 +9,6 @@ RUN apk add --no-cache tzdata \
 
 # 将你的二进制文件复制到容器中
 COPY keyframeGo /keyframeGo
-COPY /etc/chaozjani.yaml /etc/keyframeGo.yaml
-COPY /etc/cz88_public_v4.czdb etc/cz88_public_v4.czdb
 # 设置可执行权限（如果需要）
 RUN chmod +x /keyframeGo
 

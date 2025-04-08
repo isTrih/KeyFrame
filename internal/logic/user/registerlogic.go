@@ -33,6 +33,11 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Register
 }
 
 func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.RegisterResponse, err error) {
+	insp, err := utils.DoInsp(l.svcCtx.Config, req.Username)
+	if insp != 0 {
+		// 违规逻辑
+		return nil, errors.New(6099, "昵称有违规内容")
+	}
 
 	var user sql.Result
 
@@ -42,6 +47,32 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	}
 	if rds2 != nil {
 		return nil, rds2
+	}
+	focusId := utils.DecryptTriDESToNumber(l.svcCtx.Config.InviteKey.KEY,
+		l.svcCtx.Config.InviteKey.IV, req.CZJCode)
+	if focusId != 0 {
+		check, checkerr := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
+		if checkerr != nil && checkerr != model.ErrNotFound {
+			fmt.Println(checkerr)
+			return nil, errors.New(4003, "查询数据失败")
+		}
+		if check == nil {
+			user, err = l.svcCtx.UserModel.Insert(l.ctx, &model.User{
+				Id:        focusId,
+				Mobile:    req.Mobile,
+				Nickname:  req.Username,
+				Password:  EncryptPassword(req.Password),
+				Signature: "",
+				Avatar:    "avatar.jpg",
+			})
+			if err != nil {
+				fmt.Println(err)
+				return nil, errors.New(6011, "注册失败")
+			}
+			logc.Info(l.ctx, user)
+		} else {
+			return nil, errors.New(6012, "邀请码已使用")
+		}
 	}
 
 	check, checkerr := l.svcCtx.UserModel.FindOneByMobile(l.ctx, req.Mobile)
@@ -55,7 +86,7 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 			Nickname:  req.Username,
 			Password:  EncryptPassword(req.Password),
 			Signature: "",
-			Avatar:    "https://coss.chaozj.com/default/avatar.jpg",
+			Avatar:    "avatar.jpg",
 		})
 		if err != nil {
 			fmt.Println(err)
@@ -79,8 +110,8 @@ func (l *RegisterLogic) Register(req *types.RegisterRequest) (resp *types.Regist
 	resp = new(types.RegisterResponse)
 	resp.UserId = uintUid
 	resp.UserName = req.Username
-	resp.Avatar = "https://coss.chaozj.com/default/avatar.jpg"
-	resp.Signature = "CHAOZJ"
+	resp.Avatar = "avatar.jpg"
+	resp.Signature = ""
 	resp.Token = accessToken
 	resp.UserType = 0
 	return resp, nil

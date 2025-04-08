@@ -15,7 +15,7 @@ type ChangeUserInfoLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// 更改用户信息 需要token
+// NewChangeUserInfoLogic 更改用户信息 需要token
 func NewChangeUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ChangeUserInfoLogic {
 	return &ChangeUserInfoLogic{
 		Logger: logx.WithContext(ctx),

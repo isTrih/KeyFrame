@@ -24,3 +24,19 @@
 │                                      │
 └─ 兜底直接更新 MySQL (fallbackToDB)     └─ 定时一致性校验
 ```
+
+
+```go
+//事务使用方法
+    var conn sqlx.SqlConn
+    err := conn.TransactCtx(context.Background(), func(ctx context.Context, session sqlx.Session) error {
+        r, err := session.ExecCtx(ctx, "insert into user (id, name) values (?, ?)", 1, "test")
+        if err != nil {
+            return err
+        }
+        r ,err =session.ExecCtx(ctx, "insert into user (id, name) values (?, ?)", 2, "test")
+        if err != nil {
+            return err
+        }
+    })
+```

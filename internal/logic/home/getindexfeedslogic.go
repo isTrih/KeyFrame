@@ -37,7 +37,6 @@ func (l *GetIndexFeedsLogic) GetIndexFeeds(req *types.GetIndexFeedsRequest) (res
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(list)
 	var feeds = []types.Feed{}
 	var tmp []uint64
 	for _, v := range list {

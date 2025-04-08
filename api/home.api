@@ -11,6 +11,7 @@ type (
         Id uint64 `json:"user_id"`
         UserName string `json:"user_name"`
         Avatar string `json:"avatar"`
+        Type uint16 `json:"type"`
     }
 
         // 文章
@@ -46,13 +47,13 @@ type (
         FeedType uint8 `form:"ftype, default=0"`
     }
 
-    SearchFeedRequest {
-        Offset uint64 `json:"offset, default=0"`
-        Query string `json:"query, optional"`
-        Title string `json:"title, optional"`
-        Author string `json:"author, optional"`
-        Tag string `json:"tag, optional"`
-    }
+//    SearchFeedRequest {
+//        Offset uint64 `json:"offset, default=0"`
+//        Query string `json:"query, optional"`
+//        Title string `json:"title, optional"`
+//        Author string `json:"author, optional"`
+//        Tag string `json:"tag, optional"`
+//    }
 )
 
 
@@ -70,8 +71,8 @@ service keyframeGo {
     @handler UserFeeds
     get /userfeeds (UserFeedsRequest) returns (GetIndexFeedsResponse)
 
-    @doc "搜索帧（文章）"
-    @handler SearchFeed
-    get /search (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
+//    @doc "搜索帧（文章）"
+//    @handler SearchFeed
+//    get /search (GetIndexFeedsRequest) returns (GetIndexFeedsResponse)
 }
 

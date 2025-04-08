@@ -18,7 +18,7 @@ type LoginLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-// 用户登录
+// NewLoginLogic 用户登录
 func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic {
 	return &LoginLogic{
 		Logger: logx.WithContext(ctx),
@@ -29,7 +29,7 @@ func NewLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LoginLogic 
 
 func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, err error) {
 	// 获取用户信息
-	user, err := l.svcCtx.UserModel.FindOne(l.ctx, req.UserId)
+	user, err := l.svcCtx.UserModel.FindOne(l.ctx, int64(req.UserId))
 	if err != nil && err != model.ErrNotFound {
 		fmt.Println(err)
 		return nil, errors.New(4003, "查询数据失败")
@@ -57,10 +57,10 @@ func (l *LoginLogic) Login(req *types.LoginRequest) (resp *types.LoginResponse, 
 	// 返回token
 	resp = new(types.LoginResponse)
 	resp.Token = accessToken
-	resp.UserType = uint8(user.Type)
+	resp.UserType = uint16(user.Type)
 	resp.Avatar = user.Avatar
 	resp.Signature = user.Signature
 	resp.UserName = user.Nickname
-	resp.UserId = user.Id
+	resp.UserId = uint64(user.Id)
 	return resp, nil
 }

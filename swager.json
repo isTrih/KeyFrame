@@ -241,6 +241,28 @@
         ]
       }
     },
+    "/v1/feed/share/xhs": {
+      "get": {
+        "summary": "分享小红书帧（文章）",
+        "operationId": "ShareFeedXHS",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ShareFeedXHSResponse"
+            }
+          }
+        },
+        "tags": [
+          "feed"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
     "/v1/feed/{id}": {
       "get": {
         "summary": "帧（文章）详情",
@@ -370,25 +392,26 @@
             }
           }
         },
-        "tags": [
-          "home"
-        ]
-      }
-    },
-    "/v1/home/search": {
-      "get": {
-        "summary": "搜索帧（文章）",
-        "operationId": "SearchFeed",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/GetIndexFeedsResponse"
-            }
+        "parameters": [
+          {
+            "name": "os",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "type": "string"
           }
-        },
+        ],
         "tags": [
           "home"
+        ],
+        "consumes": [
+          "multipart/form-data"
         ]
       }
     },
@@ -404,38 +427,61 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "os",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "uid",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "ftype",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "uint8"
+          }
+        ],
         "tags": [
           "home"
+        ],
+        "consumes": [
+          "multipart/form-data"
         ]
       }
     },
-    "/v1/upload/change": {
-      "get": {
-        "summary": "获取到上传修改型token",
-        "operationId": "GetUpTokenChange",
+    "/v1/test/normal": {
+      "post": {
+        "summary": "创建帧（文章）",
+        "operationId": "NormalTest",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/UpResponse"
+              "$ref": "#/definitions/testResponse"
             }
           }
         },
         "parameters": [
           {
-            "name": "key",
-            "in": "query",
+            "name": "body",
+            "in": "body",
             "required": true,
-            "type": "string"
+            "schema": {
+              "$ref": "#/definitions/testRequest"
+            }
           }
         ],
         "tags": [
-          "upload"
-        ],
-        "security": [
-          {
-            "apiKey": []
-          }
+          "test"
         ]
       }
     },
@@ -447,12 +493,23 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/UpResponse"
+              "$ref": "#/definitions/GetUpTokenResponse"
             }
           }
         },
+        "parameters": [
+          {
+            "name": "t",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "tags": [
           "upload"
+        ],
+        "consumes": [
+          "multipart/form-data"
         ],
         "security": [
           {
@@ -463,7 +520,7 @@
     },
     "/v1/user/change-info": {
       "post": {
-        "summary": "更改用户信息 需要token",
+        "summary": "更改用户信息(token)",
         "operationId": "ChangeUserInfoHandler",
         "responses": {
           "200": {
@@ -495,7 +552,7 @@
     },
     "/v1/user/change-mobile": {
       "post": {
-        "summary": "更改手机号码",
+        "summary": "更改手机号码(token)",
         "operationId": "ChangeMobileHandler",
         "responses": {
           "200": {
@@ -517,12 +574,17 @@
         ],
         "tags": [
           "user"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
         ]
       }
     },
     "/v1/user/change-password": {
       "post": {
-        "summary": "更改密码 需要token",
+        "summary": "更改密码(token)",
         "operationId": "ChangePasswordHandler",
         "responses": {
           "200": {
@@ -690,7 +752,7 @@
     },
     "/v1/user/{uid}": {
       "get": {
-        "summary": "获取用户信息 不需要token",
+        "summary": "获取用户信息",
         "operationId": "UserInfoHandler",
         "responses": {
           "200": {
@@ -746,9 +808,6 @@
     "ChangeMobileRequest": {
       "type": "object",
       "properties": {
-        "old_mobile": {
-          "type": "string"
-        },
         "new_mobile": {
           "type": "string"
         },
@@ -758,7 +817,6 @@
       },
       "title": "ChangeMobileRequest",
       "required": [
-        "old_mobile",
         "new_mobile",
         "verifyCode"
       ]
@@ -778,16 +836,12 @@
     "ChangePasswordRequest": {
       "type": "object",
       "properties": {
-        "old_password": {
-          "type": "string"
-        },
         "new_password": {
           "type": "string"
         }
       },
       "title": "ChangePasswordRequest",
       "required": [
-        "old_password",
         "new_password"
       ]
     },
@@ -801,18 +855,6 @@
       "title": "ChangePasswordResponse",
       "required": [
         "status"
-      ]
-    },
-    "ChangeResquest": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        }
-      },
-      "title": "ChangeResquest",
-      "required": [
-        "key"
       ]
     },
     "ChangeUserInfoRequest": {
@@ -858,7 +900,7 @@
         },
         "type": {
           "type": "integer",
-          "format": "uint8"
+          "format": "uin16"
         }
       },
       "title": "ChangeUserTypeRequest",
@@ -1007,13 +1049,18 @@
         },
         "avatar": {
           "type": "string"
+        },
+        "type": {
+          "type": "integer",
+          "format": "uin16"
         }
       },
       "title": "FeedUser",
       "required": [
         "user_id",
         "user_name",
-        "avatar"
+        "avatar",
+        "type"
       ]
     },
     "FollowListResponse": {
@@ -1077,7 +1124,20 @@
     },
     "GetIndexFeedsRequest": {
       "type": "object",
-      "title": "GetIndexFeedsRequest"
+      "properties": {
+        "os": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "q": {
+          "type": "string"
+        }
+      },
+      "title": "GetIndexFeedsRequest",
+      "required": [
+        "os",
+        "q"
+      ]
     },
     "GetIndexFeedsResponse": {
       "type": "object",
@@ -1096,6 +1156,30 @@
       "required": [
         "status",
         "feeds"
+      ]
+    },
+    "GetUpTokenRequest": {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string"
+        }
+      },
+      "title": "GetUpTokenRequest",
+      "required": [
+        "t"
+      ]
+    },
+    "GetUpTokenResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      },
+      "title": "GetUpTokenResponse",
+      "required": [
+        "token"
       ]
     },
     "LoginMobilePassRequest": {
@@ -1149,7 +1233,7 @@
         },
         "type": {
           "type": "integer",
-          "format": "uint8"
+          "format": "uin16"
         },
         "token": {
           "type": "string"
@@ -1194,24 +1278,24 @@
           "type": "string",
           "description": " 内容"
         },
+        "cover": {
+          "type": "string",
+          "description": " 封面"
+        },
         "media": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": " 封面"
-        },
-        "description": {
-          "type": "string",
-          "description": " 描述"
+          "description": " 图片"
         }
       },
       "title": "NewFeedRequest",
       "required": [
         "title",
         "content",
-        "media",
-        "description"
+        "cover",
+        "media"
       ]
     },
     "RegisterRequest": {
@@ -1259,7 +1343,7 @@
         },
         "type": {
           "type": "integer",
-          "format": "uint8"
+          "format": "uin16"
         }
       },
       "title": "RegisterResponse",
@@ -1272,33 +1356,24 @@
         "type"
       ]
     },
-    "SearchFeedRequest": {
+    "ShareFeedXHSResponse": {
       "type": "object",
       "properties": {
-        "offset": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "query": {
+        "nonce": {
           "type": "string"
         },
-        "title": {
+        "signature": {
           "type": "string"
         },
-        "author": {
-          "type": "string"
-        },
-        "tag": {
+        "timestamp": {
           "type": "string"
         }
       },
-      "title": "SearchFeedRequest",
+      "title": "ShareFeedXHSResponse",
       "required": [
-        "offset",
-        "query",
-        "title",
-        "author",
-        "tag"
+        "nonce",
+        "signature",
+        "timestamp"
       ]
     },
     "StatusResponse": {
@@ -1311,18 +1386,6 @@
       "title": "StatusResponse",
       "required": [
         "status"
-      ]
-    },
-    "UpResponse": {
-      "type": "object",
-      "properties": {
-        "token": {
-          "type": "string"
-        }
-      },
-      "title": "UpResponse",
-      "required": [
-        "token"
       ]
     },
     "User": {
@@ -1342,7 +1405,7 @@
         },
         "Type": {
           "type": "integer",
-          "format": "uint8",
+          "format": "uin16",
           "description": " 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户"
         }
       },
@@ -1356,7 +1419,26 @@
     },
     "UserFeedsRequest": {
       "type": "object",
-      "title": "UserFeedsRequest"
+      "properties": {
+        "os": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "uid": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ftype": {
+          "type": "integer",
+          "format": "uint8"
+        }
+      },
+      "title": "UserFeedsRequest",
+      "required": [
+        "os",
+        "uid",
+        "ftype"
+      ]
     },
     "UserInfoRequest": {
       "type": "object",
@@ -1377,7 +1459,7 @@
         },
         "type": {
           "type": "integer",
-          "format": "uint8"
+          "format": "uin16"
         },
         "status": {
           "type": "integer",
@@ -1407,6 +1489,10 @@
         "active_time": {
           "type": "integer",
           "format": "int64"
+        },
+        "ban_time": {
+          "type": "integer",
+          "format": "int8"
         }
       },
       "title": "UserInfoResponse",
@@ -1422,39 +1508,36 @@
         "fans_count",
         "follow_count",
         "ip_location",
-        "active_time"
+        "active_time",
+        "ban_time"
       ]
     },
     "UserRelationResponse": {
       "type": "object",
       "properties": {
-        "follow": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+        "like_feeds": {
+          "type": "string",
+          "description": " 点赞帖子"
         },
-        "collect": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+        "collect_feeds": {
+          "type": "string",
+          "description": " 收藏帖子"
         },
-        "like": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+        "like_comments": {
+          "type": "string",
+          "description": " 点赞评论"
+        },
+        "follow_users": {
+          "type": "string",
+          "description": " 关注列表"
         }
       },
       "title": "UserRelationResponse",
       "required": [
-        "follow",
-        "collect",
-        "like"
+        "like_feeds",
+        "collect_feeds",
+        "like_comments",
+        "follow_users"
       ]
     },
     "VerifyCodeRequest": {
@@ -1479,6 +1562,30 @@
       "title": "VerifyCodeResponse",
       "required": [
         "status"
+      ]
+    },
+    "testRequest": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        }
+      },
+      "title": "testRequest",
+      "required": [
+        "content"
+      ]
+    },
+    "testResponse": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        }
+      },
+      "title": "testResponse",
+      "required": [
+        "content"
       ]
     }
   },

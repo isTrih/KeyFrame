@@ -49,17 +49,34 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 
 	// 查询ip
 	var ip = req.KIP
-	region, err := l.svcCtx.IP4Searcher.Search(ip)
-	if err != nil {
-		fmt.Printf("failed to SearchIP(%s): %s\n", ip, err)
-		return
-	}
-	fmt.Println(region, net.ParseIP(ip))
-	//更新IP信息以及归属地
-	upErr := l.svcCtx.UserModel.UpdateIpByMobile(l.ctx, req.Mobile, region, ip)
-	if upErr != nil {
-		fmt.Println(upErr)
-		return nil, errors.New(4004, "更新数据失败，请联系管理员")
+	parsedIP := net.ParseIP(ip)
+	if parsedIP.To4() != nil {
+		fmt.Println("IPv4 address")
+		region, err := l.svcCtx.IP4Searcher.Search(ip)
+		if err != nil {
+			fmt.Printf("failed to SearchIP(%s): %s\n", ip, err)
+		}
+		//更新IP信息以及归属地
+		upErr := l.svcCtx.UserModel.UpdateIpByMobile(l.ctx, req.Mobile, region, ip)
+		if upErr != nil {
+			fmt.Println(upErr)
+			return nil, errors.New(4004, "更新数据失败，请联系管理员")
+		}
+	} else if parsedIP.To16() != nil {
+		fmt.Println("IPv6 address")
+		region, err := l.svcCtx.IP6Searcher.Search(ip)
+		fmt.Println("XXXX", region)
+		if err != nil {
+			fmt.Printf("failed to SearchIP(%s): %s\n", ip, err)
+		}
+		//更新IP信息以及归属地
+		upErr := l.svcCtx.UserModel.UpdateIpByMobile(l.ctx, req.Mobile, region, ip)
+		if upErr != nil {
+			fmt.Println(upErr)
+			return nil, errors.New(4004, "更新数据失败，请联系管理员")
+		}
+	} else {
+		fmt.Println("Unknown IP address format")
 	}
 
 	// 生成token
@@ -76,12 +93,12 @@ func (l *LoginByMobilePassLogic) LoginByMobilePass(req *types.LoginMobilePassReq
 	//返回正确的token
 	resp = new(types.LoginResponse)
 	resp.Token = accessToken
-	resp.UserType = uint8(user.Type)
+	resp.UserType = uint16(user.Type)
 	resp.Avatar = user.Avatar
 	resp.Signature = user.Signature
 	//resp.Signature = req.XRI
 	resp.UserName = user.Nickname
-	resp.UserId = user.Id
+	resp.UserId = uint64(user.Id)
 
 	return resp, nil
 }

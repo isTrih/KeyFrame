@@ -10,7 +10,7 @@ import (
 	"zerobackend/internal/nats/producer"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
-	"zerobackend/mdl/action_count"
+	"zerobackend/mdl/article_metrics"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -37,14 +37,14 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 		return nil, err
 	}
 
-	action, actionErr := l.svcCtx.ActionCountModel.FindOneByTargetIdTargetType(l.ctx, req.Id, 1)
-	switch actionErr {
+	articleMetric, amErr := l.svcCtx.ArticleMetricsModel.FindOneByArticleId(l.ctx, int64(req.Id))
+	switch amErr {
 	case nil:
 		break
 	case sqlc.ErrNotFound:
-		action = &action_count.ActionCount{
-			LikeCount:    0,
-			CollectCount: 0,
+		articleMetric = &article_metrics.ArticleMetrics{
+			Likes:    0,
+			Collects: 0,
 		}
 	default:
 		return nil, err
@@ -63,8 +63,8 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 			MediaUrl:   a.CoverUrl,
 			Content:    a.Content,
 			CommentNum: 0,
-			LikeNum:    action.LikeCount,
-			CollectNum: action.CollectCount,
+			LikeNum:    uint64(articleMetric.Likes),
+			CollectNum: uint64(articleMetric.Collects),
 			MediaInfo: types.MediaInfo{
 				Width:  a.Width,
 				Height: a.Height,
@@ -74,6 +74,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 				Id:       a.AuthorId,
 				UserName: a.UserName,
 				Avatar:   a.Avatar,
+				Type:     a.Type,
 			},
 			PublishTime: uint64(a.PublishTime.Unix()),
 			IpLocation:  a.IpLocation,
