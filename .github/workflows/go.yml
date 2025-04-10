@@ -20,6 +20,17 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.24.2'
+          cache: true  # 启用Go模块缓存
+
+      - name: 缓存Go模块
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/go/bin
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: 获取当前日期
         id: date
@@ -42,7 +53,6 @@ jobs:
           go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-darwin-arm64 keyframeGo.go
 
       - name: 创建发布
-        if: github.ref_type == 'tag'  # 仅在有tag时创建发布
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
