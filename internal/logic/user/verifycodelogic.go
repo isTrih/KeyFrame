@@ -2,6 +2,9 @@ package user
 
 import (
 	"context"
+	"github.com/zeromicro/go-zero/core/limit"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/x/errors"
 	"math/rand"
 	"strconv"
 	"time"
@@ -38,13 +41,37 @@ func (l *VerifyCodeLogic) VerifyCode(req *types.VerifyCodeRequest) (resp *types.
 		return nil, rdsErr
 	}
 
-	// 发送短信
-	smsErr := utils.SendSms(l.svcCtx.Config, req.Mobile, strconv.Itoa(code))
-	if smsErr != nil {
-		return nil, smsErr
+	store, _ := redis.NewRedis(l.svcCtx.Config.BizRedis)
+	// 计数器
+	limiter := limit.NewPeriodLimit(60, 3, store, "smsCode")
+
+	timer, _ := limiter.Take(req.Mobile)
+	switch timer {
+	case limit.Allowed:
+		// 发送短信
+		_, smsErr := utils.SendSms(l.svcCtx.Config, req.Mobile, strconv.Itoa(code))
+		if smsErr != nil {
+			resp = new(types.VerifyCodeResponse)
+			resp.Status = "temp"
+			resp.TempCode = strconv.Itoa(code)
+			return resp, nil
+		}
+		resp = new(types.VerifyCodeResponse)
+		resp.Status = "success"
+		resp.TempCode = ""
+		return resp, nil
+	case limit.HitQuota:
+		resp = new(types.VerifyCodeResponse)
+		resp.Status = "HitQuota"
+		resp.TempCode = strconv.Itoa(code)
+		return resp, nil
+	case limit.OverQuota:
+		resp = new(types.VerifyCodeResponse)
+		resp.Status = "OverQuota"
+		resp.TempCode = strconv.Itoa(code)
+		return resp, nil
+	default:
+		return nil, errors.New(1003, "发生未知错误")
 	}
 
-	resp = new(types.VerifyCodeResponse)
-	resp.Status = "success"
-	return resp, nil
 }

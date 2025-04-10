@@ -226,7 +226,8 @@ type VerifyCodeRequest struct {
 }
 
 type VerifyCodeResponse struct {
-	Status string `json:"status"`
+	Status   string `json:"status"`
+	TempCode string `json:"temp_code"`
 }
 
 type TestRequest struct {

@@ -1,9 +1,74 @@
 syntax = "v1"
 
-info(
-    title: "type title here"
-    desc: "type desc here"
-    author: "type author here"
-    email: "type email here"
-    version: "type version here"
+type (
+    NewCommentRequest {
+        KIP string `header:"kip,optional"`              // KIP
+        XIP string `header:"X-Real-IP,optional"`        // nginx
+
+        Content string `json:"content"`                 // 评论内容压缩过的富文本
+        RawContent string `json:"raw_ontent"`           // 原始内容
+        ParentId uint64 `json:"parent_id"`              // 父评论ID
+        ParentUserId uint64 `json:"parent_id"`          // 父评论用户ID
+                                                        // 用户ID使用jwt
+        Article_Id uint64 `json:"article_id"`           // 文章ID
+    }
+
+    NewCommentResponse {
+        Status string `json:status`
+    }
+
+    LikeCommentRequest {
+        CommentId uint64 `json:comment_id` // 点赞目标
+        // 用户ID使用jwt
+    }
+
+    LikeCommentResponse {
+        Status string `json:status`
+    }
+
+    // 评论列表响应结构
+    CommentListResponse {
+        Comments []CommentItem `json:"comments"`
+        Total uint64 `json:"total"`
+    }
+
+    // 单个评论项
+    CommentItem {
+        Id uint64 `json:"id"`                     // 评论ID
+        UserId uint64 `json:"user_id"`           // 用户ID
+        Nickname string `json:"nickname"`        // 用户昵称
+        Avatar string `json:"avatar"`            // 用户头像
+        Content string `json:"content"`          // 评论内容(压缩富文本)
+        RawContent string `json:"raw_content"`   // 原始内容
+        LikeCount uint64 `json:"like_count"`     // 点赞数
+        IsLiked bool `json:"is_liked"`           // 当前用户是否点赞
+        CreatedAt string `json:"created_at"`     // 创建时间
+        SubComments []SubCommentItem `json:"sub_comments"` // 子评论列表
+        SubCommentCount uint64 `json:"sub_comment_count"`  // 子评论总数
+    }
+
+    // 子评论项
+    SubCommentItem {
+        Id uint64 `json:"id"`                     // 评论ID
+        UserId uint64 `json:"user_id"`           // 用户ID
+        Nickname string `json:"nickname"`        // 用户昵称
+        Avatar string `json:"avatar"`            // 用户头像
+        Content string `json:"content"`          // 评论内容
+        RawContent string `json:"raw_content"`   // 原始内容
+        LikeCount uint64 `json:"like_count"`     // 点赞数
+        IsLiked bool `json:"is_liked"`           // 当前用户是否点赞
+        CreatedAt string `json:"created_at"`     // 创建时间
+        ParentId uint64 `json:"parent_id"`       // 父评论ID
+        ParentUserId uint64 `json:"parent_user_id"` // 父评论用户ID
+        ReplyToNickname string `json:"reply_to_nickname"` // 回复对象的昵称
+    }
+
+    // 评论分页请求
+    CommentListRequest {
+        ArticleId uint64 `form:"article_id"`     // 文章ID
+        Page uint64 `form:"page,optional,default=1"` // 页码
+        PageSize uint64 `form:"page_size,optional,default=10"` // 每页数量
+    }
 )
+
+

@@ -29,6 +29,7 @@ type (
     }
     VerifyCodeResponse {
         Status string `json:"status"`
+        TempCode string `json:"temp_code"`
     }
     LoginRequest {
         UserId uint64 `json:"user_id"`

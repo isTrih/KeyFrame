@@ -43,7 +43,7 @@ func main() {
 	// 启动消息消费者
 	go consumer.StartMessageConsumer(ctx)
 
-	fmt.Printf("1.1.7-beta13 >> Starting server at %s:%d...\n", c.Host, c.Port)
+	fmt.Printf("1.1.7-beta14 >> Starting server at %s:%d...\n", c.Host, c.Port)
 
 	defer ctx.IP4Searcher.Close()
 	server.Start()
