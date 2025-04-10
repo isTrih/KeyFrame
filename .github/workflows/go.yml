@@ -1,15 +1,17 @@
-name: 构建多平台Go应用并发布
+name: Go 多平台构建与测试
 
 on:
   push:
+    branches: [ "dev" ]
     tags:
       - "v*"
+  pull_request:
+    branches: [ "dev" ]
   workflow_dispatch:  # 允许手动触发
 
 jobs:
-  build-and-release:
+  build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -19,6 +21,11 @@ jobs:
         with:
           go-version: '1.24.2'
 
+      - name: 构建测试
+        run: |
+          go build -v ./...
+          go test -v ./...
+
       - name: 获取当前日期
         id: date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
@@ -26,7 +33,7 @@ jobs:
       - name: 构建多平台二进制文件
         run: |
           mkdir -p builds
-
+          
           # Linux 64位
           go env -w CGO_ENABLED=0 GOOS=linux GOARCH=amd64
           go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-linux-amd64 keyframeGo.go
@@ -35,19 +42,12 @@ jobs:
           go env -w CGO_ENABLED=0 GOOS=linux GOARCH=arm64
           go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-linux-arm64 keyframeGo.go
 
-          # macOS 64位
-          go env -w CGO_ENABLED=0 GOOS=darwin GOARCH=amd64
-          go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-darwin-amd64 keyframeGo.go
-
           # macOS ARM64
           go env -w CGO_ENABLED=0 GOOS=darwin GOARCH=arm64
           go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-darwin-arm64 keyframeGo.go
 
-          # Windows 64位
-          go env -w CGO_ENABLED=0 GOOS=windows GOARCH=amd64
-          go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-windows-amd64.exe keyframeGo.go
-
       - name: 创建发布
+        if: github.ref_type == 'tag'  # 仅在有tag时创建发布
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
@@ -59,8 +59,6 @@ jobs:
           files: |
             builds/keyframeGo-linux-amd64
             builds/keyframeGo-linux-arm64
-            builds/keyframeGo-darwin-amd64
             builds/keyframeGo-darwin-arm64
-            builds/keyframeGo-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
