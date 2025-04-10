@@ -6,6 +6,7 @@ import "feed.api"
 import "follow.api"
 import "admin.api"
 import "upload.api"
+import "comment.api"
 
 type (
 	User {

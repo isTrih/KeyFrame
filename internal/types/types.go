@@ -44,6 +44,29 @@ type ChangeUserTypeRequest struct {
 	Type   uint16 `json:"type"`
 }
 
+type CommentItem struct {
+	Id              uint64           `json:"id"`                // 评论ID
+	UserId          uint64           `json:"user_id"`           // 用户ID
+	Nickname        string           `json:"nickname"`          // 用户昵称
+	Avatar          string           `json:"avatar"`            // 用户头像
+	Content         string           `json:"content"`           // 评论内容(压缩富文本)
+	LikeCount       uint64           `json:"like_count"`        // 点赞数
+	CreateTime      uint64           `json:"create_time"`       // 创建时间
+	SubComments     []SubCommentItem `json:"sub_comments"`      // 子评论列表
+	SubCommentCount uint64           `json:"sub_comment_count"` // 子评论总数
+}
+
+type CommentListRequest struct {
+	ArticleId uint64 `form:"article_id"`                    // 文章ID
+	Page      uint64 `form:"page,optional,default=0"`       // 页码
+	PageSize  uint64 `form:"page_size,optional,default=20"` // 每页数量
+}
+
+type CommentListResponse struct {
+	Comments []CommentItem `json:"comments"`
+	Total    uint64        `json:"total"`
+}
+
 type DeleteFeedRequest struct {
 	Id uint64 `json:"id"`
 }
@@ -119,6 +142,14 @@ type GetUpTokenResponse struct {
 	Token string `json:"token"`
 }
 
+type LikeCommentRequest struct {
+	CommentId uint64 `json:"comment_id"` // 点赞目标
+}
+
+type LikeCommentResponse struct {
+	Status string `json:"status"`
+}
+
 type LoginMobilePassRequest struct {
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
@@ -142,6 +173,20 @@ type LoginResponse struct {
 type MediaInfo struct {
 	Width  uint32 `json:"width"`
 	Height uint32 `json:"height"`
+}
+
+type NewCommentRequest struct {
+	KIP          string `header:"kip,optional"`       // KIP
+	XIP          string `header:"X-Real-IP,optional"` // nginx
+	Content      string `json:"content"`              // 评论内容压缩过的富文本
+	RawContent   string `json:"raw_ontent"`           // 原始内容
+	ParentId     uint64 `json:"parent_id"`            // 父评论ID
+	ParentUserId uint64 `json:"parent_id"`            // 父评论用户ID
+	ArticleId    uint64 `json:"article_id"`           // 文章ID
+}
+
+type NewCommentResponse struct {
+	Status string `json:"status"`
 }
 
 type NewFeedRequest struct {
@@ -179,6 +224,19 @@ type ShareFeedXHSResponse struct {
 
 type StatusResponse struct {
 	Status string `json:"status"`
+}
+
+type SubCommentItem struct {
+	Id              uint64 `json:"id"`                // 评论ID
+	UserId          uint64 `json:"user_id"`           // 用户ID
+	Nickname        string `json:"nickname"`          // 用户昵称
+	Avatar          string `json:"avatar"`            // 用户头像
+	Content         string `json:"content"`           // 评论内容
+	LikeCount       uint64 `json:"like_count"`        // 点赞数
+	CreateTime      uint64 `json:"create_time"`       // 创建时间
+	ParentId        uint64 `json:"parent_id"`         // 父评论ID
+	ParentUserId    int64  `json:"parent_user_id"`    // 父评论用户ID
+	ReplyToNickname string `json:"reply_to_nickname"` // 回复对象的昵称
 }
 
 type User struct {

@@ -3,16 +3,16 @@
 
  Source Server         : PG
  Source Server Type    : PostgreSQL
- Source Server Version : 160006 (160006)
+ Source Server Version : 160008 (160008)
  Source Host           : 121.37.154.241:5432
  Source Catalog        : keyframe_test
  Source Schema         : public
 
  Target Server Type    : PostgreSQL
- Target Server Version : 160006 (160006)
+ Target Server Version : 160008 (160008)
  File Encoding         : 65001
 
- Date: 08/04/2025 08:18:59
+ Date: 10/04/2025 17:14:39
 */
 
 
@@ -35,6 +35,12 @@ COMMENT ON COLUMN "public"."comment_metrics"."comments" IS '评论数';
 -- ----------------------------
 -- Indexes structure for table comment_metrics
 -- ----------------------------
+CREATE UNIQUE INDEX "idx_comment_metrics_comment_id" ON "public"."comment_metrics" USING btree (
+  "comment_id" "pg_catalog"."int8_ops" ASC NULLS LAST
+);
+CREATE INDEX "idx_comment_metrics_likes" ON "public"."comment_metrics" USING btree (
+  "likes" "pg_catalog"."int8_ops" DESC NULLS LAST
+);
 CREATE INDEX "uk_comment_id_copy1" ON "public"."comment_metrics" USING btree (
   "comment_id" "pg_catalog"."int8_ops" ASC NULLS LAST
 );

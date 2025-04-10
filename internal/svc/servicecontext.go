@@ -8,6 +8,7 @@ import (
 	"zerobackend/internal/config"
 	"zerobackend/mdl/article"
 	"zerobackend/mdl/article_metrics"
+	"zerobackend/mdl/comment"
 	"zerobackend/mdl/media"
 	"zerobackend/mdl/user"
 	"zerobackend/mdl/user_action"
@@ -26,6 +27,7 @@ type ServiceContext struct {
 	MediaModel          media.MediaModel
 	UserActionModel     user_action.UserActionModel // 用户行为记录表
 	UserFollowModel     user_follow.UserFollowModel // 用户关注关系表
+	CommentModel        comment.CommentModel        //评论表
 }
 
 // NewServiceContext 初始化服务上下文
@@ -65,6 +67,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		UserFollowModel: user_follow.NewUserFollowModel(keyframeGo, c.Cache),
 		// 用户行为记录表
 		ArticleMetricsModel: article_metrics.NewArticleMetricsModel(keyframeGo, c.Cache),
+		// 评论表
+		CommentModel: comment.NewCommentModel(keyframeGo, c.Cache),
 		// 缓存
 		BizRedis: rds,
 	}

@@ -116,7 +116,7 @@
     "/v1/admin/user/changetype": {
       "post": {
         "summary": "改变用户权限",
-        "operationId": "ChangeFeedStatus",
+        "operationId": "ChangeUserType",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -177,6 +177,122 @@
         ]
       }
     },
+    "/v1/comment/like": {
+      "post": {
+        "summary": "点赞评论",
+        "operationId": "LikeComment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/LikeCommentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LikeCommentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "comment"
+        ]
+      }
+    },
+    "/v1/comment/list": {
+      "get": {
+        "summary": "获取评论列表",
+        "operationId": "GetCommentList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/CommentListResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "article_id",
+            "description": " 文章ID",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "description": " 页码",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64",
+            "default": "1"
+          },
+          {
+            "name": "page_size",
+            "description": " 每页数量",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64",
+            "default": "20"
+          }
+        ],
+        "tags": [
+          "comment"
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ]
+      }
+    },
+    "/v1/comment/new": {
+      "post": {
+        "summary": "创建评论",
+        "operationId": "NewComment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/NewCommentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "kip",
+            "description": " KIP",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "X-Real-IP",
+            "description": " nginx",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NewCommentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "comment"
+        ]
+      }
+    },
     "/v1/feed/delete": {
       "post": {
         "summary": "删除帧（文章）",
@@ -222,6 +338,12 @@
           }
         },
         "parameters": [
+          {
+            "name": "kip",
+            "in": "header",
+            "required": false,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -909,6 +1031,112 @@
         "type"
       ]
     },
+    "CommentItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 评论ID"
+        },
+        "user_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 用户ID"
+        },
+        "nickname": {
+          "type": "string",
+          "description": " 用户昵称"
+        },
+        "avatar": {
+          "type": "string",
+          "description": " 用户头像"
+        },
+        "content": {
+          "type": "string",
+          "description": " 评论内容(压缩富文本)"
+        },
+        "like_count": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 点赞数"
+        },
+        "create_time": {
+          "type": "string",
+          "description": " 创建时间"
+        },
+        "sub_comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SubCommentItem"
+          },
+          "description": " 子评论列表"
+        },
+        "sub_comment_count": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 子评论总数"
+        }
+      },
+      "title": "CommentItem",
+      "required": [
+        "id",
+        "user_id",
+        "nickname",
+        "avatar",
+        "content",
+        "like_count",
+        "create_time",
+        "sub_comments",
+        "sub_comment_count"
+      ]
+    },
+    "CommentListRequest": {
+      "type": "object",
+      "properties": {
+        "article_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 文章ID"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int64",
+          "default": "1",
+          "description": " 页码"
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "default": "20",
+          "description": " 每页数量"
+        }
+      },
+      "title": "CommentListRequest",
+      "required": [
+        "article_id"
+      ]
+    },
+    "CommentListResponse": {
+      "type": "object",
+      "properties": {
+        "comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CommentItem"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "CommentListResponse",
+      "required": [
+        "comments",
+        "total"
+      ]
+    },
     "DeleteFeedRequest": {
       "type": "object",
       "properties": {
@@ -1182,6 +1410,32 @@
         "token"
       ]
     },
+    "LikeCommentRequest": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 点赞目标"
+        }
+      },
+      "title": "LikeCommentRequest",
+      "required": [
+        "comment_id"
+      ]
+    },
+    "LikeCommentResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "LikeCommentResponse",
+      "required": [
+        "status"
+      ]
+    },
     "LoginMobilePassRequest": {
       "type": "object",
       "properties": {
@@ -1267,6 +1521,53 @@
         "height"
       ]
     },
+    "NewCommentRequest": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": " 评论内容压缩过的富文本"
+        },
+        "raw_ontent": {
+          "type": "string",
+          "description": " 原始内容"
+        },
+        "parent_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 父评论ID"
+        },
+        "parent_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 父评论用户ID"
+        },
+        "article_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 文章ID"
+        }
+      },
+      "title": "NewCommentRequest",
+      "required": [
+        "content",
+        "raw_ontent",
+        "parent_id",
+        "article_id"
+      ]
+    },
+    "NewCommentResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "NewCommentResponse",
+      "required": [
+        "status"
+      ]
+    },
     "NewFeedRequest": {
       "type": "object",
       "properties": {
@@ -1276,11 +1577,19 @@
         },
         "content": {
           "type": "string",
-          "description": " 内容"
+          "description": " 富文本内容"
+        },
+        "raw_content": {
+          "type": "string",
+          "description": " 原始内容"
         },
         "cover": {
           "type": "string",
           "description": " 封面"
+        },
+        "cover_info": {
+          "$ref": "#/definitions/MediaInfo",
+          "description": " 封面信息"
         },
         "media": {
           "type": "array",
@@ -1294,8 +1603,7 @@
       "required": [
         "title",
         "content",
-        "cover",
-        "media"
+        "raw_content"
       ]
     },
     "RegisterRequest": {
@@ -1312,6 +1620,10 @@
         },
         "verifyCode": {
           "type": "string"
+        },
+        "czj_code": {
+          "type": "string",
+          "description": "邀请码用来绑定id"
         }
       },
       "title": "RegisterRequest",
@@ -1386,6 +1698,69 @@
       "title": "StatusResponse",
       "required": [
         "status"
+      ]
+    },
+    "SubCommentItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 评论ID"
+        },
+        "user_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 用户ID"
+        },
+        "nickname": {
+          "type": "string",
+          "description": " 用户昵称"
+        },
+        "avatar": {
+          "type": "string",
+          "description": " 用户头像"
+        },
+        "content": {
+          "type": "string",
+          "description": " 评论内容"
+        },
+        "like_count": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 点赞数"
+        },
+        "create_time": {
+          "type": "string",
+          "description": " 创建时间"
+        },
+        "parent_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 父评论ID"
+        },
+        "parent_user_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 父评论用户ID"
+        },
+        "reply_to_nickname": {
+          "type": "string",
+          "description": " 回复对象的昵称"
+        }
+      },
+      "title": "SubCommentItem",
+      "required": [
+        "id",
+        "user_id",
+        "nickname",
+        "avatar",
+        "content",
+        "like_count",
+        "create_time",
+        "parent_id",
+        "parent_user_id",
+        "reply_to_nickname"
       ]
     },
     "User": {
@@ -1557,11 +1932,15 @@
       "properties": {
         "status": {
           "type": "string"
+        },
+        "temp_code": {
+          "type": "string"
         }
       },
       "title": "VerifyCodeResponse",
       "required": [
-        "status"
+        "status",
+        "temp_code"
       ]
     },
     "testRequest": {

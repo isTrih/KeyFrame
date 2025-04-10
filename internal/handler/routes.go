@@ -8,6 +8,7 @@ import (
 
 	adminfeed "zerobackend/internal/handler/adminfeed"
 	adminuser "zerobackend/internal/handler/adminuser"
+	comment "zerobackend/internal/handler/comment"
 	feed "zerobackend/internal/handler/feed"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
@@ -64,6 +65,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithSignature(serverCtx.Config.Signature),
 		rest.WithPrefix("/v1/admin"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 点赞评论
+				Method:  http.MethodPost,
+				Path:    "/like",
+				Handler: comment.LikeCommentHandler(serverCtx),
+			},
+			{
+				// 获取评论列表
+				Method:  http.MethodGet,
+				Path:    "/list",
+				Handler: comment.GetCommentListHandler(serverCtx),
+			},
+			{
+				// 创建评论
+				Method:  http.MethodPost,
+				Path:    "/new",
+				Handler: comment.NewCommentHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/comment"),
 	)
 
 	server.AddRoutes(

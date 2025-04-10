@@ -43,11 +43,10 @@ type (
 	Comment struct {
 		Id           int64     `db:"id"`             // 主键ID
 		ArticleId    int64     `db:"article_id"`     // 归属文章ID
-		TargetId     int64     `db:"target_id"`      // 评论目标id，为0则回复文章
-		TargetUserId int64     `db:"target_user_id"` // 被回复用户ID，为-1则无被回复id
+		ParentId     int64     `db:"parent_id"`      // 评论目标id，为0则回复文章
+		ParentUserId int64     `db:"parent_user_id"` // 被回复用户ID，为-1则无被回复id
 		UserId       int64     `db:"user_id"`        // 评论用户ID
 		Content      string    `db:"content"`        // 内容
-		LikeNum      int64     `db:"like_num"`       // 点赞数
 		Status       int64     `db:"status"`         // 状态 0:正常 1:删除
 		Insp         int64     `db:"insp"`           // 人工校验为0时可用，默认为1待检验
 		AiInsp       int64     `db:"ai_insp"`        // AI检验，默认0没有问题，1出现问题。
@@ -93,8 +92,8 @@ func (m *defaultCommentModel) FindOne(ctx context.Context, id int64) (*Comment, 
 func (m *defaultCommentModel) Insert(ctx context.Context, data *Comment) (sql.Result, error) {
 	publicCommentIdKey := fmt.Sprintf("%s%v", publicCommentIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)", m.table, commentRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.ArticleId, data.TargetId, data.TargetUserId, data.UserId, data.Content, data.LikeNum, data.Status, data.Insp, data.AiInsp, data.IpLocation)
+		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)", m.table, commentRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.ArticleId, data.ParentId, data.ParentUserId, data.UserId, data.Content, data.Status, data.Insp, data.AiInsp, data.IpLocation)
 	}, publicCommentIdKey)
 	return ret, err
 }
@@ -103,7 +102,7 @@ func (m *defaultCommentModel) Update(ctx context.Context, data *Comment) error {
 	publicCommentIdKey := fmt.Sprintf("%s%v", publicCommentIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where id = $1", m.table, commentRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Id, data.ArticleId, data.TargetId, data.TargetUserId, data.UserId, data.Content, data.LikeNum, data.Status, data.Insp, data.AiInsp, data.IpLocation)
+		return conn.ExecCtx(ctx, query, data.Id, data.ArticleId, data.ParentId, data.ParentUserId, data.UserId, data.Content, data.Status, data.Insp, data.AiInsp, data.IpLocation)
 	}, publicCommentIdKey)
 	return err
 }
