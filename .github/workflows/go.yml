@@ -35,17 +35,10 @@ jobs:
           go env -w CGO_ENABLED=0 GOOS=linux GOARCH=arm64
           go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-linux-arm64 keyframeGo.go
 
-          # macOS 64位
-          go env -w CGO_ENABLED=0 GOOS=darwin GOARCH=amd64
-          go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-darwin-amd64 keyframeGo.go
-
           # macOS ARM64
           go env -w CGO_ENABLED=0 GOOS=darwin GOARCH=arm64
           go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-darwin-arm64 keyframeGo.go
 
-          # Windows 64位
-          go env -w CGO_ENABLED=0 GOOS=windows GOARCH=amd64
-          go build -ldflags="-s -w" -tags no_k8s -o builds/keyframeGo-windows-amd64.exe keyframeGo.go
 
       - name: 创建发布
         id: create_release
@@ -59,8 +52,6 @@ jobs:
           files: |
             builds/keyframeGo-linux-amd64
             builds/keyframeGo-linux-arm64
-            builds/keyframeGo-darwin-amd64
             builds/keyframeGo-darwin-arm64
-            builds/keyframeGo-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
