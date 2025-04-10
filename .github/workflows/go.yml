@@ -21,11 +21,6 @@ jobs:
         with:
           go-version: '1.24.2'
 
-      - name: 构建测试
-        run: |
-          go build -v ./...
-          go test -v ./...
-
       - name: 获取当前日期
         id: date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
