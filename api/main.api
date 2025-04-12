@@ -7,6 +7,7 @@ import "follow.api"
 import "admin.api"
 import "upload.api"
 import "comment.api"
+import "report.api"
 
 type (
 	User {
@@ -23,6 +24,15 @@ type (
 	}
 	testResponse {
 		Content string `json:"content"`
+	}
+)
+
+type (
+	MSG {
+		SenderId int64  `json:"sender_id"`
+		Type     int8   `json:"type"`
+		Msg      string `json:"msg"`
+		Time     uint64 `json:"time"`
 	}
 )
 

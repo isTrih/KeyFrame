@@ -7,9 +7,9 @@ import (
 )
 
 // SendMessageToQueue Send a message to the NATS queue
-func SendMessageToQueue(message string) error {
+func SendMessageToQueue(subject, message string) error {
 	// Publish message to the "message.created" topic
-	err := natsclient.Publish("message.created", message)
+	err := natsclient.Publish(subject, message)
 	if err != nil {
 		log.Printf("Failed to send message to NATS: %v", err)
 		return err

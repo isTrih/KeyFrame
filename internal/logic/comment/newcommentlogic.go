@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"time"
+	"zerobackend/internal/nats/producer"
 	"zerobackend/internal/utils"
 
 	"zerobackend/internal/svc"
@@ -72,6 +74,21 @@ func (l *NewCommentLogic) NewComment(req *types.NewCommentRequest) (resp *types.
 	if req.ParentId == 0 {
 		// 直接回复
 		//TODO:添加通知
+		msgTo := fmt.Sprintf("KEYFRAME.MSG.%d", req.ParentUserId)
+		msg := types.MSG{
+			SenderId: uid,
+			Type:     1,
+			Msg:      "你有新的评论",
+			Time:     uint64(time.Now().Unix()),
+		}
+		msgJSON, err := json.Marshal(msg)
+		if err != nil {
+			return nil, err
+		}
+		Queeerr := producer.SendMessageToQueue(msgTo, string(msgJSON))
+		if Queeerr != nil {
+			return nil, Queeerr
+		}
 		_, newCommentErr := l.svcCtx.CommentModel.ReplyArticle(l.ctx, int64(req.ArticleId), uid, int64(insp), req.Content, region)
 		if newCommentErr != nil {
 			// 出错
@@ -79,6 +96,21 @@ func (l *NewCommentLogic) NewComment(req *types.NewCommentRequest) (resp *types.
 		}
 	} else {
 		//TODO:添加通知
+		msgTo := fmt.Sprintf("KEYFRAME.MSG.%d", req.ParentUserId)
+		msg := types.MSG{
+			SenderId: uid,
+			Type:     1,
+			Msg:      "你有新的评论",
+			Time:     uint64(time.Now().Unix()),
+		}
+		msgJSON, err := json.Marshal(msg)
+		if err != nil {
+			return nil, err
+		}
+		Queeerr := producer.SendMessageToQueue(msgTo, string(msgJSON))
+		if Queeerr != nil {
+			return nil, Queeerr
+		}
 
 		_, newCommentErr := l.svcCtx.CommentModel.ReplyComment(l.ctx, int64(req.ArticleId), int64(req.ParentId), int64(req.ParentUserId), uid, int64(insp), req.Content, region)
 		if newCommentErr != nil {

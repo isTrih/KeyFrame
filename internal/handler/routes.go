@@ -12,6 +12,7 @@ import (
 	feed "zerobackend/internal/handler/feed"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
+	report "zerobackend/internal/handler/report"
 	test "zerobackend/internal/handler/test"
 	upload "zerobackend/internal/handler/upload"
 	user "zerobackend/internal/handler/user"
@@ -179,6 +180,20 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/v1/home"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 举报
+				Method:  http.MethodPost,
+				Path:    "/new-report",
+				Handler: report.ReportHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/report"),
 	)
 
 	server.AddRoutes(

@@ -171,6 +171,13 @@ type LoginResponse struct {
 	Token     string `json:"token"`
 }
 
+type MSG struct {
+	SenderId int64  `json:"sender_id"`
+	Type     int8   `json:"type"`
+	Msg      string `json:"msg"`
+	Time     uint64 `json:"time"`
+}
+
 type MediaInfo struct {
 	Width  uint32 `json:"width"`
 	Height uint32 `json:"height"`
@@ -215,6 +222,17 @@ type RegisterResponse struct {
 	Avatar    string `json:"avatar"`
 	Signature string `json:"signature"`
 	UserType  uint16 `json:"type"`
+}
+
+type ReportRequest struct {
+	Type       uint8  `json:"type"`        // 举报类型
+	ObjectType uint8  `json:"object_type"` // 举报对象类型
+	ObjectId   uint64 `json:"object_id"`   // 举报对象ID
+	OwnerId    uint64 `json:"owner_id"`    // 被举报人ID
+}
+
+type ReportResponse struct {
+	Status string `json:"status"`
 }
 
 type ShareFeedXHSResponse struct {

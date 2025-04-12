@@ -75,15 +75,16 @@ func (m *defaultCommentModel) ReplyArticle(ctx context.Context, articleId, userI
 func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
 	articleMetricsCacheKey := fmt.Sprintf("%s%v", publicArticleMetricsArticleIdPrefix, articleId)
 	commentMetricsCacheKey := fmt.Sprintf("%s%v", publicCommentMetricsCommentIdPrefix, targetId)
-	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", articleId) // 新增评论列表缓存键模式
+	total, _ := m.getCommentTotal(ctx, uint64(articleId))
+	commentListCacheKey := fmt.Sprintf(":comment:article:%d:%d", articleId, total/20) // 新增评论列表缓存键模式
 
 	query := `
         WITH new_reply AS (
             INSERT INTO "public"."comment" (
-                "article_id", "article_id", "target_user_id", "user_id", 
+                "article_id", "parent_id", "parent_user_id", "user_id", 
                 "content", "ip_location", "ai_insp"
             ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING id, article_id, article_id
+            RETURNING id, article_id, parent_id
         ),
         update_article_metrics AS (
             UPDATE "public"."article_metrics"
@@ -226,7 +227,10 @@ func (m *defaultCommentModel) getCommentTotal(ctx context.Context, articleId uin
 	var total uint64
 	err := m.QueryRowNoCacheCtx(ctx, &total, `
         SELECT COUNT(*) FROM comment 
-        WHERE article_id = $1 AND status = 0`, articleId)
+        WHERE article_id = $1 AND status = 0
+        AND status = 0
+          AND (CASE WHEN ai_insp != 0 THEN insp = 0
+        ELSE 1 = 1 END)`, articleId)
 	return total, err
 }
 

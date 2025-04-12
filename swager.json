@@ -201,6 +201,11 @@
         ],
         "tags": [
           "comment"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
         ]
       }
     },
@@ -232,7 +237,7 @@
             "required": false,
             "type": "integer",
             "format": "int64",
-            "default": "1"
+            "default": "0"
           },
           {
             "name": "page_size",
@@ -290,6 +295,11 @@
         ],
         "tags": [
           "comment"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
         ]
       }
     },
@@ -577,6 +587,38 @@
         ],
         "consumes": [
           "multipart/form-data"
+        ]
+      }
+    },
+    "/v1/report/new-report": {
+      "post": {
+        "summary": "举报",
+        "operationId": "Report",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ReportResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReportRequest"
+            }
+          }
+        ],
+        "tags": [
+          "report"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
         ]
       }
     },
@@ -1062,8 +1104,13 @@
           "description": " 点赞数"
         },
         "create_time": {
-          "type": "string",
+          "type": "integer",
+          "format": "int64",
           "description": " 创建时间"
+        },
+        "ip_location": {
+          "type": "string",
+          "description": " ip归属地"
         },
         "sub_comments": {
           "type": "array",
@@ -1087,6 +1134,7 @@
         "content",
         "like_count",
         "create_time",
+        "ip_location",
         "sub_comments",
         "sub_comment_count"
       ]
@@ -1102,7 +1150,7 @@
         "page": {
           "type": "integer",
           "format": "int64",
-          "default": "1",
+          "default": "0",
           "description": " 页码"
         },
         "page_size": {
@@ -1528,18 +1576,20 @@
           "type": "string",
           "description": " 评论内容压缩过的富文本"
         },
-        "raw_ontent": {
+        "raw_content": {
           "type": "string",
           "description": " 原始内容"
         },
         "parent_id": {
           "type": "integer",
           "format": "int64",
+          "default": "0",
           "description": " 父评论ID"
         },
-        "parent_id": {
+        "parent_user_id": {
           "type": "integer",
           "format": "int64",
+          "default": "-1",
           "description": " 父评论用户ID"
         },
         "article_id": {
@@ -1551,8 +1601,7 @@
       "title": "NewCommentRequest",
       "required": [
         "content",
-        "raw_ontent",
-        "parent_id",
+        "raw_content",
         "article_id"
       ]
     },
@@ -1668,6 +1717,50 @@
         "type"
       ]
     },
+    "ReportRequest": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "integer",
+          "format": "uint8",
+          "description": " 举报类型"
+        },
+        "object_type": {
+          "type": "integer",
+          "format": "uint8",
+          "description": " 举报对象类型"
+        },
+        "object_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 举报对象ID"
+        },
+        "owner_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": " 被举报人ID"
+        }
+      },
+      "title": "ReportRequest",
+      "required": [
+        "type",
+        "object_type",
+        "object_id",
+        "owner_id"
+      ]
+    },
+    "ReportResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "ReportResponse",
+      "required": [
+        "status"
+      ]
+    },
     "ShareFeedXHSResponse": {
       "type": "object",
       "properties": {
@@ -1731,7 +1824,8 @@
           "description": " 点赞数"
         },
         "create_time": {
-          "type": "string",
+          "type": "integer",
+          "format": "int64",
           "description": " 创建时间"
         },
         "parent_id": {
@@ -1743,6 +1837,10 @@
           "type": "integer",
           "format": "int64",
           "description": " 父评论用户ID"
+        },
+        "ip_location": {
+          "type": "string",
+          "description": " ip归属地"
         },
         "reply_to_nickname": {
           "type": "string",
@@ -1760,6 +1858,7 @@
         "create_time",
         "parent_id",
         "parent_user_id",
+        "ip_location",
         "reply_to_nickname"
       ]
     },

@@ -1,0 +1,27 @@
+syntax = "v1"
+
+type (
+    ReportRequest {
+        Type uint8 `json:"type"`             // 举报类型
+        ObjectType uint8 `json:"object_type"`// 举报对象类型
+        ObjectId uint64 `json:"object_id"`   // 举报对象ID
+        OwnerId uint64 `json:"owner_id"`     // 被举报人ID
+                                             // 举报人ID 使用jwt
+    }
+    ReportResponse {
+        Status string `json:"status"`
+    }
+)
+
+@server(
+    prefix: /v1/report
+    signature: true
+    jwt: Auth
+    group: report
+)
+
+service keyframeGo {
+    @doc "举报"
+    @handler Report
+    post /new-report (ReportRequest) returns (ReportResponse)
+}

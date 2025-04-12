@@ -49,6 +49,7 @@ type (
 		UpdateTime     time.Time `db:"update_time"`      // 举报记录的更新时间
 		ReportType     int64     `db:"report_type"`      // 举报类型，1: 色情, 2: 骚扰, 3: 广告, 4: 政治, 5: 引战, 6: 辱骂, 7: 其他
 		IsProcessed    bool      `db:"is_processed"`     // 举报是否已处理，默认为否
+		OwnerId        int64     `db:"owner_id"`         // 被举报用户ID
 	}
 )
 
@@ -88,8 +89,8 @@ func (m *defaultReportModel) FindOne(ctx context.Context, id int64) (*Report, er
 func (m *defaultReportModel) Insert(ctx context.Context, data *Report) (sql.Result, error) {
 	publicReportIdKey := fmt.Sprintf("%s%v", publicReportIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5)", m.table, reportRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.ReportedId, data.ReportedType, data.ReporterUserId, data.ReportType, data.IsProcessed)
+		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5, $6)", m.table, reportRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.ReportedId, data.ReportedType, data.ReporterUserId, data.ReportType, data.IsProcessed, data.OwnerId)
 	}, publicReportIdKey)
 	return ret, err
 }
@@ -98,7 +99,7 @@ func (m *defaultReportModel) Update(ctx context.Context, data *Report) error {
 	publicReportIdKey := fmt.Sprintf("%s%v", publicReportIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where id = $1", m.table, reportRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Id, data.ReportedId, data.ReportedType, data.ReporterUserId, data.ReportType, data.IsProcessed)
+		return conn.ExecCtx(ctx, query, data.Id, data.ReportedId, data.ReportedType, data.ReporterUserId, data.ReportType, data.IsProcessed, data.OwnerId)
 	}, publicReportIdKey)
 	return err
 }

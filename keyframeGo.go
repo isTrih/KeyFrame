@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"zerobackend/internal/config"
 	"zerobackend/internal/handler"
-	"zerobackend/internal/nats/consumer"
 	"zerobackend/internal/nats/natsclient"
 	"zerobackend/internal/svc"
 )
@@ -41,7 +40,7 @@ func main() {
 	// 初始化 NATS 连接
 	natsclient.InitNats(c.NATS.ADDR)
 	// 启动消息消费者
-	go consumer.StartMessageConsumer(ctx)
+	//go consumer.StartMessageConsumer(ctx)
 
 	fmt.Printf("1.1.7-beta14 >> Starting server at %s:%d...\n", c.Host, c.Port)
 
