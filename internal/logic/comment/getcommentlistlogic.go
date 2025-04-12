@@ -46,6 +46,7 @@ func (l *GetCommentListLogic) GetCommentList(req *types.CommentListRequest) (res
 				Content:         comment.Content,
 				LikeCount:       comment.LikeCount,
 				CreateTime:      comment.CreateTime,
+				IpLocation:      comment.IpLocation,
 				SubComments:     make([]types.SubCommentItem, 0),
 				SubCommentCount: 0,
 			}
@@ -69,6 +70,7 @@ func (l *GetCommentListLogic) GetCommentList(req *types.CommentListRequest) (res
 					ParentId:        comment.ParentId,
 					ParentUserId:    comment.ParentUserId,
 					ReplyToNickname: comment.ReplyToNickname,
+					IpLocation:      comment.IpLocation,
 				}
 				parent.SubComments = append(parent.SubComments, subComment)
 				parent.SubCommentCount = uint64(len(parent.SubComments))

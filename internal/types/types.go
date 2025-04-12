@@ -52,6 +52,7 @@ type CommentItem struct {
 	Content         string           `json:"content"`           // 评论内容(压缩富文本)
 	LikeCount       uint64           `json:"like_count"`        // 点赞数
 	CreateTime      uint64           `json:"create_time"`       // 创建时间
+	IpLocation      string           `json:"ip_location"`       // ip归属地
 	SubComments     []SubCommentItem `json:"sub_comments"`      // 子评论列表
 	SubCommentCount uint64           `json:"sub_comment_count"` // 子评论总数
 }
@@ -176,13 +177,13 @@ type MediaInfo struct {
 }
 
 type NewCommentRequest struct {
-	KIP          string `header:"kip,optional"`       // KIP
-	XIP          string `header:"X-Real-IP,optional"` // nginx
-	Content      string `json:"content"`              // 评论内容压缩过的富文本
-	RawContent   string `json:"raw_ontent"`           // 原始内容
-	ParentId     uint64 `json:"parent_id"`            // 父评论ID
-	ParentUserId uint64 `json:"parent_id"`            // 父评论用户ID
-	ArticleId    uint64 `json:"article_id"`           // 文章ID
+	KIP          string `header:"kip,optional"`                     // KIP
+	XIP          string `header:"X-Real-IP,optional"`               // nginx
+	Content      string `json:"content"`                            // 评论内容压缩过的富文本
+	RawContent   string `json:"raw_content"`                        // 原始内容
+	ParentId     uint64 `json:"parent_id,optional,default=0"`       // 父评论ID
+	ParentUserId int64  `json:"parent_user_id,optional,default=-1"` // 父评论用户ID
+	ArticleId    uint64 `json:"article_id"`                         // 文章ID
 }
 
 type NewCommentResponse struct {
@@ -236,6 +237,7 @@ type SubCommentItem struct {
 	CreateTime      uint64 `json:"create_time"`       // 创建时间
 	ParentId        uint64 `json:"parent_id"`         // 父评论ID
 	ParentUserId    int64  `json:"parent_user_id"`    // 父评论用户ID
+	IpLocation      string `json:"ip_location"`       // ip归属地
 	ReplyToNickname string `json:"reply_to_nickname"` // 回复对象的昵称
 }
 

@@ -109,6 +109,7 @@ type (
 @server(
     prefix: /v1/user
     group: user
+
 )
 service keyframeGo {
     @doc "用户注册"

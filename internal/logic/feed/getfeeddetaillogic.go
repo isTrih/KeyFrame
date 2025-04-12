@@ -45,6 +45,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 		articleMetric = &article_metrics.ArticleMetrics{
 			Likes:    0,
 			Collects: 0,
+			Comments: 0,
 		}
 	default:
 		return nil, err
@@ -62,7 +63,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 			Id:         a.Id,
 			MediaUrl:   a.CoverUrl,
 			Content:    a.Content,
-			CommentNum: 0,
+			CommentNum: uint64(articleMetric.Comments),
 			LikeNum:    uint64(articleMetric.Likes),
 			CollectNum: uint64(articleMetric.Collects),
 			MediaInfo: types.MediaInfo{

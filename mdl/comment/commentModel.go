@@ -21,8 +21,8 @@ type (
 	// and implement the added methods in customCommentModel.
 	CommentModel interface {
 		commentModel
-		ReplyArticle(ctx context.Context, articleId, userId int64, content, ipLocation string) (sql.Result, error)
-		ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId int64, content, ipLocation string) (sql.Result, error)
+		ReplyArticle(ctx context.Context, articleId, userId, insp int64, content, ipLocation string) (sql.Result, error)
+		ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error)
 		DeleteComment(ctx context.Context, id, userId int64) error
 		GetCommentList(ctx context.Context, articleId, offset uint64) ([]*CommentWithUser, uint64, error)
 	}
@@ -38,16 +38,17 @@ func NewCommentModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 	}
 }
 
-func (m *defaultCommentModel) ReplyArticle(ctx context.Context, articleId, userId int64, content, ipLocation string) (sql.Result, error) {
+func (m *defaultCommentModel) ReplyArticle(ctx context.Context, articleId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
 	articleMetricsCacheKey := fmt.Sprintf("%s%v", publicArticleMetricsArticleIdPrefix, articleId)
-	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", articleId) // 新增评论列表缓存键模式
+	total, _ := m.getCommentTotal(ctx, uint64(articleId))
+	commentListCacheKey := fmt.Sprintf(":comment:article:%d:%d", articleId, total/20) // 新增评论列表缓存键模式
 
 	query := `
         WITH new_comment AS (
             INSERT INTO "public"."comment" (
-                "article_id", "target_id", "target_user_id", "user_id", 
-                "content", "ip_location"
-            ) VALUES ($1, 0, -1, $2, $3, $4)
+                "article_id", "parent_id", "parent_user_id", "user_id", 
+                "content", "ip_location", "ai_insp"
+            ) VALUES ($1, 0, -1, $2, $3, $4, $5)
             RETURNING id, article_id
         ),
         update_article_metrics AS (
@@ -65,13 +66,13 @@ func (m *defaultCommentModel) ReplyArticle(ctx context.Context, articleId, userI
 
 	// 使用 ExecCtx 在操作完成后清除缓存
 	result, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		return conn.ExecCtx(ctx, query, articleId, userId, content, ipLocation)
+		return conn.ExecCtx(ctx, query, articleId, userId, content, ipLocation, insp)
 	}, articleMetricsCacheKey, commentListCacheKey) // 添加评论列表缓存键
-
+	_ = m.DelCacheCtx(ctx, commentListCacheKey) // 清除评论列表缓存
 	return result, err
 }
 
-func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId int64, content, ipLocation string) (sql.Result, error) {
+func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
 	articleMetricsCacheKey := fmt.Sprintf("%s%v", publicArticleMetricsArticleIdPrefix, articleId)
 	commentMetricsCacheKey := fmt.Sprintf("%s%v", publicCommentMetricsCommentIdPrefix, targetId)
 	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", articleId) // 新增评论列表缓存键模式
@@ -79,10 +80,10 @@ func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targe
 	query := `
         WITH new_reply AS (
             INSERT INTO "public"."comment" (
-                "article_id", "target_id", "target_user_id", "user_id", 
-                "content", "ip_location"
-            ) VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, article_id, target_id
+                "article_id", "article_id", "target_user_id", "user_id", 
+                "content", "ip_location", "ai_insp"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id, article_id, article_id
         ),
         update_article_metrics AS (
             UPDATE "public"."article_metrics"
@@ -91,14 +92,14 @@ func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targe
         ),
         ensure_parent_metrics AS (
             INSERT INTO "public"."comment_metrics" ("comment_id", "likes", "comments")
-            SELECT target_id, 0, 0 FROM new_reply
-            WHERE target_id != 0
+            SELECT article_id, 0, 0 FROM new_reply
+            WHERE article_id != 0
             ON CONFLICT ("comment_id") DO NOTHING
         ),
         update_parent_metrics AS (
             UPDATE "public"."comment_metrics"
             SET "comments" = "comments" + 1
-            WHERE "comment_id" = (SELECT target_id FROM new_reply WHERE target_id != 0)
+            WHERE "comment_id" = (SELECT article_id FROM new_reply WHERE article_id != 0)
         ),
         ensure_comment_metrics AS (
             INSERT INTO "public"."comment_metrics" ("comment_id", "likes", "comments")
@@ -110,7 +111,7 @@ func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targe
 
 	// 使用 ExecCtx 并在操作完成后清除缓存
 	result, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		return conn.ExecCtx(ctx, query, articleId, targetId, targetUserId, userId, content, ipLocation)
+		return conn.ExecCtx(ctx, query, articleId, targetId, targetUserId, userId, content, ipLocation, insp)
 	}, articleMetricsCacheKey, commentMetricsCacheKey, commentListCacheKey) // 添加评论列表缓存键
 
 	return result, err
@@ -131,7 +132,7 @@ func (m *defaultCommentModel) DeleteComment(ctx context.Context, id, userId int6
 		WITH deleted AS (
 			DELETE FROM "public"."comment"
 			WHERE "id" = $1 AND "user_id" = $2
-			RETURNING article_id, target_id
+			RETURNING article_id, article_id
 		),
 		update_article_metrics AS (
 			UPDATE "public"."article_metrics"
@@ -141,7 +142,7 @@ func (m *defaultCommentModel) DeleteComment(ctx context.Context, id, userId int6
 		update_comment_metrics AS (
 			UPDATE "public"."comment_metrics"
 			SET "comments" = "comments" - 1
-			WHERE "comment_id" = (SELECT target_id FROM deleted WHERE target_id != 0)
+			WHERE "comment_id" = (SELECT article_id FROM deleted WHERE article_id != 0)
 		)
 		SELECT 1
 	`
@@ -164,9 +165,10 @@ func (m *defaultCommentModel) GetCommentList(ctx context.Context, articleId, off
             SELECT 
                 c.id, c.user_id, u.nickname, u.avatar, 
                 c.content, COALESCE(cm.likes, 0) as like_count,
-                EXTRACT(EPOCH FROM c.create_time)::bigint as create_time, 
+                EXTRACT(EPOCH FROM c.create_time AT TIME ZONE 'Asia/Shanghai')::bigint as create_time, 
                 c.parent_id, c.parent_user_id,
-                '' as reply_to_nickname
+                '' as reply_to_nickname,
+                c.ip_location
             FROM comment c
             JOIN "user" u ON c.user_id = u.id
             LEFT JOIN comment_metrics cm ON c.id = cm.comment_id
@@ -182,13 +184,14 @@ func (m *defaultCommentModel) GetCommentList(ctx context.Context, articleId, off
             SELECT 
                 c.id, c.user_id, u.nickname, u.avatar, 
                 c.content, COALESCE(cm.likes, 0) as like_count,
-                EXTRACT(EPOCH FROM c.create_time)::bigint as create_time,
+                EXTRACT(EPOCH FROM c.create_time AT TIME ZONE 'Asia/Shanghai')::bigint as create_time,
                 c.parent_id, c.parent_user_id,
-                parent_user.nickname as reply_to_nickname
+                target_user.nickname as reply_to_nickname,
+                c.ip_location
             FROM comment c
             JOIN "user" u ON c.user_id = u.id
             JOIN main_comments parent ON c.parent_id = parent.id
-            JOIN "user" parent_user ON parent.user_id = parent_user.id
+            JOIN "user" target_user ON c.parent_user_id = target_user.id
             LEFT JOIN comment_metrics cm ON c.id = cm.comment_id
             WHERE c.status = 0
               AND (CASE WHEN c.ai_insp != 0 THEN c.insp = 0
@@ -198,7 +201,6 @@ func (m *defaultCommentModel) GetCommentList(ctx context.Context, articleId, off
         SELECT * FROM main_comments
         UNION ALL
         SELECT * FROM sub_comments`
-
 		return conn.QueryRowsCtx(ctx, v, query, articleId, 20, offset)
 	})
 
@@ -240,5 +242,6 @@ type (
 		ParentId        uint64
 		ParentUserId    int64
 		ReplyToNickname string
+		IpLocation      string
 	}
 )

@@ -70,16 +70,22 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
-				// 点赞评论
-				Method:  http.MethodPost,
-				Path:    "/like",
-				Handler: comment.LikeCommentHandler(serverCtx),
-			},
-			{
 				// 获取评论列表
 				Method:  http.MethodGet,
 				Path:    "/list",
 				Handler: comment.GetCommentListHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/comment"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 点赞评论
+				Method:  http.MethodPost,
+				Path:    "/like",
+				Handler: comment.LikeCommentHandler(serverCtx),
 			},
 			{
 				// 创建评论
@@ -88,6 +94,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: comment.NewCommentHandler(serverCtx),
 			},
 		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithPrefix("/v1/comment"),
 	)
 
