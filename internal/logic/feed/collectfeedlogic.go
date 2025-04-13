@@ -1,4 +1,4 @@
-package comment
+package feed
 
 import (
 	"context"
@@ -7,28 +7,29 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/x/errors"
 	"strconv"
+
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type LikeCommentLogic struct {
+type CollectFeedLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-// NewLikeCommentLogic // 点赞评论
-func NewLikeCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeCommentLogic {
-	return &LikeCommentLogic{
+// NewCollectFeedLogic // 收藏帧（文章）
+func NewCollectFeedLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CollectFeedLogic {
+	return &CollectFeedLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
 }
 
-func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *types.LikeCommentResponse, err error) {
+func (l *CollectFeedLogic) CollectFeed(req *types.DeleteFeedRequest) (resp *types.StatusResponse, err error) {
 	// 获取用户ID
 	uidjson, _ := l.ctx.Value("UID").(json.Number)
 	uid, _ := uidjson.Int64()
@@ -39,12 +40,13 @@ func (l *LikeCommentLogic) LikeComment(req *types.LikeCommentRequest) (resp *typ
 	timer, _ := limiter.Take(strconv.FormatInt(uid, 10))
 	switch timer {
 	case limit.Allowed:
-		err = l.svcCtx.CommentModel.LikeComment(l.ctx, l.svcCtx.Config, int64(req.CommentId), uid)
+		// todo: 添加逻辑
+		err = l.svcCtx.ArticleModel.CollectArticle(l.ctx, uid, int64(req.Id))
 		if err != nil {
 			return nil, err
 		}
 		// 构造返回值
-		resp = &types.LikeCommentResponse{
+		resp = &types.StatusResponse{
 			Status: "ok",
 		}
 		return resp, nil

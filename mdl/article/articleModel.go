@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"time"
+
+	"github.com/zeromicro/go-zero/core/stores/sqlc"
 
 	//"github.com/Masterminds/squirrel"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -28,6 +29,9 @@ type (
 		FindOneMix(ctx context.Context, id uint64) (*Feeds, error)
 		FindOneDetail(ctx context.Context, id uint64) (*FeedDetail, error)
 		NewFeed(ctx context.Context, title string, content string, rawContent string, cover string, height uint32, width uint32, media []string, uid int64, region string, insp uint8) error
+		DeleteFeed(ctx context.Context, userid, id int64) error
+		CollectArticle(ctx context.Context, userId, articleId int64) error
+		LikeArticle(ctx context.Context, userId, articleId int64) error
 	}
 
 	customArticleModel struct {
@@ -90,7 +94,6 @@ ORDER BY a.publish_time DESC
 LIMIT 18 OFFSET $1
 `, row, m.table)
 	if len(query) != 0 {
-		// TODO:这里之后换成全文搜索
 		q := `
         SELECT ` + row + `,
 		ts_rank(to_tsvector('zh_cn', a.raw_content), to_tsquery('zh_cn', $1)) AS rank
@@ -277,5 +280,92 @@ func (m *defaultArticleModel) EditFeed(ctx context.Context,
 	//cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", id)
 	//// 文章预览缓存
 	//cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", id)
+	return nil
+}
+
+func (m *defaultArticleModel) DeleteFeed(ctx context.Context, userid, id int64) error {
+	// 文章详情缓存
+	cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", id)
+	// 文章预览缓存
+	cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", id)
+
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("update %s set status = 2 where id = $1 and author_id = $2", m.table)
+		return conn.ExecCtx(ctx, query, id, userid)
+	}, cacheArticleDetailKey, cacheArticlePreviewKey)
+	if err != nil {
+		fmt.Println("删除文章失败:", err)
+		return err
+	}
+	return nil
+}
+
+func (m *defaultArticleModel) LikeArticle(ctx context.Context, userId, articleId int64) error {
+	// 缓存键
+	cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", articleId)
+	cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", articleId)
+	cacheUserActionKey := fmt.Sprintf("cache:keyframe:user_action:user:%d:article:%d", userId, articleId)
+	query := `
+	WITH updated_action AS (
+		INSERT INTO user_action (user_id, target_id, action_type, target_type, action_value)
+		VALUES ($1, $2, 1, 1, 1)
+		ON CONFLICT (user_id, target_id, action_type)
+		DO UPDATE SET action_value = NOT user_action.action_value, update_time = NOW()
+		RETURNING action_value
+	),
+	updated_metrics AS (
+		INSERT INTO article_metrics (article_id, likes)
+		VALUES ($2, 1)
+		ON CONFLICT (article_id)
+		DO UPDATE SET likes = article_metrics.likes + 
+			CASE WHEN (SELECT action_value FROM updated_action) = 1 THEN 1 ELSE -1 END
+		RETURNING likes
+	)
+	SELECT likes FROM updated_metrics`
+	var likes int64
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		err = conn.QueryRowCtx(ctx, &likes, query, userId, articleId)
+		return nil, err
+	}, cacheArticleDetailKey, cacheArticlePreviewKey, cacheUserActionKey)
+
+	if err != nil {
+		logx.Error("点赞操作失败:", err)
+		return err
+	}
+	return nil
+}
+
+func (m *defaultArticleModel) CollectArticle(ctx context.Context, userId, articleId int64) error {
+	// 缓存键
+	cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", articleId)
+	cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", articleId)
+	cacheUserActionKey := fmt.Sprintf("cache:keyframe:user_action:user:%d:article:%d", userId, articleId)
+	query := `
+	WITH updated_action AS (
+		INSERT INTO user_action (user_id, target_id, action_type, target_type, action_value)
+		VALUES ($1, $2, 3, 1, 1)
+		ON CONFLICT (user_id, target_id, action_type)
+		DO UPDATE SET action_value = NOT user_action.action_value, update_time = NOW()
+		RETURNING action_value
+	),
+	updated_metrics AS (
+		INSERT INTO article_metrics (article_id, collects)
+		VALUES ($2, 1)
+		ON CONFLICT (article_id)
+		DO UPDATE SET collects = article_metrics.collects + 
+			CASE WHEN (SELECT action_value FROM updated_action) = 1 THEN 1 ELSE -1 END
+		RETURNING collects
+	)
+	SELECT collects FROM updated_metrics`
+	var collects int64
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		err = conn.QueryRowCtx(ctx, &collects, query, userId, articleId)
+		return nil, err
+	}, cacheArticleDetailKey, cacheArticlePreviewKey, cacheUserActionKey)
+
+	if err != nil {
+		logx.Error("收藏操作失败:", err)
+		return err
+	}
 	return nil
 }

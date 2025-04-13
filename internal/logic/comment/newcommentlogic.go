@@ -89,7 +89,7 @@ func (l *NewCommentLogic) NewComment(req *types.NewCommentRequest) (resp *types.
 		if Queeerr != nil {
 			return nil, Queeerr
 		}
-		_, newCommentErr := l.svcCtx.CommentModel.ReplyArticle(l.ctx, int64(req.ArticleId), uid, int64(insp), req.Content, region)
+		_, newCommentErr := l.svcCtx.CommentModel.ReplyArticle(l.ctx, l.svcCtx.Config, int64(req.ArticleId), uid, int64(insp), req.Content, region)
 		if newCommentErr != nil {
 			// 出错
 			return nil, newCommentErr
@@ -112,7 +112,7 @@ func (l *NewCommentLogic) NewComment(req *types.NewCommentRequest) (resp *types.
 			return nil, Queeerr
 		}
 
-		_, newCommentErr := l.svcCtx.CommentModel.ReplyComment(l.ctx, int64(req.ArticleId), int64(req.ParentId), int64(req.ParentUserId), uid, int64(insp), req.Content, region)
+		_, newCommentErr := l.svcCtx.CommentModel.ReplyComment(l.ctx, l.svcCtx.Config, int64(req.ArticleId), int64(req.ParentId), int64(req.ParentUserId), uid, int64(insp), req.Content, region)
 		if newCommentErr != nil {
 			// 出错
 			return nil, newCommentErr

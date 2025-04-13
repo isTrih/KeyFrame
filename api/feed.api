@@ -84,4 +84,12 @@ service keyframeGo {
     @doc "分享小红书帧（文章）"
     @handler ShareFeedXHS
     get /share/xhs returns (ShareFeedXHSResponse)
+
+    @doc "点赞帧（文章）"
+    @handler LikeFeed
+    post /like (DeleteFeedRequest) returns (StatusResponse)
+
+    @doc "收藏帧（文章）"
+    @handler CollectFeed
+    post /collect (DeleteFeedRequest) returns (StatusResponse)
 }

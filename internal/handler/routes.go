@@ -115,10 +115,22 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				// 收藏帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/collect",
+				Handler: feed.CollectFeedHandler(serverCtx),
+			},
+			{
 				// 删除帧（文章）
 				Method:  http.MethodPost,
 				Path:    "/delete",
 				Handler: feed.DeleteFeedHandler(serverCtx),
+			},
+			{
+				// 点赞帧（文章）
+				Method:  http.MethodPost,
+				Path:    "/like",
+				Handler: feed.LikeFeedHandler(serverCtx),
 			},
 			{
 				// 创建帧（文章）

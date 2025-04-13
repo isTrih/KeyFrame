@@ -41,9 +41,9 @@ func (l *VerifyCodeLogic) VerifyCode(req *types.VerifyCodeRequest) (resp *types.
 		return nil, rdsErr
 	}
 
-	store, _ := redis.NewRedis(l.svcCtx.Config.BizRedis)
 	// 计数器
-	limiter := limit.NewPeriodLimit(60, 3, store, "smsCode")
+	store, _ := redis.NewRedis(l.svcCtx.Config.BizRedis)
+	limiter := limit.NewPeriodLimit(60, 4, store, "smsCode")
 
 	timer, _ := limiter.Take(req.Mobile)
 	switch timer {
@@ -61,15 +61,9 @@ func (l *VerifyCodeLogic) VerifyCode(req *types.VerifyCodeRequest) (resp *types.
 		resp.TempCode = ""
 		return resp, nil
 	case limit.HitQuota:
-		resp = new(types.VerifyCodeResponse)
-		resp.Status = "HitQuota"
-		resp.TempCode = strconv.Itoa(code)
-		return resp, nil
+		return nil, errors.New(1002, "验证码发送过于频繁，请稍后再试")
 	case limit.OverQuota:
-		resp = new(types.VerifyCodeResponse)
-		resp.Status = "OverQuota"
-		resp.TempCode = strconv.Itoa(code)
-		return resp, nil
+		return nil, errors.New(1002, "验证码发送过于频繁，请稍后再试")
 	default:
 		return nil, errors.New(1003, "发生未知错误")
 	}

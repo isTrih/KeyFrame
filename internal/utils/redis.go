@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"github.com/zeromicro/go-zero/core/stores/redis"
-	"github.com/zeromicro/x/errors"
 	"strconv"
 	"time"
 	"zerobackend/internal/config"
+
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/x/errors"
 )
 
 // RedisCheck 验证码验证
@@ -60,4 +61,12 @@ func RedisStorage(c config.Config, key string, value int, expire int) (err error
 	rds := redis.MustNewRedis(conf)
 	err = rds.Setex(key, strconv.Itoa(value), expire)
 	return err
+}
+
+func RedisKey(c config.Config, key string) (keys []string, err error) {
+	rds := redis.MustNewRedis(c.BizRedis)
+
+	keys, err = rds.Keys(key)
+
+	return keys, err
 }

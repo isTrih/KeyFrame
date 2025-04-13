@@ -303,10 +303,74 @@
         ]
       }
     },
+    "/v1/feed/collect": {
+      "post": {
+        "summary": "收藏帧（文章）",
+        "operationId": "CollectFeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/StatusResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteFeedRequest"
+            }
+          }
+        ],
+        "tags": [
+          "feed"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
     "/v1/feed/delete": {
       "post": {
         "summary": "删除帧（文章）",
         "operationId": "DeleteFeed",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/StatusResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteFeedRequest"
+            }
+          }
+        ],
+        "tags": [
+          "feed"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
+    "/v1/feed/like": {
+      "post": {
+        "summary": "点赞帧（文章）",
+        "operationId": "LikeFeed",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1549,6 +1613,33 @@
         "signature",
         "type",
         "token"
+      ]
+    },
+    "MSG": {
+      "type": "object",
+      "properties": {
+        "sender_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "type": {
+          "type": "integer",
+          "format": "int8"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "MSG",
+      "required": [
+        "sender_id",
+        "type",
+        "msg",
+        "time"
       ]
     },
     "MediaInfo": {

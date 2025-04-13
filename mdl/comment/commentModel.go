@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"zerobackend/internal/config"
+	"zerobackend/internal/utils"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -21,10 +23,11 @@ type (
 	// and implement the added methods in customCommentModel.
 	CommentModel interface {
 		commentModel
-		ReplyArticle(ctx context.Context, articleId, userId, insp int64, content, ipLocation string) (sql.Result, error)
-		ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error)
-		DeleteComment(ctx context.Context, id, userId int64) error
+		ReplyArticle(ctx context.Context, c config.Config, articleId, userId, insp int64, content, ipLocation string) (sql.Result, error)
+		ReplyComment(ctx context.Context, c config.Config, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error)
+		DeleteComment(ctx context.Context, c config.Config, id, userId int64) error
 		GetCommentList(ctx context.Context, articleId, offset uint64) ([]*CommentWithUser, uint64, error)
+		LikeComment(ctx context.Context, c config.Config, commentId, userId int64) error
 	}
 
 	customCommentModel struct {
@@ -38,11 +41,13 @@ func NewCommentModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option)
 	}
 }
 
-func (m *defaultCommentModel) ReplyArticle(ctx context.Context, articleId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
+func (m *defaultCommentModel) ReplyArticle(ctx context.Context, c config.Config, articleId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
+	// 使用指定的缓存前缀
 	articleMetricsCacheKey := fmt.Sprintf("%s%v", publicArticleMetricsArticleIdPrefix, articleId)
-	total, _ := m.getCommentTotal(ctx, uint64(articleId))
-	commentListCacheKey := fmt.Sprintf(":comment:article:%d:%d", articleId, total/20) // 新增评论列表缓存键模式
-
+	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", articleId) // 新增评论列表缓存键模式
+	commentlistKeys, _ := utils.RedisKey(c, commentListCacheKey)
+	cacheKeys := []string{articleMetricsCacheKey}
+	cacheKeys = append(cacheKeys, commentlistKeys...)
 	query := `
         WITH new_comment AS (
             INSERT INTO "public"."comment" (
@@ -67,17 +72,18 @@ func (m *defaultCommentModel) ReplyArticle(ctx context.Context, articleId, userI
 	// 使用 ExecCtx 在操作完成后清除缓存
 	result, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		return conn.ExecCtx(ctx, query, articleId, userId, content, ipLocation, insp)
-	}, articleMetricsCacheKey, commentListCacheKey) // 添加评论列表缓存键
-	_ = m.DelCacheCtx(ctx, commentListCacheKey) // 清除评论列表缓存
+	}, cacheKeys...) // 添加评论列表缓存键
 	return result, err
 }
 
-func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
+func (m *defaultCommentModel) ReplyComment(ctx context.Context, c config.Config, articleId, targetId, targetUserId, userId, insp int64, content, ipLocation string) (sql.Result, error) {
+	// 使用指定的缓存前缀
 	articleMetricsCacheKey := fmt.Sprintf("%s%v", publicArticleMetricsArticleIdPrefix, articleId)
 	commentMetricsCacheKey := fmt.Sprintf("%s%v", publicCommentMetricsCommentIdPrefix, targetId)
-	total, _ := m.getCommentTotal(ctx, uint64(articleId))
-	commentListCacheKey := fmt.Sprintf(":comment:article:%d:%d", articleId, total/20) // 新增评论列表缓存键模式
-
+	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", articleId) // 新增评论列表缓存键模式
+	commentlistKeys, _ := utils.RedisKey(c, commentListCacheKey)
+	cacheKeys := []string{articleMetricsCacheKey, commentMetricsCacheKey}
+	cacheKeys = append(cacheKeys, commentlistKeys...)
 	query := `
         WITH new_reply AS (
             INSERT INTO "public"."comment" (
@@ -113,12 +119,12 @@ func (m *defaultCommentModel) ReplyComment(ctx context.Context, articleId, targe
 	// 使用 ExecCtx 并在操作完成后清除缓存
 	result, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		return conn.ExecCtx(ctx, query, articleId, targetId, targetUserId, userId, content, ipLocation, insp)
-	}, articleMetricsCacheKey, commentMetricsCacheKey, commentListCacheKey) // 添加评论列表缓存键
+	}, cacheKeys...) // 添加评论列表缓存键
 
 	return result, err
 }
 
-func (m *defaultCommentModel) DeleteComment(ctx context.Context, id, userId int64) error {
+func (m *defaultCommentModel) DeleteComment(ctx context.Context, c config.Config, id, userId int64) error {
 	// 首先查询评论获取 article_id，用于生成缓存键
 	comment, err := m.FindOne(ctx, id)
 	if err != nil {
@@ -128,7 +134,10 @@ func (m *defaultCommentModel) DeleteComment(ctx context.Context, id, userId int6
 	// 使用指定的缓存前缀
 	articleMetricsCacheKey := fmt.Sprintf("%s%v", publicArticleMetricsArticleIdPrefix, comment.ArticleId)
 	commentMetricsCacheKey := fmt.Sprintf("%s%v", publicCommentMetricsCommentIdPrefix, comment.ParentId)
-
+	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", comment.ArticleId) // 新增评论列表缓存键模式
+	commentlistKeys, _ := utils.RedisKey(c, commentListCacheKey)
+	cacheKeys := []string{publicCommentIdPrefix + fmt.Sprintf("%v", id), articleMetricsCacheKey, commentMetricsCacheKey}
+	cacheKeys = append(cacheKeys, commentlistKeys...)
 	query := `
 		WITH deleted AS (
 			DELETE FROM "public"."comment"
@@ -151,8 +160,7 @@ func (m *defaultCommentModel) DeleteComment(ctx context.Context, id, userId int6
 	// 使用 ExecCtx 并在操作完成后清除缓存
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		return conn.ExecCtx(ctx, query, id, userId)
-	}, publicCommentIdPrefix+fmt.Sprintf("%v", id), articleMetricsCacheKey, commentMetricsCacheKey)
-
+	}, cacheKeys...)
 	return err
 }
 
@@ -232,6 +240,48 @@ func (m *defaultCommentModel) getCommentTotal(ctx context.Context, articleId uin
           AND (CASE WHEN ai_insp != 0 THEN insp = 0
         ELSE 1 = 1 END)`, articleId)
 	return total, err
+}
+
+func (m *defaultCommentModel) LikeComment(ctx context.Context, c config.Config, commentId, userId int64) error {
+	// 首先查询评论获取 article_id，用于生成缓存键
+	comment, err := m.FindOne(ctx, commentId)
+	if err != nil {
+		return err
+	}
+	commentListCacheKey := fmt.Sprintf(":comment:article:%d:*", comment.ArticleId) // 新增评论列表缓存键模式
+
+	commentlistKeys, _ := utils.RedisKey(c, commentListCacheKey)
+
+	commentMetricsCacheKey := fmt.Sprintf("%s%v", publicCommentMetricsCommentIdPrefix, commentId)
+	userActionCacheKey := fmt.Sprintf("cache:keyframe:user:id:%d:action", userId)
+	cacheKeys := []string{commentMetricsCacheKey, userActionCacheKey}
+	cacheKeys = append(cacheKeys, commentlistKeys...)
+	query := `
+WITH action AS (
+    INSERT INTO "public"."user_action" ("user_id", "target_id", "action_type", "target_type", "action_value")
+    VALUES ($1, $2, 2, 2, 1)
+    ON CONFLICT ("user_id", "target_id", "action_type") 
+    DO UPDATE SET 
+        "action_value" = CASE 
+            WHEN "user_action"."action_value" = 1 THEN 0
+            ELSE 1
+        END
+    RETURNING "action_value"
+),
+update_metrics AS (
+    UPDATE "public"."comment_metrics"
+    SET "likes" = "likes" + CASE 
+        WHEN (SELECT "action_value" FROM action) = 1 THEN 1
+        ELSE -1
+    END
+    WHERE "comment_id" = $2
+)
+SELECT 1;  `
+
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, userId, commentId)
+	}, cacheKeys...)
+	return err
 }
 
 type (
