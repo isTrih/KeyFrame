@@ -1,9 +1,111 @@
 syntax = "v1"
 
-info(
-    title: "type title here"
-    desc: "type desc here"
-    author: "type author here"
-    email: "type email here"
-    version: "type version here"
+type (
+    // Wiki 详情
+    WikiDetail {
+        Id uint64 `json:"id"`                               // ID
+        Title string `json:"title"`                         // 标题
+        Content string `json:"content"`                     // 内容
+        RawContent string `json:"raw_content"`              // 原始内容
+        Type uint8 `json:"type"`                            // 类型 1:公司 2:术语
+        Editor string `json:"editor"`                       // 编辑者信息
+        Status int16 `json:"status"`                        // 状态
+        CreateTime uint64 `json:"create_time"`              // 创建时间
+        UpdateTime uint64 `json:"update_time"`              // 更新时间
+    }
+
+        // Wiki 列表项
+    WikiListItem {
+        Id uint64 `json:"id"`                             // ID
+        Title string `json:"title"`                       // 标题
+    }
 )
+
+type (
+    // 创建 Wiki 请求
+    CreateWikiRequest {
+        Title string `json:"title"`                       // 标题
+        Content string `json:"content"`                   // 内容
+        RawContent string `json:"raw_content"`            // 原始内容
+        Type uint8 `json:"type"`                          // 类型 1:公司 2:术语
+    }
+
+        // 编辑 Wiki 请求
+    UpdateWikiRequest {
+        Id uint64 `json:"id"`                             // Wiki ID
+        Title string `json:"title"`                       // 标题
+        Content string `json:"content"`                   // 内容
+        RawContent string `json:"raw_content"`            // 原始内容
+        Type uint8 `json:"type"`                          // 类型 1:公司 2:术语
+        ChangeLog string `json:"change_log,optional"`     // 变更说明
+    }
+
+        // 获取 Wiki 详情请求
+    GetWikiDetailRequest {
+        Id uint64 `path:"id"`                             // Wiki ID
+    }
+
+        // 搜索 Wiki 请求
+    SearchWikiRequest {
+        Keyword string `form:"keyword"`                   // 搜索关键词
+        Offset uint64 `form:"offset,optional"`            // 偏移量
+        Limit uint64 `form:"limit,optional"`              // 限制数量
+    }
+
+        // 获取最新 Wiki 请求
+    GetLatestWikisRequest {
+        Limit uint64 `form:"limit,default=50"`              // 限制数量，默认50
+    }
+
+        // 通用响应状态
+    StatusResponse {
+        Status string `json:"status"`                     // 状态
+    }
+
+        // Wiki 详情响应
+    GetWikiDetailResponse {
+        Wiki WikiDetail `json:"wiki"`                     // Wiki 详情
+    }
+
+        // Wiki 列表响应
+    WikiListResponse {
+        Status string `json:"status"`                     // 状态
+        Wikis []WikiListItem `json:"wikis"`               // Wiki 列表
+        Total uint64 `json:"total"`                       // 总数
+    }
+)
+
+@server(
+    prefix: /v1/wiki
+    group: wiki
+)
+
+service keyframeGo {
+    @doc "获取 Wiki 详情"
+    @handler GetWikiDetail
+    get /:id (GetWikiDetailRequest) returns (GetWikiDetailResponse)
+
+    @doc "搜索 Wiki"
+    @handler SearchWiki
+    get /search (SearchWikiRequest) returns (WikiListResponse)
+
+    @doc "获取最新 Wiki 列表"
+    @handler GetLatestWikis
+    get /latest (GetLatestWikisRequest) returns (WikiListResponse)
+}
+
+@server(
+    prefix: /v1/wiki
+    group: wiki
+    jwt: Auth
+)
+
+service keyframeGo {
+    @doc "创建 Wiki"
+    @handler CreateWiki
+    post /create (CreateWikiRequest) returns (StatusResponse)
+
+    @doc "编辑 Wiki"
+    @handler UpdateWiki
+    post /update (UpdateWikiRequest) returns (StatusResponse)
+}

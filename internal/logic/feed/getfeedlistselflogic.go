@@ -51,6 +51,8 @@ func (l *GetFeedListSelfLogic) GetFeedListSelf(req *types.GetFeedListRequest) (r
 			LikeNum:     feed.LikeNum,
 			CollectNum:  feed.CollectNum,
 			CommentNum:  feed.CommentNum,
+			AiInsp:      feed.AiInsp,
+			Insp:        feed.Insp,
 			PublishTime: uint64(feed.PublishTime.Unix()),
 		})
 	}

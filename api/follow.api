@@ -2,14 +2,14 @@ syntax = "v1"
 
 type (
     FollowRequest {
-        UserId string `json:"user_id"`
+        UserId uint64`json:"user_id"`
     }
     FollowResponse {
-        Message string `json:"message"`
+        Status string `json:"status"`
     }
 
     FollowListResponse {
-        Message string `json:"message"`
+        Status string `json:"status"`
         FollowList []User `json:"follow_list"`
     }
 )

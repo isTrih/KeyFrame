@@ -41,16 +41,17 @@ type (
 	}
 
 	Notifications struct {
-		Id         int64          `db:"id"`          // 主键，自增 ID
-		SenderId   sql.NullInt64  `db:"sender_id"`   // 发送人 ID，系统通知可为 NULL
-		ReceiverId int64          `db:"receiver_id"` // 接收人 ID
-		Type       string         `db:"type"`        // 通知类型，例如 system、follow、like、favorite、comment
-		Content    sql.NullString `db:"content"`     // 通知显示内容，可用于消息列表展示
-		TargetType sql.NullString `db:"target_type"` // 通知对象的类型，如 post、comment、user
-		TargetId   sql.NullInt64  `db:"target_id"`   // 通知对象的 ID
-		IsRead     bool           `db:"is_read"`     // 是否已读标志
-		CreateTime time.Time      `db:"create_time"` // 通知创建时间
-		Extra      string         `db:"extra"`       // 额外信息（JSON 格式），如帖子标题、评论摘要等
+		Id            int64          `db:"id"`             // 主键，自增 ID
+		SenderId      sql.NullInt64  `db:"sender_id"`      // 发送人 ID，系统通知可为 NULL
+		ReceiverId    int64          `db:"receiver_id"`    // 接收人 ID
+		Type          int64          `db:"type"`           // 通知类型，例如 1点赞2评论3收藏4关注
+		Content       sql.NullString `db:"content"`        // 通知显示内容，可用于消息列表展示
+		TargetId      sql.NullInt64  `db:"target_id"`      // 通知对象的 ID
+		IsRead        bool           `db:"is_read"`        // 是否已读标志
+		CreateTime    time.Time      `db:"create_time"`    // 通知创建时间
+		Extra         string         `db:"extra"`          // 额外信息（JSON 格式），如帖子标题、评论摘要等
+		TargetContent sql.NullString `db:"target_content"` // 目标内容
+		TargetType    int64          `db:"target_type"`    // 目标类型 文章，评论，用户
 	}
 )
 
@@ -90,8 +91,8 @@ func (m *defaultNotificationsModel) FindOne(ctx context.Context, id int64) (*Not
 func (m *defaultNotificationsModel) Insert(ctx context.Context, data *Notifications) (sql.Result, error) {
 	publicNotificationsIdKey := fmt.Sprintf("%s%v", publicNotificationsIdPrefix, data.Id)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5, $6, $7, $8)", m.table, notificationsRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.SenderId, data.ReceiverId, data.Type, data.Content, data.TargetType, data.TargetId, data.IsRead, data.Extra)
+		query := fmt.Sprintf("insert into %s (%s) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)", m.table, notificationsRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.SenderId, data.ReceiverId, data.Type, data.Content, data.TargetId, data.IsRead, data.Extra, data.TargetContent, data.TargetType)
 	}, publicNotificationsIdKey)
 	return ret, err
 }
@@ -100,7 +101,7 @@ func (m *defaultNotificationsModel) Update(ctx context.Context, data *Notificati
 	publicNotificationsIdKey := fmt.Sprintf("%s%v", publicNotificationsIdPrefix, data.Id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where id = $1", m.table, notificationsRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Id, data.SenderId, data.ReceiverId, data.Type, data.Content, data.TargetType, data.TargetId, data.IsRead, data.Extra)
+		return conn.ExecCtx(ctx, query, data.Id, data.SenderId, data.ReceiverId, data.Type, data.Content, data.TargetId, data.IsRead, data.Extra, data.TargetContent, data.TargetType)
 	}, publicNotificationsIdKey)
 	return err
 }

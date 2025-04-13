@@ -16,6 +16,7 @@ import (
 	test "zerobackend/internal/handler/test"
 	upload "zerobackend/internal/handler/upload"
 	user "zerobackend/internal/handler/user"
+	wiki "zerobackend/internal/handler/wiki"
 	"zerobackend/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -307,5 +308,48 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 		rest.WithSignature(serverCtx.Config.Signature),
 		rest.WithPrefix("/v1/user"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 获取 Wiki 详情
+				Method:  http.MethodGet,
+				Path:    "/:id",
+				Handler: wiki.GetWikiDetailHandler(serverCtx),
+			},
+			{
+				// 获取最新 Wiki 列表
+				Method:  http.MethodGet,
+				Path:    "/latest",
+				Handler: wiki.GetLatestWikisHandler(serverCtx),
+			},
+			{
+				// 搜索 Wiki
+				Method:  http.MethodGet,
+				Path:    "/search",
+				Handler: wiki.SearchWikiHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v1/wiki"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 创建 Wiki
+				Method:  http.MethodPost,
+				Path:    "/create",
+				Handler: wiki.CreateWikiHandler(serverCtx),
+			},
+			{
+				// 编辑 Wiki
+				Method:  http.MethodPost,
+				Path:    "/update",
+				Handler: wiki.UpdateWikiHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/v1/wiki"),
 	)
 }

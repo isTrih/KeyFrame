@@ -14,6 +14,7 @@ import (
 	"zerobackend/mdl/user"
 	"zerobackend/mdl/user_action"
 	"zerobackend/mdl/user_follow"
+	"zerobackend/mdl/wiki"
 )
 
 // ServiceContext 服务上下文
@@ -30,6 +31,7 @@ type ServiceContext struct {
 	UserFollowModel     user_follow.UserFollowModel // 用户关注关系表
 	CommentModel        comment.CommentModel        //评论表
 	ReportModel         report.ReportModel          // 举报表
+	WikiModel           wiki.WikiModel              //百科表
 }
 
 // NewServiceContext 初始化服务上下文
@@ -73,7 +75,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		CommentModel: comment.NewCommentModel(keyframeGo, c.Cache),
 		// 举报表
 		ReportModel: report.NewReportModel(keyframeGo, c.Cache),
-		// 缓存
+		// 百科表
+		WikiModel: wiki.NewWikiModel(keyframeGo, c.Cache),
+		// 数据库
 		BizRedis: rds,
 	}
 }

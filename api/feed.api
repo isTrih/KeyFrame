@@ -28,6 +28,8 @@ type (
         CollectNum uint32 `json:"collect_num"`
         CommentNum uint32 `json:"comment_num"`
         PublishTime uint64 `json:"publish_time"`
+        Insp uint8 `json:"insp"`       // 审核
+        AiInsp uint8 `json:"ai_insp"` // AI审核
     }
 )
 type (
@@ -40,10 +42,6 @@ type (
         Media []string `json:"media,optional"`                        // 图片
         KIP string `header:"kip,optional"`
         Id uint64 `json:"id"`                                         // 文章ID
-    }
-
-    StatusResponse {
-        status string `json:"status"`
     }
 
     DeleteFeedRequest {

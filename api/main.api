@@ -8,6 +8,8 @@ import "admin.api"
 import "upload.api"
 import "comment.api"
 import "report.api"
+import "notification.api"
+import "wiki.api"
 
 type (
 	User {

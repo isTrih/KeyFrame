@@ -64,6 +64,8 @@ type (
 		PublishTime time.Time `db:"publish_time"` // 发布时间
 		CollectNum  uint32    `db:"collect_num"`
 		CommentNum  uint32    `db:"comment_num"`
+		AiInsp      uint8     `db:"ai_insp"` // AI审核
+		Insp        uint8     `db:"insp"`    // 人工审核
 	}
 
 	FeedDetail struct {
@@ -396,7 +398,7 @@ func (m *defaultArticleModel) CollectArticle(ctx context.Context, userId, articl
 
 func (m *defaultArticleModel) GetUserUploadListForSelf(ctx context.Context, offset uint64, uid uint64) ([]*FeedslistItem, error) {
 	var list []*FeedslistItem
-	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.likes, 0) AS like_count,COALESCE(d.collects, 0) AS collects_num,COALESCE(d.comments, 0) AS comments_num"
+	row := "a.id, a.title, a.author_id, a.publish_time,a.insp,a.ai_insp, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.likes, 0) AS like_count,COALESCE(d.collects, 0) AS collects_num,COALESCE(d.comments, 0) AS comments_num"
 	s := fmt.Sprintf(`
     SELECT %s
     FROM %s AS a

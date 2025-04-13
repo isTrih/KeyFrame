@@ -2,6 +2,7 @@ package follow
 
 import (
 	"context"
+	"encoding/json"
 
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -25,7 +26,16 @@ func NewFollowLogic(ctx context.Context, svcCtx *svc.ServiceContext) *FollowLogi
 }
 
 func (l *FollowLogic) Follow(req *types.FollowRequest) (resp *types.FollowResponse, err error) {
-	// todo: add your logic here and delete this line
+	// 获取用户ID
+	uidjson, _ := l.ctx.Value("UID").(json.Number)
+	uid, _ := uidjson.Int64()
 
-	return
+	err = l.svcCtx.UserFollowModel.ToggleFollow(l.ctx, uid, int64(req.UserId))
+	if err != nil {
+		return nil, err
+	}
+	resp = &types.FollowResponse{
+		Status: "ok",
+	}
+	return resp, nil
 }

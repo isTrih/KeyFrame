@@ -38,11 +38,21 @@ func (l *ChangeUserInfoLogic) ChangeUserInfo(req *types.ChangeUserInfoRequest) (
 		// 违规逻辑
 		return nil, errors.New(6099, "昵称或签名有违规内容")
 	}
+	oldUser, _ := l.svcCtx.UserModel.FindOne(l.ctx, uid)
+
 	err = l.svcCtx.UserModel.Update(l.ctx, &model.User{
-		Id:        uid,
-		Nickname:  req.Nickname,
-		Avatar:    req.Avatar,
-		Signature: req.Signature,
+		Id:         uid,
+		Nickname:   req.Nickname,
+		Avatar:     req.Avatar,
+		Signature:  req.Signature,
+		Type:       oldUser.Type,
+		Vnote:      oldUser.Vnote,
+		Mobile:     oldUser.Mobile,
+		Status:     oldUser.Status,
+		BannedTime: oldUser.BannedTime,
+		BanTime:    oldUser.BanTime,
+		IpAddress:  oldUser.IpAddress,
+		IpLocation: oldUser.IpLocation,
 	})
 	if err != nil {
 		return nil, err

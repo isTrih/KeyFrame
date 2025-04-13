@@ -1,9 +1,36 @@
 syntax = "v1"
 
-info(
-    title: "type title here"
-    desc: "type desc here"
-    author: "type author here"
-    email: "type email here"
-    version: "type version here"
+type (
+    SingleMSG {
+        SenderId int64 `json:"sender_id"`              // 发送者ID
+        SenderName string `json:"sender_name"`         // 发送者名称
+        SenderAvatar string `json:"sender_avatar"`     // 发送者头像
+        Type int8 `json:"type"`                        // 消息类型
+        Content string `json:"content"`                // 消息内容
+        TargetContent string `json:"target_content"`   // 目标内容
+        Time uint64 `json:"time"`                      // 消息时间
+    }
+    MultiMSG {
+        SenderNames []string `json:"sender_name"`     // 发送者名称
+        SenderAvatars []string `json:"sender_avatar"` // 发送者头像
+        Type int8 `json:"type"`                       // 消息类型
+        Total uint64 `json:"total"`                   // 消息总数
+        Time uint64 `json:"time"`                     // 消息时间
+    }
+)
+
+type (
+    GetNotificationResponse {
+        SingleMSG []SingleMSG `json:"single_msg"`    // 消息列表
+        Total uint64 `json:"total"`                  // 消息总数
+    }
+    GetNotificationMultiResponse {
+        MultiMSG []MultiMSG `json:"multi_msg"`    // 消息列表
+        Total uint64 `json:"total"`               // 消息总数
+    }
+    GetNotificationRequest {
+        Type uint8 `query:"type,optional"`             // 消息类型
+        Page uint64 `query:"page,optional,default=1"`  // 页码
+        Size uint64 `query:"size,optional,default=15"` // 每页数量
+    }
 )

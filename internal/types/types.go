@@ -68,6 +68,13 @@ type CommentListResponse struct {
 	Total    uint64        `json:"total"`
 }
 
+type CreateWikiRequest struct {
+	Title      string `json:"title"`       // 标题
+	Content    string `json:"content"`     // 内容
+	RawContent string `json:"raw_content"` // 原始内容
+	Type       uint8  `json:"type"`        // 类型 1:公司 2:术语
+}
+
 type DeleteFeedRequest struct {
 	Id uint64 `json:"id"`
 }
@@ -117,19 +124,21 @@ type Feeds struct {
 	CollectNum  uint32 `json:"collect_num"`
 	CommentNum  uint32 `json:"comment_num"`
 	PublishTime uint64 `json:"publish_time"`
+	Insp        uint8  `json:"insp"`    // 审核
+	AiInsp      uint8  `json:"ai_insp"` // AI审核
 }
 
 type FollowListResponse struct {
-	Message    string `json:"message"`
+	Status     string `json:"status"`
 	FollowList []User `json:"follow_list"`
 }
 
 type FollowRequest struct {
-	UserId string `json:"user_id"`
+	UserId uint64 `json:"user_id"`
 }
 
 type FollowResponse struct {
-	Message string `json:"message"`
+	Status string `json:"status"`
 }
 
 type GetFeedDetailRequest struct {
@@ -160,12 +169,40 @@ type GetIndexFeedsResponse struct {
 	Feeds  []Feed `json:"feeds"`
 }
 
+type GetLatestWikisRequest struct {
+	Limit uint64 `form:"limit,default=50"` // 限制数量，默认50
+}
+
+type GetNotificationMultiResponse struct {
+	MultiMSG []MultiMSG `json:"multi_msg"` // 消息列表
+	Total    uint64     `json:"total"`     // 消息总数
+}
+
+type GetNotificationRequest struct {
+	Type uint8  `query:"type,optional"`            // 消息类型
+	Page uint64 `query:"page,optional,default=1"`  // 页码
+	Size uint64 `query:"size,optional,default=15"` // 每页数量
+}
+
+type GetNotificationResponse struct {
+	SingleMSG []SingleMSG `json:"single_msg"` // 消息列表
+	Total     uint64      `json:"total"`      // 消息总数
+}
+
 type GetUpTokenRequest struct {
 	Type string `form:"t, default=img"`
 }
 
 type GetUpTokenResponse struct {
 	Token string `json:"token"`
+}
+
+type GetWikiDetailRequest struct {
+	Id uint64 `path:"id"` // Wiki ID
+}
+
+type GetWikiDetailResponse struct {
+	Wiki WikiDetail `json:"wiki"` // Wiki 详情
 }
 
 type LikeCommentRequest struct {
@@ -206,6 +243,14 @@ type MSG struct {
 type MediaInfo struct {
 	Width  uint32 `json:"width"`
 	Height uint32 `json:"height"`
+}
+
+type MultiMSG struct {
+	SenderNames   []string `json:"sender_name"`   // 发送者名称
+	SenderAvatars []string `json:"sender_avatar"` // 发送者头像
+	Type          int8     `json:"type"`          // 消息类型
+	Total         uint64   `json:"total"`         // 消息总数
+	Time          uint64   `json:"time"`          // 消息时间
 }
 
 type NewCommentRequest struct {
@@ -261,14 +306,30 @@ type ReportResponse struct {
 	Status string `json:"status"`
 }
 
+type SearchWikiRequest struct {
+	Keyword string `form:"keyword"`         // 搜索关键词
+	Offset  uint64 `form:"offset,optional"` // 偏移量
+	Limit   uint64 `form:"limit,optional"`  // 限制数量
+}
+
 type ShareFeedXHSResponse struct {
 	Nonce     string `json:"nonce"`
 	Signature string `json:"signature"`
 	Timestamp string `json:"timestamp"`
 }
 
+type SingleMSG struct {
+	SenderId      int64  `json:"sender_id"`      // 发送者ID
+	SenderName    string `json:"sender_name"`    // 发送者名称
+	SenderAvatar  string `json:"sender_avatar"`  // 发送者头像
+	Type          int8   `json:"type"`           // 消息类型
+	Content       string `json:"content"`        // 消息内容
+	TargetContent string `json:"target_content"` // 目标内容
+	Time          uint64 `json:"time"`           // 消息时间
+}
+
 type StatusResponse struct {
-	Status string `json:"status"`
+	Status string `json:"status"` // 状态
 }
 
 type SubCommentItem struct {
@@ -283,6 +344,15 @@ type SubCommentItem struct {
 	ParentUserId    int64  `json:"parent_user_id"`    // 父评论用户ID
 	IpLocation      string `json:"ip_location"`       // ip归属地
 	ReplyToNickname string `json:"reply_to_nickname"` // 回复对象的昵称
+}
+
+type UpdateWikiRequest struct {
+	Id         uint64 `json:"id"`                  // Wiki ID
+	Title      string `json:"title"`               // 标题
+	Content    string `json:"content"`             // 内容
+	RawContent string `json:"raw_content"`         // 原始内容
+	Type       uint8  `json:"type"`                // 类型 1:公司 2:术语
+	ChangeLog  string `json:"change_log,optional"` // 变更说明
 }
 
 type User struct {
@@ -332,6 +402,29 @@ type VerifyCodeRequest struct {
 type VerifyCodeResponse struct {
 	Status   string `json:"status"`
 	TempCode string `json:"temp_code"`
+}
+
+type WikiDetail struct {
+	Id         uint64 `json:"id"`          // ID
+	Title      string `json:"title"`       // 标题
+	Content    string `json:"content"`     // 内容
+	RawContent string `json:"raw_content"` // 原始内容
+	Type       uint8  `json:"type"`        // 类型 1:公司 2:术语
+	Editor     string `json:"editor"`      // 编辑者信息
+	Status     int16  `json:"status"`      // 状态
+	CreateTime uint64 `json:"create_time"` // 创建时间
+	UpdateTime uint64 `json:"update_time"` // 更新时间
+}
+
+type WikiListItem struct {
+	Id    uint64 `json:"id"`    // ID
+	Title string `json:"title"` // 标题
+}
+
+type WikiListResponse struct {
+	Status string         `json:"status"` // 状态
+	Wikis  []WikiListItem `json:"wikis"`  // Wiki 列表
+	Total  uint64         `json:"total"`  // 总数
 }
 
 type TestRequest struct {
