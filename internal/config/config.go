@@ -39,7 +39,9 @@ type Config struct {
 	}
 	// AI接口Key
 	Insp struct {
-		KEY string
+		KEY   string
+		URL   string
+		MODEL string
 	}
 	Cache    cache.CacheConf // 配置文件中添加一个 Cache 字段，用来配置Redis缓存相关的配置
 	BizRedis redis.RedisConf // 配置文件中添加一个 BizRedis 字段，用来配置业务Redis相关的配置

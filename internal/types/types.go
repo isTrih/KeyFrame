@@ -104,6 +104,21 @@ type FeedUser struct {
 	Type     uint16 `json:"type"`
 }
 
+type Feeds struct {
+	Title       string `json:"title"`
+	Id          uint64 `json:"id"`
+	AuthorId    uint64 `json:"author_id"`
+	UserName    string `json:"nickname"`
+	Avatar      string `json:"avatar"`
+	CoverUrl    string `json:"cover_url"`
+	Height      uint32 `json:"height"`
+	Width       uint32 `json:"width"`
+	LikeNum     uint32 `json:"like_num"`
+	CollectNum  uint32 `json:"collect_num"`
+	CommentNum  uint32 `json:"comment_num"`
+	PublishTime uint64 `json:"publish_time"`
+}
+
 type FollowListResponse struct {
 	Message    string `json:"message"`
 	FollowList []User `json:"follow_list"`
@@ -123,6 +138,16 @@ type GetFeedDetailRequest struct {
 
 type GetFeedDetailResponse struct {
 	Feed FeedDetail `json:"Feed"`
+}
+
+type GetFeedListRequest struct {
+	Offset uint64 `form:"o"`
+}
+
+type GetFeedListResponse struct {
+	Status string  `json:"status"`
+	Feeds  []Feeds `json:"feeds"`
+	Total  uint64  `json:"total"`
 }
 
 type GetIndexFeedsRequest struct {
@@ -205,6 +230,7 @@ type NewFeedRequest struct {
 	CoverInfo  MediaInfo `json:"cover_info,optional"` // 封面信息
 	Media      []string  `json:"media,optional"`      // 图片
 	KIP        string    `header:"kip,optional"`
+	Id         uint64    `json:"id"` // 文章ID
 }
 
 type RegisterRequest struct {
@@ -260,10 +286,10 @@ type SubCommentItem struct {
 }
 
 type User struct {
-	Nickname  string `db:"nick_name"` // 昵称
-	Signature string `db:"signature"` // 简介
-	Avatar    string `db:"avatar"`    // 头像
-	Type      uint16 `db:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+	Nickname  string `json:"nick_name"` // 昵称
+	Signature string `json:"signature"` // 简介
+	Avatar    string `json:"avatar"`    // 头像
+	Type      uint16 `json:"type"`      // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 }
 
 type UserFeedsRequest struct {

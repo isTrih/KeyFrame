@@ -11,10 +11,10 @@ import "report.api"
 
 type (
 	User {
-		Nickname  string `db:"nick_name"` // 昵称
-		Signature string `db:"signature"` // 简介
-		Avatar    string `db:"avatar"` // 头像
-		Type      uint16 `db:"type"` // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
+		Nickname  string `json:"nick_name"` // 昵称
+		Signature string `json:"signature"` // 简介
+		Avatar    string `json:"avatar"` // 头像
+		Type      uint16 `json:"type"` // 状态 0:默认用户 1:正式用户 2:V认证用户 3:管理员用户
 	}
 )
 

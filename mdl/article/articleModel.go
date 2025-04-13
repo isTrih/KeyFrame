@@ -32,6 +32,7 @@ type (
 		DeleteFeed(ctx context.Context, userid, id int64) error
 		CollectArticle(ctx context.Context, userId, articleId int64) error
 		LikeArticle(ctx context.Context, userId, articleId int64) error
+		GetUserUploadListForSelf(ctx context.Context, offset uint64, uid uint64) ([]*FeedslistItem, error)
 	}
 
 	customArticleModel struct {
@@ -48,6 +49,21 @@ type (
 		Width       uint32    `db:"width"`
 		LikeNum     uint32    `db:"like_count"`
 		PublishTime time.Time `db:"publish_time"` // 发布时间
+	}
+
+	FeedslistItem struct {
+		Id          uint64    `db:"id"`
+		Title       string    `db:"title"`
+		AuthorId    uint64    `db:"author_id"`
+		UserName    string    `db:"nickname"`
+		Avatar      string    `db:"avatar"`
+		CoverUrl    string    `db:"cover_url"`
+		Height      uint32    `db:"height"`
+		Width       uint32    `db:"width"`
+		LikeNum     uint32    `db:"like_count"`
+		PublishTime time.Time `db:"publish_time"` // 发布时间
+		CollectNum  uint32    `db:"collect_num"`
+		CommentNum  uint32    `db:"comment_num"`
 	}
 
 	FeedDetail struct {
@@ -148,7 +164,7 @@ func (m *defaultArticleModel) GetUncheckFeeds(ctx context.Context, statusType in
 // GetFeedsNum 获取用户文章数
 func (m *defaultArticleModel) GetFeedsNum(ctx context.Context, uid uint64) (int, error) {
 
-	query := `SELECT COUNT(*) FROM "public"."article" WHERE "author_id" = $1`
+	query := `SELECT COUNT(*) FROM "public"."article" WHERE "author_id" = $1 AND "status" != 2`
 
 	// 定义变量来存储查询结果
 	var articleCount int
@@ -173,7 +189,7 @@ func (m *defaultArticleModel) GetUserUploadList(ctx context.Context, offset uint
     LEFT JOIN "user" AS b ON a.author_id = b.id
     LEFT JOIN media AS c ON a.id = c.article_id
     LEFT JOIN article_metrics AS d ON a.id = d.article_id 
-    WHERE b.id = %d        
+    WHERE b.id = %d AND a.status = 0        
     	AND 
         (CASE WHEN a.ai_insp != 0 THEN a.insp = 0
     		  ELSE 1 = 1  -- 当 a.ai_insp 为 0 时，此条件恒为真，即不考虑 a.insp 的值
@@ -304,13 +320,17 @@ func (m *defaultArticleModel) LikeArticle(ctx context.Context, userId, articleId
 	// 缓存键
 	cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", articleId)
 	cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", articleId)
+	userActionCacheKey := fmt.Sprintf("cache:keyframe:user:id:%d:action", userId)
+	publicArticleMetricsArticleIdKey := fmt.Sprintf("cache:keyframe:am:%v", articleId)
+	cacheLikeKey := fmt.Sprintf("cache:keyframe:user:id:%d:like", userId)
+
 	cacheUserActionKey := fmt.Sprintf("cache:keyframe:user_action:user:%d:article:%d", userId, articleId)
 	query := `
 	WITH updated_action AS (
 		INSERT INTO user_action (user_id, target_id, action_type, target_type, action_value)
 		VALUES ($1, $2, 1, 1, 1)
 		ON CONFLICT (user_id, target_id, action_type)
-		DO UPDATE SET action_value = NOT user_action.action_value, update_time = NOW()
+		DO UPDATE SET action_value = CASE WHEN user_action.action_value = 1 THEN 2 ELSE 1 END, update_time = NOW()
 		RETURNING action_value
 	),
 	updated_metrics AS (
@@ -326,7 +346,7 @@ func (m *defaultArticleModel) LikeArticle(ctx context.Context, userId, articleId
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		err = conn.QueryRowCtx(ctx, &likes, query, userId, articleId)
 		return nil, err
-	}, cacheArticleDetailKey, cacheArticlePreviewKey, cacheUserActionKey)
+	}, cacheArticleDetailKey, cacheLikeKey, cacheArticlePreviewKey, cacheUserActionKey, userActionCacheKey, publicArticleMetricsArticleIdKey)
 
 	if err != nil {
 		logx.Error("点赞操作失败:", err)
@@ -339,13 +359,17 @@ func (m *defaultArticleModel) CollectArticle(ctx context.Context, userId, articl
 	// 缓存键
 	cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", articleId)
 	cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", articleId)
+	userActionCacheKey := fmt.Sprintf("cache:keyframe:user:id:%d:action", userId)
 	cacheUserActionKey := fmt.Sprintf("cache:keyframe:user_action:user:%d:article:%d", userId, articleId)
+	publicArticleMetricsArticleIdKey := fmt.Sprintf("cache:keyframe:am:%v", articleId)
+	cacheCollectKey := fmt.Sprintf("cache:keyframe:user:id:%d:collect", userId)
+
 	query := `
 	WITH updated_action AS (
 		INSERT INTO user_action (user_id, target_id, action_type, target_type, action_value)
 		VALUES ($1, $2, 3, 1, 1)
 		ON CONFLICT (user_id, target_id, action_type)
-		DO UPDATE SET action_value = NOT user_action.action_value, update_time = NOW()
+		DO UPDATE SET action_value = CASE WHEN user_action.action_value = 1 THEN 2 ELSE 1 END, update_time = NOW()
 		RETURNING action_value
 	),
 	updated_metrics AS (
@@ -361,11 +385,33 @@ func (m *defaultArticleModel) CollectArticle(ctx context.Context, userId, articl
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		err = conn.QueryRowCtx(ctx, &collects, query, userId, articleId)
 		return nil, err
-	}, cacheArticleDetailKey, cacheArticlePreviewKey, cacheUserActionKey)
+	}, cacheArticleDetailKey, cacheCollectKey, cacheArticlePreviewKey, cacheUserActionKey, userActionCacheKey, publicArticleMetricsArticleIdKey)
 
 	if err != nil {
 		logx.Error("收藏操作失败:", err)
 		return err
 	}
 	return nil
+}
+
+func (m *defaultArticleModel) GetUserUploadListForSelf(ctx context.Context, offset uint64, uid uint64) ([]*FeedslistItem, error) {
+	var list []*FeedslistItem
+	row := "a.id, a.title, a.author_id, a.publish_time, b.nickname, b.avatar, c.cover_url, c.height, c.width, COALESCE(d.likes, 0) AS like_count,COALESCE(d.collects, 0) AS collects_num,COALESCE(d.comments, 0) AS comments_num"
+	s := fmt.Sprintf(`
+    SELECT %s
+    FROM %s AS a
+    LEFT JOIN "user" AS b ON a.author_id = b.id
+    LEFT JOIN media AS c ON a.id = c.article_id
+    LEFT JOIN article_metrics AS d ON a.id = d.article_id 
+    WHERE b.id = %d AND a.status != 2
+    ORDER BY a.publish_time DESC
+    LIMIT 10 OFFSET %d
+`, row, m.table, uid, offset)
+
+	err := m.QueryRowsNoCacheCtx(ctx, &list, s)
+	if err != nil {
+		logx.Error("query failed", err)
+		return nil, err
+	}
+	return list, nil
 }

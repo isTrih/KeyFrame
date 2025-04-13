@@ -127,6 +127,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: feed.DeleteFeedHandler(serverCtx),
 			},
 			{
+				// 创作中心获取帧（文章）
+				Method:  http.MethodGet,
+				Path:    "/feedlist/get",
+				Handler: feed.GetFeedListSelfHandler(serverCtx),
+			},
+			{
 				// 点赞帧（文章）
 				Method:  http.MethodPost,
 				Path:    "/like",

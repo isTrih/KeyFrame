@@ -70,3 +70,20 @@ func RedisKey(c config.Config, key string) (keys []string, err error) {
 
 	return keys, err
 }
+
+func RedisUpdate(c config.Config, keys ...string) (err error) {
+	conf := redis.RedisConf{
+		Host:        c.BizRedis.Host,
+		Type:        "node",
+		Pass:        c.BizRedis.Pass,
+		Tls:         false,
+		NonBlock:    false,
+		PingTimeout: time.Second,
+	}
+	rds := redis.MustNewRedis(conf)
+	_, err = rds.Del(keys...)
+	if err != nil {
+		return err
+	}
+	return err
+}

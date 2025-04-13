@@ -367,6 +367,37 @@
         ]
       }
     },
+    "/v1/feed/feedlsit/get": {
+      "get": {
+        "summary": "创作中心获取帧（文章）",
+        "operationId": "GetFeedListSelf",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/GetFeedListResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "feed"
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
+      }
+    },
     "/v1/feed/like": {
       "post": {
         "summary": "点赞帧（文章）",
@@ -1403,6 +1434,60 @@
         "type"
       ]
     },
+    "Feeds": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "author_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "nickname": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "cover_url": {
+          "type": "string"
+        },
+        "height": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "width": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "like_num": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "publish_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "Feeds",
+      "required": [
+        "title",
+        "id",
+        "author_id",
+        "nickname",
+        "avatar",
+        "cover_url",
+        "height",
+        "width",
+        "like_num",
+        "publish_time"
+      ]
+    },
     "FollowListResponse": {
       "type": "object",
       "properties": {
@@ -1460,6 +1545,38 @@
       "title": "GetFeedDetailResponse",
       "required": [
         "Feed"
+      ]
+    },
+    "GetFeedListRequest": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "GetFeedListRequest",
+      "required": [
+        "offset"
+      ]
+    },
+    "GetFeedListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "feeds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Feeds"
+          }
+        }
+      },
+      "title": "GetFeedListResponse",
+      "required": [
+        "status",
+        "feeds"
       ]
     },
     "GetIndexFeedsRequest": {

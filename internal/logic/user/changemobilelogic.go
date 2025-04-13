@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 
@@ -25,6 +24,9 @@ func NewChangeMobileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Chan
 }
 
 func (l *ChangeMobileLogic) ChangeMobile(req *types.ChangeMobileRequest) (resp *types.ChangeMobileResponse, err error) {
+	// 获取用户ID
+	//uidjson, _ := l.ctx.Value("UID").(json.Number)
+	//uid, _ := uidjson.Int64()
 	// todo: add your logic here and delete this line
 
 	return

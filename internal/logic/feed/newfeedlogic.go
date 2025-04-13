@@ -7,9 +7,11 @@ import (
 	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/x/errors"
 	"net"
+	"time"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 	"zerobackend/internal/utils"
+	model "zerobackend/mdl/article"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -75,6 +77,32 @@ func (l *NewFeedLogic) NewFeed(req *types.NewFeedRequest) (resp *types.StatusRes
 	uid, _ := uidjson.Int64()
 
 	// 发布文章
+	if req.Id != 0 {
+		err = l.svcCtx.ArticleModel.Update(
+			l.ctx, &model.Article{
+				Id:          int64(req.Id),
+				Title:       req.Title,
+				Content:     req.Content,
+				RawContent:  req.RawContent,
+				AuthorId:    uid,
+				IpLocation:  region,
+				AiInsp:      int64(insp),
+				PublishTime: time.Now(),
+			})
+		fmt.Println("时间", time.Now())
+		if err != nil {
+			return nil, errors.New(4003, "文章更新失败,请稍后再试")
+		}
+		cacheArticleDetailKey := fmt.Sprintf("cache:keyframe:article:detail:id:%d", req.Id)
+		cacheArticlePreviewKey := fmt.Sprintf("%s%v", "cache:keyframe:article:preview:id:", req.Id)
+		err := utils.RedisUpdate(l.svcCtx.Config, cacheArticleDetailKey, cacheArticlePreviewKey)
+		if err != nil {
+			return nil, err
+		}
+		return &types.StatusResponse{
+			Status: "ok",
+		}, nil
+	}
 
 	if req.Media != nil && req.Cover != "xx" {
 		err = l.svcCtx.ArticleModel.NewFeed(

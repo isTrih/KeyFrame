@@ -51,8 +51,8 @@ type InspResp struct {
 }
 
 func DoInsp(c config.Config, Content string) (uint8, error) {
-	domain := "https://api.siliconflow.cn/v1/chat/completions"
-	model := "Qwen/Qwen2.5-7B-Instruct"
+	domain := c.Insp.URL
+	model := c.Insp.MODEL
 
 	// 构建请求体
 	req := InspReq{
@@ -60,7 +60,7 @@ func DoInsp(c config.Config, Content string) (uint8, error) {
 		Messages: []Message{
 			{
 				Role:    "system",
-				Content: "你是一个丰富经验的关键帧社区的文本审核员，你会收到一些文本信息，请你判断这些信息是否出现1广告,4涉政,2辱骂,3色情,5违法”的内容并仅返回结果一个 数字：0为正常。（请注意谐音，emoji等规避方法，带有流量卡和其他引人不适的广告内容即视为1广告）",
+				Content: "你是文本审核员，判断信息是否出现1:色情, 2:骚扰, 3:广告, 4:政治, 5:引战, 6:辱骂, 0:正常，并仅返回一个数字。（请注意谐音，emoji等规避方法，带有流量卡和其他引人不适的广告内容即视为1广告）",
 			}, {
 				Role:    "user",
 				Content: Content,

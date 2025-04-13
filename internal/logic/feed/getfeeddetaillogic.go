@@ -3,11 +3,12 @@ package feed
 import (
 	"context"
 	"encoding/json"
-	"github.com/zeromicro/go-zero/core/stores/sqlc"
-	"github.com/zeromicro/x/errors"
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
 	"zerobackend/mdl/article_metrics"
+
+	"github.com/zeromicro/go-zero/core/stores/sqlc"
+	"github.com/zeromicro/x/errors"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -34,7 +35,7 @@ func (l *GetFeedDetailLogic) GetFeedDetail(req *types.GetFeedDetailRequest) (res
 		return nil, err
 	}
 
-	articleMetric, amErr := l.svcCtx.ArticleMetricsModel.FindOneByArticleId(l.ctx, int64(req.Id))
+	articleMetric, amErr := l.svcCtx.ArticleMetricsModel.FindOneWithArticleId(l.ctx, int64(req.Id))
 	switch amErr {
 	case nil:
 		break

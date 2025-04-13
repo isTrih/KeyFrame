@@ -15,16 +15,31 @@ type (
         PublishTime uint64 `json:"publish_time"`                                          // 发布时间
         IpLocation string `json:"ip_location"`                                            // ip归属地
     }
+    Feeds {
+        Title string `json:"title"`
+        Id uint64 `json:"id"`
+        AuthorId uint64 `json:"author_id"`
+        UserName string `json:"nickname"`
+        Avatar string `json:"avatar"`
+        CoverUrl string `json:"cover_url"`
+        Height uint32 `json:"height"`
+        Width uint32 `json:"width"`
+        LikeNum uint32 `json:"like_num"`
+        CollectNum uint32 `json:"collect_num"`
+        CommentNum uint32 `json:"comment_num"`
+        PublishTime uint64 `json:"publish_time"`
+    }
 )
 type (
     NewFeedRequest {
-        Title string `json:"title"`                          // 标题
-        Content string `json:"content"`                      // 富文本内容
-        RawContent string `json:"raw_content"`               // 原始内容
+        Title string `json:"title"`                                   // 标题
+        Content string `json:"content"`                               // 富文本内容
+        RawContent string `json:"raw_content"`                        // 原始内容
         Cover string `json:"cover,optional"`                          // 封面
-        CoverInfo MediaInfo `json:"cover_info,optional"`           // 封面信息
+        CoverInfo MediaInfo `json:"cover_info,optional"`              // 封面信息
         Media []string `json:"media,optional"`                        // 图片
         KIP string `header:"kip,optional"`
+        Id uint64 `json:"id"`                                         // 文章ID
     }
 
     StatusResponse {
@@ -38,6 +53,16 @@ type (
     GetFeedDetailRequest {
         Id uint64 `path:"id"`
     }
+
+    GetFeedListRequest {
+        Offset uint64 `form:"o"`
+    }
+    GetFeedListResponse {
+        Status string `json:"status"`
+        Feeds []Feeds `json:"feeds"`
+        Total uint64 `json:"total"`
+    }
+
 
     GetFeedDetailResponse {
         Feed FeedDetail `json:"Feed"`
@@ -92,4 +117,8 @@ service keyframeGo {
     @doc "收藏帧（文章）"
     @handler CollectFeed
     post /collect (DeleteFeedRequest) returns (StatusResponse)
+
+    @doc "创作中心获取帧（文章）"
+    @handler GetFeedListSelf
+    get /feedlist/get (GetFeedListRequest) returns (GetFeedListResponse)
 }

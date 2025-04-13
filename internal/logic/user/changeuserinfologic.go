@@ -2,6 +2,10 @@ package user
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/zeromicro/x/errors"
+	"zerobackend/internal/utils"
+	model "zerobackend/mdl/user"
 
 	"zerobackend/internal/svc"
 	"zerobackend/internal/types"
@@ -25,7 +29,26 @@ func NewChangeUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ch
 }
 
 func (l *ChangeUserInfoLogic) ChangeUserInfo(req *types.ChangeUserInfoRequest) (resp *types.ChangeUserInfoResponse, err error) {
-	// todo: add your logic here and delete this line
+	// 获取用户ID
+	uidjson, _ := l.ctx.Value("UID").(json.Number)
+	uid, _ := uidjson.Int64()
 
-	return
+	insp, err := utils.DoInsp(l.svcCtx.Config, req.Nickname+req.Signature)
+	if insp != 0 {
+		// 违规逻辑
+		return nil, errors.New(6099, "昵称或签名有违规内容")
+	}
+	err = l.svcCtx.UserModel.Update(l.ctx, &model.User{
+		Id:        uid,
+		Nickname:  req.Nickname,
+		Avatar:    req.Avatar,
+		Signature: req.Signature,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp = &types.ChangeUserInfoResponse{
+		Status: "ok",
+	}
+	return resp, nil
 }
