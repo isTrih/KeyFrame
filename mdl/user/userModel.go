@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
@@ -18,6 +19,7 @@ type (
 		UpdateIp(ctx context.Context, id uint64, il string, ia string) error
 		UpdateIpByMobile(ctx context.Context, mobile string, il string, ia string) error
 		UpdatePassword(ctx context.Context, id uint64, newPassword string) error
+		CreateUserByCZJCode(ctx context.Context, czjCode int64, name, password, mobile string) error
 	}
 
 	customUserModel struct {
@@ -73,4 +75,50 @@ func (m *defaultUserModel) UpdatePassword(ctx context.Context, id uint64, newPas
 		return conn.ExecCtx(ctx, query, newPassword, id)
 	}, chaozjUserIdKey)
 	return err
+}
+
+func (m *defaultUserModel) CreateUserByCZJCode(ctx context.Context, czjCode int64, name, password, mobile string) error {
+	query := `
+	INSERT INTO "public"."user" (
+    "id",
+    "password",
+    "nickname",
+    "signature",
+    "avatar",
+    "type",
+    "vnote",
+    "mobile",
+    "status",
+    "banned_time",
+    "ban_time",
+    "create_time",
+    "update_time",
+    "ip_address",
+    "ip_location"
+) VALUES (
+    $1,  -- 强制使用的ID
+    $2,  -- 加密后的密码
+    $3,  -- 用户名
+    '',  -- 默认签名
+    'avatar.jpg',  -- 默认头像
+    0,  -- 默认用户类型
+    '',  -- 空V认证信息
+    $4,  -- 手机号
+    0,  -- 默认状态(正常)
+    NULL,  -- 无封禁时间
+    0,  -- 默认封禁时长
+    CURRENT_TIMESTAMP,  -- 当前时间
+    CURRENT_TIMESTAMP,  -- 当前时间
+    '',  -- 空IP地址
+    ''  -- 空IP归属地
+)
+ON CONFLICT (id) DO NOTHING;
+	`
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, czjCode, password, name, mobile)
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

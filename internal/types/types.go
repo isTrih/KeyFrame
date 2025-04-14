@@ -217,6 +217,7 @@ type LoginMobilePassRequest struct {
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
 	KIP      string `header:"kip,optional"`
+	XIP      string `header:"X-Real-IP,optional"` // nginx
 }
 
 type LoginRequest struct {
@@ -238,6 +239,10 @@ type MSG struct {
 	Type     int8   `json:"type"`
 	Msg      string `json:"msg"`
 	Time     uint64 `json:"time"`
+}
+
+type MarkReadResponse struct {
+	Success bool `json:"success"` // 操作是否成功
 }
 
 type MediaInfo struct {
@@ -275,7 +280,8 @@ type NewFeedRequest struct {
 	CoverInfo  MediaInfo `json:"cover_info,optional"` // 封面信息
 	Media      []string  `json:"media,optional"`      // 图片
 	KIP        string    `header:"kip,optional"`
-	Id         uint64    `json:"id"` // 文章ID
+	XIP        string    `header:"X-Real-IP,optional"` // nginx
+	Id         uint64    `json:"id"`                   // 文章ID
 }
 
 type RegisterRequest struct {
@@ -284,6 +290,8 @@ type RegisterRequest struct {
 	Mobile     string `json:"mobile"`
 	VerifyCode string `json:"verifyCode"`
 	CZJCode    string `json:"czj_code,optional"` //邀请码用来绑定id
+	KIP        string `header:"kip,optional"`
+	XIP        string `header:"X-Real-IP,optional"` // nginx
 }
 
 type RegisterResponse struct {
@@ -344,6 +352,14 @@ type SubCommentItem struct {
 	ParentUserId    int64  `json:"parent_user_id"`    // 父评论用户ID
 	IpLocation      string `json:"ip_location"`       // ip归属地
 	ReplyToNickname string `json:"reply_to_nickname"` // 回复对象的昵称
+}
+
+type UnreadCountResponse struct {
+	CommentCount  uint64 `json:"comment_count"`  // 评论未读数量
+	LikeCount     uint64 `json:"like_count"`     // 点赞未读数量
+	FavoriteCount uint64 `json:"favorite_count"` // 收藏未读数量
+	FollowCount   uint64 `json:"follow_count"`   // 关注未读数量
+	TotalCount    uint64 `json:"total_count"`    // 总未读数量
 }
 
 type UpdateWikiRequest struct {

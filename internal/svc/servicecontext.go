@@ -10,6 +10,7 @@ import (
 	"zerobackend/mdl/article_metrics"
 	"zerobackend/mdl/comment"
 	"zerobackend/mdl/media"
+	"zerobackend/mdl/notifications"
 	"zerobackend/mdl/report"
 	"zerobackend/mdl/user"
 	"zerobackend/mdl/user_action"
@@ -27,11 +28,12 @@ type ServiceContext struct {
 	ArticleModel        article.ArticleModel                // 文章表
 	ArticleMetricsModel article_metrics.ArticleMetricsModel // 文章统计表
 	MediaModel          media.MediaModel
-	UserActionModel     user_action.UserActionModel // 用户行为记录表
-	UserFollowModel     user_follow.UserFollowModel // 用户关注关系表
-	CommentModel        comment.CommentModel        //评论表
-	ReportModel         report.ReportModel          // 举报表
-	WikiModel           wiki.WikiModel              //百科表
+	UserActionModel     user_action.UserActionModel      // 用户行为记录表
+	UserFollowModel     user_follow.UserFollowModel      // 用户关注关系表
+	CommentModel        comment.CommentModel             //评论表
+	ReportModel         report.ReportModel               // 举报表
+	WikiModel           wiki.WikiModel                   //百科表
+	NotificationsModel  notifications.NotificationsModel // 通知表
 }
 
 // NewServiceContext 初始化服务上下文
@@ -77,6 +79,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		ReportModel: report.NewReportModel(keyframeGo, c.Cache),
 		// 百科表
 		WikiModel: wiki.NewWikiModel(keyframeGo, c.Cache),
+		// 通知表
+		NotificationsModel: notifications.NewNotificationsModel(keyframeGo, c.Cache),
+
 		// 数据库
 		BizRedis: rds,
 	}

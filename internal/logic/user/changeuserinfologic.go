@@ -43,6 +43,7 @@ func (l *ChangeUserInfoLogic) ChangeUserInfo(req *types.ChangeUserInfoRequest) (
 	err = l.svcCtx.UserModel.Update(l.ctx, &model.User{
 		Id:         uid,
 		Nickname:   req.Nickname,
+		Password:   oldUser.Password,
 		Avatar:     req.Avatar,
 		Signature:  req.Signature,
 		Type:       oldUser.Type,

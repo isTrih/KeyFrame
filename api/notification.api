@@ -33,4 +33,45 @@ type (
         Page uint64 `query:"page,optional,default=1"`  // 页码
         Size uint64 `query:"size,optional,default=15"` // 每页数量
     }
+    MarkReadResponse {
+        Success bool `json:"success"` // 操作是否成功
+    }
+    UnreadCountResponse {
+        CommentCount uint64 `json:"comment_count"` // 评论未读数量
+        LikeCount uint64 `json:"like_count"`       // 点赞未读数量
+        FavoriteCount uint64 `json:"favorite_count"` // 收藏未读数量
+        FollowCount uint64 `json:"follow_count"`   // 关注未读数量
+        TotalCount uint64 `json:"total_count"`     // 总未读数量
+    }
 )
+@server(
+    prefix: /v1/notification
+    group: notification
+    signature: true
+    jwt: Auth
+)
+service keyframeGo {
+    // 获取评论通知
+    @handler GetCommentNotification
+    get /notification/comment (GetNotificationRequest) returns (GetNotificationResponse)
+    
+    // 获取点赞通知
+    @handler GetLikeNotification
+    get /notification/like (GetNotificationRequest) returns (GetNotificationMultiResponse)
+    
+    // 获取收藏通知
+    @handler GetFavoriteNotification
+    get /notification/favorite (GetNotificationRequest) returns (GetNotificationMultiResponse)
+    
+    // 获取关注通知
+    @handler GetFollowNotification
+    get /notification/follow (GetNotificationRequest) returns (GetNotificationResponse)
+    
+    // 标记所有通知为已读
+    @handler MarkAllNotificationRead
+    put /notification/read/all returns (MarkReadResponse)
+    
+    // 获取未读通知数量
+    @handler GetUnreadNotificationCount
+    get /notification/unread/count returns (UnreadCountResponse)
+}

@@ -41,6 +41,8 @@ type (
         CoverInfo MediaInfo `json:"cover_info,optional"`              // 封面信息
         Media []string `json:"media,optional"`                        // 图片
         KIP string `header:"kip,optional"`
+        XIP          string `header:"X-Real-IP,optional"`               // nginx
+
         Id uint64 `json:"id"`                                         // 文章ID
     }
 

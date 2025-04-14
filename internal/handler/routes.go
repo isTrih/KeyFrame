@@ -12,6 +12,7 @@ import (
 	feed "zerobackend/internal/handler/feed"
 	follow "zerobackend/internal/handler/follow"
 	home "zerobackend/internal/handler/home"
+	notification "zerobackend/internal/handler/notification"
 	report "zerobackend/internal/handler/report"
 	test "zerobackend/internal/handler/test"
 	upload "zerobackend/internal/handler/upload"
@@ -199,6 +200,44 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/v1/home"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/notification/comment",
+				Handler: notification.GetCommentNotificationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/notification/favorite",
+				Handler: notification.GetFavoriteNotificationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/notification/follow",
+				Handler: notification.GetFollowNotificationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/notification/like",
+				Handler: notification.GetLikeNotificationHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/notification/read/all",
+				Handler: notification.MarkAllNotificationReadHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/notification/unread/count",
+				Handler: notification.GetUnreadNotificationCountHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithSignature(serverCtx.Config.Signature),
+		rest.WithPrefix("/v1/notification"),
 	)
 
 	server.AddRoutes(

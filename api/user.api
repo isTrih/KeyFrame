@@ -15,6 +15,8 @@ type (
         Mobile string `json:"mobile"`
         VerifyCode string `json:"verifyCode"`
         CZJCode string `json:"czj_code,optional"` //邀请码用来绑定id
+        KIP string `header:"kip,optional"`
+        XIP string `header:"X-Real-IP,optional"`               // nginx
     }
     RegisterResponse {
         UserId uint64 `json:"user_id"`
@@ -39,6 +41,7 @@ type (
         Mobile string `json:"mobile"`
         Password string `json:"password"`
         KIP string `header:"kip,optional"`
+        XIP string `header:"X-Real-IP,optional"`               // nginx
     }
     LoginResponse {
         UserId uint64 `json:"user_id"`
@@ -109,7 +112,6 @@ type (
 @server(
     prefix: /v1/user
     group: user
-
 )
 service keyframeGo {
     @doc "用户注册"

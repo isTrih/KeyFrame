@@ -37,11 +37,16 @@ func RedisCheck(c config.Config, mobile string, verifyCode string) (error, error
 		return nil, errors.New(1002, "验证码过期或未获取")
 	}
 
+	return nil, nil
+}
+
+func SMSDelete(c config.Config, mobile string) error {
+	rds := redis.MustNewRedis(c.BizRedis)
 	_, err := rds.Del(mobile)
 	if err != nil {
-		return nil, errors.New(-1, "缓存删除失败")
+		return errors.New(-1, "缓存删除失败")
 	}
-	return nil, nil
+	return nil
 }
 
 // RedisStorage 验证码存储
